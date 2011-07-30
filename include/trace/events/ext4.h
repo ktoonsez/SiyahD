@@ -26,7 +26,7 @@ TRACE_EVENT(ext4_free_inode,
 	TP_STRUCT__entry(
 		__field(	dev_t,	dev			)
 		__field(	ino_t,	ino			)
-		__field(	umode_t, mode			)
+		__field(	__u16, mode			)
 		__field(	uid_t,	uid			)
 		__field(	gid_t,	gid			)
 		__field(	__u64, blocks			)
@@ -55,7 +55,7 @@ TRACE_EVENT(ext4_request_inode,
 	TP_STRUCT__entry(
 		__field(	dev_t,	dev			)
 		__field(	ino_t,	dir			)
-		__field(	umode_t, mode			)
+		__field(	__u16, mode			)
 	),
 
 	TP_fast_assign(
@@ -78,7 +78,7 @@ TRACE_EVENT(ext4_allocate_inode,
 		__field(	dev_t,	dev			)
 		__field(	ino_t,	ino			)
 		__field(	ino_t,	dir			)
-		__field(	umode_t, mode			)
+		__field(	__u16,	mode			)
 	),
 
 	TP_fast_assign(
@@ -730,7 +730,7 @@ TRACE_EVENT(ext4_free_blocks,
 	TP_STRUCT__entry(
 		__field(	dev_t,	dev			)
 		__field(	ino_t,	ino			)
-		__field(	umode_t, mode			)
+		__field(	__u16,	mode			)
 		__field(	__u64,	block			)
 		__field(	unsigned long,	count		)
 		__field(	int,	flags			)
@@ -1017,7 +1017,7 @@ TRACE_EVENT(ext4_forget,
 	TP_STRUCT__entry(
 		__field(	dev_t,	dev			)
 		__field(	ino_t,	ino			)
-		__field(	umode_t, mode			)
+		__field(	__u16,	mode			)
 		__field(	int,	is_metadata		)
 		__field(	__u64,	block			)
 	),
@@ -1044,7 +1044,7 @@ TRACE_EVENT(ext4_da_update_reserve_space,
 	TP_STRUCT__entry(
 		__field(	dev_t,	dev			)
 		__field(	ino_t,	ino			)
-		__field(	umode_t, mode			)
+		__field(	__u16,	mode			)
 		__field(	__u64,	i_blocks		)
 		__field(	int,	used_blocks		)
 		__field(	int,	reserved_data_blocks	)
@@ -1087,7 +1087,7 @@ TRACE_EVENT(ext4_da_reserve_space,
 	TP_STRUCT__entry(
 		__field(	dev_t,	dev			)
 		__field(	ino_t,	ino			)
-		__field(	umode_t, mode			)
+		__field(	__u16,  mode			)
 		__field(	__u64,	i_blocks		)
 		__field(	int,	md_needed		)
 		__field(	int,	reserved_data_blocks	)
@@ -1121,7 +1121,7 @@ TRACE_EVENT(ext4_da_release_space,
 	TP_STRUCT__entry(
 		__field(	dev_t,	dev			)
 		__field(	ino_t,	ino			)
-		__field(	umode_t, mode			)
+		__field(	__u16,  mode			)
 		__field(	__u64,	i_blocks		)
 		__field(	int,	freed_blocks		)
 		__field(	int,	reserved_data_blocks	)
