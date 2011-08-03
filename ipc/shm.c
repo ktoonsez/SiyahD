@@ -298,6 +298,9 @@ void exit_shm(struct task_struct *task)
 	if (!ns || !ns->shm_rmid_forced)
 		return;
 
+	if (shm_ids(ns).in_use == 0)
+		return;
+
 	/* Destroy all already created segments, but not mapped yet */
 	down_write(&shm_ids(ns).rw_mutex);
 	idr_for_each(&shm_ids(ns).ipcs_idr, &shm_try_destroy_current, ns);
