@@ -393,13 +393,6 @@ void rcu_idle_enter(void)
 	rcu_idle_enter_common(rdtp);
 	trace_rcu_dyntick("Start");
 	local_irq_restore(flags);
-
-	/* If the interrupt queued a callback, get out of dyntick mode. */
-	if (in_irq() &&
-	    (__get_cpu_var(rcu_sched_data).nxtlist ||
-	     __get_cpu_var(rcu_bh_data).nxtlist ||
-	     rcu_preempt_needs_cpu(smp_processor_id())))
-		set_need_resched();
 }
 
 /**
