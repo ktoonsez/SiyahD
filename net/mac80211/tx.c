@@ -1518,9 +1518,6 @@ static int ieee80211_skb_resize(struct ieee80211_local *local,
 		return -ENOMEM;
 	}
 
-	/* update truesize too */
-	skb->truesize += head_need + tail_need;
-
 	return 0;
 }
 
