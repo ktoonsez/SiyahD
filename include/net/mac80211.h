@@ -2277,7 +2277,7 @@ static inline int ieee80211_sta_ps_transition_ni(struct ieee80211_sta *sta,
  * The TX headroom reserved by mac80211 for its own tx_status functions.
  * This is enough for the radiotap header.
  */
-#define IEEE80211_TX_STATUS_HEADROOM	13
+#define IEEE80211_TX_STATUS_HEADROOM	14
 
 /**
  * ieee80211_sta_set_tim - set the TIM bit for a sleeping station
