@@ -306,7 +306,6 @@ struct l2cap_chan {
 
 	__u8		sec_level;
 	__u8		role_switch;
-	__u8		force_reliable;
 	__u8		force_active;
 
 	__u8		ident;
@@ -446,6 +445,7 @@ enum {
 
 /* Definitions for flags in l2cap_chan */
 enum {
+	FLAG_FORCE_RELIABLE,
 	FLAG_FLUSHABLE,
 };
 
