@@ -359,7 +359,7 @@ mext_out:
 			return -EOPNOTSUPP;
 		}
 
-		if (copy_from_user(&range, (struct fstrim_range *)arg,
+		if (copy_from_user(&range, (struct fstrim_range __user *)arg,
 		    sizeof(range)))
 			return -EFAULT;
 
