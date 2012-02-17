@@ -1672,7 +1672,7 @@ static void blkiocg_attach(struct cgroup *cgrp, struct cgroup_taskset *tset)
 	ioc = get_task_io_context(tsk, GFP_ATOMIC, NUMA_NO_NODE);
 	if (ioc) {
 		ioc_cgroup_changed(ioc);
-		put_io_context(ioc, NULL);
+		put_io_context(ioc);
 	}
 }
 
