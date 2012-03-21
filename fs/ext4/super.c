@@ -5048,6 +5048,9 @@ static int __init ext4_init_fs(void)
 {
 	int i, err;
 
+	ext4_li_info = NULL;
+	mutex_init(&ext4_li_mtx);
+
 	ext4_check_flag_values();
 
 	for (i = 0; i < EXT4_WQ_HASH_SZ; i++) {
@@ -5086,8 +5089,6 @@ static int __init ext4_init_fs(void)
 	if (err)
 		goto out;
 
-	ext4_li_info = NULL;
-	mutex_init(&ext4_li_mtx);
 	return 0;
 out:
 	unregister_as_ext2();
