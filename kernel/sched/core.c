@@ -73,6 +73,7 @@
 #include <linux/cpuacct.h>
 #include <linux/init_task.h>
 
+#include <asm/switch_to.h>
 #include <asm/tlb.h>
 #include <asm/irq_regs.h>
 #ifdef CONFIG_PARAVIRT
