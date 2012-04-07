@@ -20,8 +20,8 @@ rm -rf $INITRAMFS_TMP
 rm -rf $INITRAMFS_TMP.cpio
 mkdir $INITRAMFS_TMP
 
-export ARCH=arm
-export CROSS_COMPILE=$PARENT_DIR/toolchain/bin/arm-eabi-
+export ARCH="arm"
+export CROSS_COMPILE="/usr/bin/arm-linux-gnueabi-"
 
 cd $KERNELDIR/
 nice -n 10 make -j4 || exit 1
