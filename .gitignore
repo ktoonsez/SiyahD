@@ -71,6 +71,8 @@ include/linux/utsrelease.h
 include/linux/bounds.h
 include/generated
 
+#Ready kernel zip ignore
+READY/Kernel_Dorimanx-*
 # stgit generated dirs
 patches-*
 
