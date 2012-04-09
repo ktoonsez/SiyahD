@@ -54,9 +54,15 @@ loop1:
 	and	r1, r1, #7			@ mask of the bits for current cache only
 	cmp	r1, #2				@ see what cache we have at this level
 	blt	skip				@ skip if no cache, or just i-cache
+#ifdef CONFIG_PREEMPT
+	save_and_disable_irqs_notrace r9	@ make cssr&csidr read atomic
+#endif
 	mcr	p15, 2, r10, c0, c0, 0		@ select current cache level in cssr
 	isb					@ isb to sych the new cssr&csidr
 	mrc	p15, 1, r1, c0, c0, 0		@ read the new csidr
+#ifdef CONFIG_PREEMPT
+	restore_irqs_notrace r9
+#endif
 	and	r2, r1, #7			@ extract the length of the cache lines
 	add	r2, r2, #4			@ add 4 (line length offset)
 	ldr	r4, =0x3ff
@@ -170,7 +176,6 @@ ENTRY(v7_coherent_kern_range)
  *	- the Icache does not read data from the write buffer
  */
 ENTRY(v7_coherent_user_range)
- UNWIND(.fnstart		)
 	dcache_line_size r2, r3
 	sub	r3, r2, #1
 	bic	r12, r0, r3
@@ -196,20 +201,12 @@ ENTRY(v7_coherent_user_range)
 	mov	r0, #0
 	ALT_SMP(mcr	p15, 0, r0, c7, c1, 6)	@ invalidate BTB Inner Shareable
 	ALT_UP(mcr	p15, 0, r0, c7, c5, 6)	@ invalidate BTB
-	dsb
+	dsb					@ Is a second data sync barrier really needed ?
 	isb
-	mov	pc, lr
 
-/*
- * Fault handling for the cache operation above. If the virtual address in r0
- * isn't mapped, just try the next page.
- */
+/* This patch was been introduced by zeusk shans95g@gmail.com */
 9001:
-	mov	r12, r12, lsr #12
-	mov	r12, r12, lsl #12
-	add	r12, r12, #4096
-	b	3b
- UNWIND(.fnend		)
+	mov     pc, lr
 ENDPROC(v7_coherent_kern_range)
 ENDPROC(v7_coherent_user_range)
 
