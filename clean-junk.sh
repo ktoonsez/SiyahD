@@ -20,3 +20,9 @@ done
 }
 #CLEANBKP
 
+JUNK4=`find -name *.ko`
+for i in $JUNK4
+do
+rm -f $i
+done
+

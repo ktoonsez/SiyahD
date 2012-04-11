@@ -17,11 +17,33 @@ fi
 
 . $KERNELDIR/.config
 
-#remove previous zImage files
+#Remove previous zImage files
 if [ -e $KERNELDIR/zImage ]; then
 rm $KERNELDIR/zImage
 rm $KERNELDIR/arch/arm/boot/zImage
 fi
+
+#Remove all old modules before compile.
+cd $KERNELDIR
+OLDMODULES=`find -name *.ko`
+for i in $OLDMODULES
+do
+rm -f $i
+done
+
+#remove previous initramfs files
+if [ -e $INITRAMFS_TMP ]; then
+echo "removing old temp iniramfs"
+rm -rf $INITRAMFS_TMP
+fi
+if [ -f /tmp/cpio* ]; then
+echo "removing old temp iniramfs_tmp.cpio"
+rm -rf /tmp/cpio*
+fi
+
+#Clean initramfs old compile data
+rm -f usr/initramfs_data.cpio
+rm -f usr/initramfs_data.o
 
 export ARCH=arm
 export CROSS_COMPILE=$PARENT_DIR/toolchain/bin/arm-none-eabi-
@@ -29,17 +51,10 @@ export CROSS_COMPILE=$PARENT_DIR/toolchain/bin/arm-none-eabi-
 cd $KERNELDIR/
 nice -n 10 make -j8 || exit 1
 
-#remove previous initramfs files
-if [ -d $INITRAMFS_TMP ]; then
-rm -rf $INITRAMFS_TMP
-fi
-if [ -e $INITRAMFS_TMP.cpio ]; then
-rm -rf $INITRAMFS_TMP.cpio
-fi
 #copy initramfs files to tmp directory
 cp -ax $INITRAMFS_SOURCE $INITRAMFS_TMP
 #clear git repositories in initramfs
-if [ -d $INITRAMFS_TMP/.git ]; then
+if [ -e $INITRAMFS_TMP/.git ]; then
 find $INITRAMFS_TMP -name .git -exec rm -rf {} \;
 fi
 #remove empty directory placeholders
@@ -51,8 +66,8 @@ fi
 #copy modules into initramfs
 mkdir -p $INITRAMFS/lib/modules
 find -name '*.ko' -exec cp -av {} $INITRAMFS_TMP/lib/modules/ \;
-
-nice -n 10 make -j3 zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
+chmod 755 $INITRAMFS_TMP/lib/modules/*
+nice -n 10 make -j8 zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
 
 if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
 cp $KERNELDIR/arch/arm/boot/zImage zImage
