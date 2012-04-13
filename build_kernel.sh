@@ -49,7 +49,7 @@ export ARCH=arm
 export CROSS_COMPILE=$PARENT_DIR/toolchain/bin/arm-none-eabi-
 
 cd $KERNELDIR/
-nice -n 10 make -j8 || exit 1
+nice -n 10 make -j8 modules || exit 1
 
 #copy initramfs files to tmp directory
 cp -ax $INITRAMFS_SOURCE $INITRAMFS_TMP
