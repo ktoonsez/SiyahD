@@ -70,8 +70,7 @@ chmod 755 $INITRAMFS_TMP/lib/modules/*
 nice -n 10 make -j8 zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
 
 if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
-cp $KERNELDIR/arch/arm/boot/zImage zImage
-#$KERNELDIR/mkshbootimg.py $KERNELDIR/zImage $KERNELDIR/arch/arm/boot/zImage $KERNELDIR/../payload.cpio $KERNELDIR/../recovery.cpio.xz
+$KERNELDIR/mkshbootimg.py $KERNELDIR/zImage $KERNELDIR/arch/arm/boot/zImage $KERNELDIR/payload.tar
 
 #Copy all needed to ready kernel folder.
 cp $KERNELDIR/.config $KERNELDIR/arch/arm/configs/dorimanx_defconfig
