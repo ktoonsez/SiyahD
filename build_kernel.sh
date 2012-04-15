@@ -31,7 +31,7 @@ do
 rm -f $i
 done
 
-#remove previous initramfs files
+#Remove previous initramfs files
 if [ -e $INITRAMFS_TMP ]; then
 echo "removing old temp iniramfs"
 rm -rf $INITRAMFS_TMP
@@ -46,24 +46,25 @@ rm -f usr/initramfs_data.cpio
 rm -f usr/initramfs_data.o
 
 export ARCH=arm
+#I am building with latest toolchain with gcc 4.5.2
 export CROSS_COMPILE=$PARENT_DIR/toolchain/bin/arm-none-eabi-
 
 cd $KERNELDIR/
 nice -n 10 make -j8 modules || exit 1
 
-#copy initramfs files to tmp directory
+#Copy initramfs files to tmp directory
 cp -ax $INITRAMFS_SOURCE $INITRAMFS_TMP
-#clear git repositories in initramfs
+#Clear git repositories in initramfs
 if [ -e $INITRAMFS_TMP/.git ]; then
 find $INITRAMFS_TMP -name .git -exec rm -rf {} \;
 fi
-#remove empty directory placeholders
+#Remove empty directory placeholders
 find $INITRAMFS_TMP -name EMPTY_DIRECTORY -exec rm -rf {} \;
-#remove mercurial repository
+#Remove mercurial repository
 if [ -d $INITRAMFS_TMP/.hg ]; then
 rm -rf $INITRAMFS_TMP/.hg
 fi
-#copy modules into initramfs
+#Copy modules into initramfs
 mkdir -p $INITRAMFS/lib/modules
 find -name '*.ko' -exec cp -av {} $INITRAMFS_TMP/lib/modules/ \;
 chmod 755 $INITRAMFS_TMP/lib/modules/*
