@@ -1203,6 +1203,7 @@ out:
 	spin_unlock_irqrestore(&host->lock, host->sl_flags);
 }
 
+#ifdef CONFIG_MMC_MSHCI_ASYNC_OPS
 static void mshci_pre_req(struct mmc_host *mmc, struct mmc_request *mrq,
 							bool is_first_req)
 {
@@ -1272,6 +1273,7 @@ out:
 	spin_unlock_irqrestore(&host->lock, host->sl_flags);
 	return;
 }
+#endif
 
 static void mshci_post_req(struct mmc_host *mmc, struct mmc_request *mrq,
 							int err)
