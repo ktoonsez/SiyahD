@@ -51,9 +51,9 @@
 #if defined(CONFIG_S5P_MEM_CMA)
 #include <linux/cma.h>
 #endif
-//#ifdef CONFIG_ANDROID_RAM_CONSOLE
-//#include <linux/bootmem.h>
-//#endif
+#ifdef CONFIG_ANDROID_RAM_CONSOLE
+#include <linux/bootmem.h>
+#endif
 #ifdef CONFIG_ANDROID_PMEM
 #include <linux/android_pmem.h>
 #endif
@@ -3001,8 +3001,7 @@ void sec_set_main_mic_bias(bool on)
 
 void sec_set_ldo1_constraints(int disabled)
 {
-//#if defined(CONFIG_TARGET_LOCALE_NAATT_TEMP)
-#if 0        /* later */
+#if defined(CONFIG_TARGET_LOCALE_NAATT_TEMP)
 	/* VDD33_ADC */
 	ldo1_init_data.constraints.state_mem.disabled = disabled;
 	ldo1_init_data.constraints.state_mem.enabled = !disabled;
@@ -3786,7 +3785,7 @@ struct gpio_keys_button u1_buttons[] = {
 		.wakeup = 1,
 		.isr_hook = sec_debug_check_crash_key,
 	},			/* power key */
-//#if !defined(CONFIG_TARGET_LOCALE_NAATT_TEMP)
+#if !defined(CONFIG_TARGET_LOCALE_NAATT_TEMP)
 	{
 		.code = KEY_HOME,
 		.gpio = GPIO_OK_KEY,
@@ -3794,7 +3793,7 @@ struct gpio_keys_button u1_buttons[] = {
 		.type = EV_KEY,
 		.wakeup = 1,
 	},			/* ok key */
-//#endif
+#endif
 };
 
 struct gpio_keys_platform_data u1_keypad_platform_data = {
@@ -3940,10 +3939,10 @@ static void mxt224_power_off(void)
   Configuration for MXT224
 */
 #define MXT224_THRESHOLD_BATT		40
-#define MXT224_THRESHOLD_BATT_INIT	50
+#define MXT224_THRESHOLD_BATT_INIT		50
 #define MXT224_THRESHOLD_CHRG		55
-#define MXT224_NOISE_THRESHOLD_BATT	30
-#define MXT224_NOISE_THRESHOLD_CHRG	40
+#define MXT224_NOISE_THRESHOLD_BATT		30
+#define MXT224_NOISE_THRESHOLD_CHRG		40
 #define MXT224_MOVFILTER_BATT		30
 #define MXT224_MOVFILTER_CHRG		47
 #define MXT224_ATCHCALST		4
@@ -5349,7 +5348,6 @@ static void __init mipi_fb_init(void)
 }
 #endif
 
-/*
 #ifdef CONFIG_ANDROID_RAM_CONSOLE
 static struct resource ram_console_resource[] = {
 	{
@@ -5387,7 +5385,6 @@ static int __init setup_ram_console_mem(char *str)
 
 __setup("ram_console=", setup_ram_console_mem);
 #endif
-*/
 
 #ifdef CONFIG_ANDROID_PMEM
 static struct android_pmem_platform_data pmem_pdata = {
@@ -5697,9 +5694,9 @@ static struct platform_device *smdkc210_devices[] __initdata = {
 	&s5p_device_cec,
 	&s5p_device_hpd,
 #endif
-//#ifdef CONFIG_ANDROID_RAM_CONSOLE
-//	&ram_console_device,
-//#endif
+#ifdef CONFIG_ANDROID_RAM_CONSOLE
+	&ram_console_device,
+#endif
 #ifdef CONFIG_ANDROID_PMEM
 	&pmem_device,
 	&pmem_gpu1_device,
@@ -6053,7 +6050,6 @@ static void __init smdkc210_map_io(void)
 	s5p_reserve_mem(S5P_RANGE_MFC);
 #endif
 
-/*
 #ifdef CONFIG_ANDROID_RAM_CONSOLE
 if (!reserve_bootmem(0x4d900000, (1 << CONFIG_LOG_BUF_SHIFT), BOOTMEM_EXCLUSIVE)) {
 	ram_console_resource[0].start = 0x4d900000;
@@ -6061,7 +6057,6 @@ if (!reserve_bootmem(0x4d900000, (1 << CONFIG_LOG_BUF_SHIFT), BOOTMEM_EXCLUSIVE)
     pr_err("%s ram_console_resource[0].start: %x, end: %x\n", __func__, ram_console_resource[0].start, ram_console_resource[0].end);	
 }
 #endif
-*/
 
 	/* as soon as INFORM3 is visible, sec_debug is ready to run */
 	sec_debug_init();

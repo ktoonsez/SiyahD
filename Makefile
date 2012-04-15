@@ -1,6 +1,6 @@
 VERSION = 3
 PATCHLEVEL = 0
-SUBLEVEL = 27
+SUBLEVEL = 28
 EXTRAVERSION =
 NAME = Sneaky Weasel
 
@@ -349,9 +349,8 @@ CHECK			= sparse
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  		  -Wbitwise -Wno-return-void $(CF)
 MODFLAGS		= -Ofast -pipe -marm -march=armv7-a -mfloat-abi=hard \
-				  -mcpu=cortex-a9 -mfpu=neon \
+				  -mcpu=cortex-a9 -mfpu=vfp3 \
 				  -fsched-spec-load -floop-interchange -floop-strip-mine -floop-block \
-				  -ffast-math -ftree-vectorize -fsingle-precision-constant \
 				  -funswitch-loops -fpredictive-commoning -fgcse-after-reload \
 				  -fipa-cp-clone \
 			
