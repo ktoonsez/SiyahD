@@ -46,6 +46,7 @@
 #define MAX_FREQUENCY_UP_THRESHOLD		(100)
 #define UP_THRESHOLD_AT_MIN_FREQ    		(40)
 #define DEF_SUSPEND_FREQ			(500000)
+#define FREQ_FOR_RESPONSIVENESS			(500000)
 
 /*
  * The polling frequency of this governor depends on the capability of
