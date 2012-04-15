@@ -12,7 +12,7 @@ INITRAMFS_TMP="/tmp/initramfs-source"
 
 if [ ! -f $KERNELDIR/.config ];
 then
-  make dorimanx_defconfig
+  make voku_defconfig
 fi
 
 . $KERNELDIR/.config
