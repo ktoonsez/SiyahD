@@ -143,7 +143,7 @@ static int exynos_target(struct cpufreq_policy *policy,
 #if defined(CONFIG_CPU_EXYNOS4210)
 	/* Do NOT step up max arm clock directly to reduce power consumption */
 	//reach 1200MHz step by step starting from 800MHz -gm
-	if(index <= smooth_target && index < old_index)
+	if(index <= smooth_target && index < old_index && policy->governor->enableSmoothScaling)
 	{
 		index = max(index,min(smooth_target + smooth_offset, old_index - smooth_step));
 	}
