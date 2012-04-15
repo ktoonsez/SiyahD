@@ -42,7 +42,7 @@ static int lowmem_adj[6] = {
 	1,
 	3,
 	4,
-	18,
+	7,
 	15,
 };
 static int lowmem_adj_size = 6;
