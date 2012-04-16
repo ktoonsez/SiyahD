@@ -349,7 +349,7 @@ CHECK			= sparse
 MODFLAGS		= -Ofast -pipe -marm -march=armv7-a -mfloat-abi=hard \
 				  -mcpu=cortex-a9 -mfpu=vfp3 \
 				  -fsched-spec-load -floop-interchange -floop-strip-mine -floop-block \
-				  -ffast-math -ftree-vectorize \
+				  -ffast-math -ftree-vectorize -finline-functions \
 				  -funswitch-loops -fpredictive-commoning -fgcse-after-reload \
 				  -fmodulo-sched -fmodulo-sched-allow-regmoves \	
 				  -fsingle-precision-constant -fipa-cp-clone \
