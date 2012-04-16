@@ -346,13 +346,15 @@ KALLSYMS		= scripts/kallsyms
 PERL			= perl
 CHECK			= sparse
 
-MODFLAGS		= -Ofast -pipe -marm -march=armv7-a -mfloat-abi=hard \
-				  -mcpu=cortex-a9 -mfpu=vfp3 \
-				  -fsched-spec-load -floop-interchange -floop-strip-mine -floop-block \
-				  -ffast-math -ftree-vectorize -finline-functions \
-				  -funswitch-loops -fpredictive-commoning -fgcse-after-reload \
+MODFLAGS		= -Ofast -pipe -marm \
+				  -march=armv7-a -mcpu=cortex-a9 \
+				  -mfloat-abi=hard -mfpu=vfp3 \
+				  -fgcse-sm -fgcse-las \
+				  -funroll-loops -ftree-loop-ivcanon -ftree-loop-im \
+				  -floop-interchange -floop-strip-mine -floop-block \
+				  -fno-inline-functions -fno-tree-vectorize \
 				  -fmodulo-sched -fmodulo-sched-allow-regmoves \	
-				  -fsingle-precision-constant -fipa-cp-clone \
+				  -fsingle-precision-constant -fsched-spec-load \
 			
 CFLAGS_MODULE   = $(MODFLAGS)
 AFLAGS_MODULE   = $(MODFLAGS)
