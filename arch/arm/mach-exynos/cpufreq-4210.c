@@ -68,22 +68,22 @@ static unsigned int clkdiv_cpu0[CPUFREQ_LEVEL_END][7] = {
 	 */
         /* ARM L0: 1500MHz */
         { 0, 3, 7, 3, 4, 1, 7 },
-	/* ARM L0: 1400MHz */
+	/* ARM L1: 1400MHz */
 	{ 0, 3, 7, 3, 4, 1, 7 },
 
-	/* ARM L1: 1200MHz */
+	/* ARM L2: 1200MHz */
 	{ 0, 3, 7, 3, 4, 1, 7 },
 
-	/* ARM L2: 1000MHz */
+	/* ARM L3: 1000MHz */
 	{ 0, 3, 7, 3, 4, 1, 7 },
 
-	/* ARM L3: 800MHz */
+	/* ARM L4: 800MHz */
 	{ 0, 3, 7, 3, 3, 1, 7 },
 
-	/* ARM L4: 500MHz */
+	/* ARM L5: 500MHz */
 	{ 0, 3, 7, 3, 3, 1, 7 },
 
-	/* ARM L5: 200MHz */
+	/* ARM L6: 200MHz */
 	{ 0, 1, 3, 1, 3, 1, 0 },
 };
 
@@ -91,8 +91,9 @@ static unsigned int clkdiv_cpu1[CPUFREQ_LEVEL_END][2] = {
 	/* Clock divider value for following
 	 * { DIVCOPY, DIVHPM }
 	 */
-        /* ARM L0: 1400MHz */
+        /* ARM L0: 1500MHz */
         { 5, 0 },
+
 	/* ARM L1: 1400MHz */
 	{ 5, 0 },
 
