@@ -494,16 +494,16 @@ static int exynos_cpufreq_notifier_event(struct notifier_block *this,
 			mutex_lock(&set_freq_lock);
 
 			/* get the voltage value */
-			safe_arm_volt = exynos_get_safe_armvolt(exynos_info->pm_lock_idx, min(exynos_info->max_current_idx,L1));
+			safe_arm_volt = exynos_get_safe_armvolt(exynos_info->pm_lock_idx, min(exynos_info->max_current_idx, L1));
 			if (safe_arm_volt)
 				regulator_set_voltage(arm_regulator, safe_arm_volt,
 					safe_arm_volt + 25000);
 
-			arm_volt = volt_table[min(exynos_info->max_current_idx,L1)];
+			arm_volt = volt_table[min(exynos_info->max_current_idx, L1)];
 			regulator_set_voltage(arm_regulator, arm_volt,
 				arm_volt + 25000);
 
-			exynos_info->set_freq(exynos_info->pm_lock_idx, min(exynos_info->max_current_idx,L1));
+			exynos_info->set_freq(exynos_info->pm_lock_idx, min(exynos_info->max_current_idx, L1));
 
 			mutex_unlock(&set_freq_lock);
 		}
@@ -750,17 +750,17 @@ ssize_t store_UV_mV_table(struct cpufreq_policy *policy,
 	unsigned int ret = -EINVAL;
 	int i = 0;
 	int j = 0;
-	int u[6];
-	ret = sscanf(buf, "%d %d %d %d %d %d", &u[0], &u[1], &u[2], &u[3], &u[4], &u[5]);
-	if(ret != 6) {
-		ret = sscanf(buf, "%d %d %d %d %d", &u[0], &u[1], &u[2], &u[3], &u[4]);
-		if(ret != 5) {
-			ret = sscanf(buf, "%d %d %d %d", &u[0], &u[1], &u[2], &u[3]);
-			if( ret != 4) return -EINVAL;
+	int u[7];
+	ret = sscanf(buf, "%d %d %d %d %d %d %d", &u[0], &u[1], &u[2], &u[3], &u[4], &u[5], &u[6]);
+	if(ret != 7) {
+		ret = sscanf(buf, "%d %d %d %d %d %d", &u[0], &u[1], &u[2], &u[3], &u[4], &u[5]);
+		if(ret != 6) {
+			ret = sscanf(buf, "%d %d %d %d %d", &u[0], &u[1], &u[2], &u[3], &u[4]);
+			if( ret != 5) return -EINVAL;
 		}
 	}
 
-	for( i = 0; i < 6; i++ )
+	for( i = 0; i < 7; i++ )
 	{
 		if (u[i] > CPU_UV_MV_MAX / 1000)
 		{
@@ -772,7 +772,7 @@ ssize_t store_UV_mV_table(struct cpufreq_policy *policy,
 		}
 	}
 
-	for( i = 6 - ret; i < 6; i++)
+	for( i = 7 - ret; i < 7; i++)
 	{
 		exynos_info->volt_table[i] = u[i]*1000;
 	}
