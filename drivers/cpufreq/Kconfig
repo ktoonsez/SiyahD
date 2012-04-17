@@ -119,9 +119,46 @@ config CPU_FREQ_DEFAULT_GOV_ADAPTIVE
 	  'adaptive' governor for latency-sensitive workloads and demanding
 	  performance.
 
+config CPU_FREQ_DEFAULT_GOV_LULZACTIVE
+	bool "lulzactive"
+	select CPU_FREQ_GOV_LULZACTIVE
+
+config CPU_FREQ_DEFAULT_GOV_SMARTASS2
+	bool "smartass2"
+	select CPU_FREQ_GOV_SMARTASS2
+
+config CPU_FREQ_DEFAULT_GOV_SAVAGEDZEN
+	bool "savagedzen"
+	select CPU_FREQ_GOV_SAVAGEDZEN
+
+config CPU_FREQ_DEFAULT_GOV_SCARY
+	bool "scary"
+	select CPU_FREQ_GOV_SCARY
+
+config CPU_FREQ_DEFAULT_GOV_LAZY
+	bool "lazy"
+	select CPU_FREQ_GOV_LAZY
+
+config CPU_FREQ_DEFAULT_GOV_LAGFREE
+	bool "lagfree"
+	select CPU_FREQ_GOV_LAGFREE
+
+config CPU_FREQ_DEFAULT_GOV_SAKURACTIVE
+	bool "sakuractive"
+	select CPU_FREQ_GOV_SAKURACTIVE
+
+config CPU_FREQ_DEFAULT_GOV_INTELLIDEMAND
+	bool "intellidemand"
+	select CPU_FREQ_GOV_INTELLIDEMAND
+
+config CPU_FREQ_DEFAULT_GOV_WHEATLEY
+	bool "wheatley"
+	select CPU_FREQ_GOV_WHEATLEY
+
 config CPU_FREQ_DEFAULT_GOV_PEGASUSQ
-	bool "pegasusq"
-	select CPU_FREQ_GOV_PEGASUSQ
+    bool "pegasusq"
+    select CPU_FREQ_GOV_PEGASUSQ
+
 
 endchoice
 
