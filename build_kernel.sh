@@ -82,7 +82,7 @@ rm $KERNELDIR/READY/Kernel_Dorimanx-SGII-ICS*
 stat $KERNELDIR/zImage
 cp $KERNELDIR/zImage /$KERNELDIR/READY/boot/
 cd $KERNELDIR/READY/
-zip -r Kernel_Dorimanx-SGII-ICS-`date +"Time-%H-%M-Date-%d-%m-%y"`.zip .
+zip -r Kernel_Dorimanx-SGII-ICS-`date +"Date-%d-%m-%y-Time-%H-%M"`.zip .
 else
 echo "Kernel STUCK in BUILD! no zImage exist"
 fi
