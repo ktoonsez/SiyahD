@@ -108,10 +108,10 @@ static unsigned int clkdiv_cpu0[CPUFREQ_LEVEL_END][7] = {
 	{ 0, 3, 7, 3, 3, 1, 7 },
 
 	/* ARM L10: 200MHz */
-	{ 0, 1, 3, 1, 3, 1, 7 },
+	{ 0, 1, 3, 1, 3, 1, 0 },
 
 	/* ARM L11: 100MHz */
-	{ 0, 1, 3, 1, 3, 1, 7 },
+	{ 0, 1, 3, 1, 3, 1, 0 },
 };
 
 static unsigned int clkdiv_cpu1[CPUFREQ_LEVEL_END][2] = {
@@ -223,6 +223,7 @@ static const unsigned int asv_voltage_B[CPUFREQ_LEVEL_END][5] = {
 	 * @800	 :	ASV_VOLTAGE_TABLE
 	 * @500	 :
 	 * @200	 :
+	 * @100  :
 	 */
 	{ 1350000, 1350000, 1300000, 1250000, 1225000 },
 	{ 1325000, 1275000, 1225000, 1175000, 1150000 },
@@ -230,6 +231,7 @@ static const unsigned int asv_voltage_B[CPUFREQ_LEVEL_END][5] = {
 	{ 1150000, 1100000, 1050000, 1000000, 975000 },
 	{ 1050000, 1000000, 950000, 950000, 950000 },
 	{ 1025000, 975000, 950000, 950000, 950000 },
+	{ 1000000, 975000, 950000, 925000, 900000 },
 
 };
 

@@ -786,9 +786,7 @@ static int m5mo_flash_power(int enable)
 		if (regulator_is_enabled(movie))
 			regulator_disable(movie);
 	}
-#if defined(CONFIG_MACH_Q1_BD)
 torch_exit:
-#endif
 	regulator_put(flash);
 	regulator_put(movie);
 
@@ -2289,8 +2287,8 @@ REGULATOR_INIT(ldo10, "VPLL_1.2V", 1200000, 1200000, 1,
 REGULATOR_INIT(ldo10, "VPLL_1.1V", 1100000, 1100000, 1,
 		REGULATOR_CHANGE_STATUS, 1);
 #endif
-REGULATOR_INIT(ldo11, "TOUCH_2.8V", 2800000, 2800000, 0,
-		REGULATOR_CHANGE_STATUS, 1);
+REGULATOR_INIT(ldo11, "TOUCH_2.8V", 2800000, 2800000, 1,
+		REGULATOR_CHANGE_STATUS, 0);
 REGULATOR_INIT(ldo12, "VT_CAM_1.8V", 1800000, 1800000, 0,
 		REGULATOR_CHANGE_STATUS, 1);
 REGULATOR_INIT(ldo13, "VCC_3.0V_LCD", 3000000, 3000000, 1,
@@ -2308,8 +2306,8 @@ REGULATOR_INIT(ldo16, "CAM_SENSOR_IO_1.8V", 1800000, 1800000, 0,
 		REGULATOR_CHANGE_STATUS, 1);
 REGULATOR_INIT(ldo17, "VTF_2.8V", 2800000, 2800000, 0,
 		REGULATOR_CHANGE_STATUS, 1);
-REGULATOR_INIT(ldo18, "TOUCH_LED_3.3V", 3000000, 3300000, 0,
-		REGULATOR_CHANGE_STATUS | REGULATOR_CHANGE_VOLTAGE, 1);
+REGULATOR_INIT(ldo18, "TOUCH_LED_3.3V", 3000000, 3300000, 1,
+		REGULATOR_CHANGE_STATUS | REGULATOR_CHANGE_VOLTAGE, 0);
 REGULATOR_INIT(ldo21, "VDDQ_M1M2_1.2V", 1200000, 1200000, 1,
 		REGULATOR_CHANGE_STATUS, 1);
 
@@ -3536,7 +3534,6 @@ static unsigned int sec_bat_get_lpcharging_state(void)
 	return val;
 }
 
-#if defined(CONFIG_MACH_Q1_BD)
 static void sec_bat_initial_check(void)
 {
 	pr_info("%s: connected_cable_type:%d\n",
@@ -3544,7 +3541,6 @@ static void sec_bat_initial_check(void)
 	if (connected_cable_type != CABLE_TYPE_NONE)
 		max8997_muic_charger_cb(connected_cable_type);
 }
-#endif
 
 static struct sec_bat_platform_data sec_bat_pdata = {
 	.fuel_gauge_name	= "fuelgauge",
@@ -3943,11 +3939,11 @@ static void mxt224_power_off(void)
   Configuration for MXT224
 */
 #define MXT224_THRESHOLD_BATT		40
-#define MXT224_THRESHOLD_BATT_INIT	50
+#define MXT224_THRESHOLD_BATT_INIT		50
 #define MXT224_THRESHOLD_CHRG		55
-#define MXT224_NOISE_THRESHOLD_BATT	30
-#define MXT224_NOISE_THRESHOLD_CHRG	40
-#define MXT224_MOVFILTER_BATT		30
+#define MXT224_NOISE_THRESHOLD_BATT		30
+#define MXT224_NOISE_THRESHOLD_CHRG		40
+#define MXT224_MOVFILTER_BATT		11
 #define MXT224_MOVFILTER_CHRG		47
 #define MXT224_ATCHCALST		4
 #define MXT224_ATCHCALTHR		35
@@ -5773,9 +5769,9 @@ static struct platform_device *smdkc210_devices[] __initdata = {
 #ifdef CONFIG_EXYNOS4_SETUP_THERMAL
 /* below temperature base on the celcius degree */
 struct s5p_platform_tmu u1_tmu_data __initdata = {
-	.ts = { //use 4x12 values -gm
-		.stop_1st_throttle  = 78,
-		.start_1st_throttle = 80,
+	.ts = {
+		.stop_1st_throttle  = 61,
+		.start_1st_throttle = 64,
 		.stop_2nd_throttle  = 87,
 		.start_2nd_throttle = 103,
 		.start_tripping     = 110,

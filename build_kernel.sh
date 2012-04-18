@@ -67,6 +67,7 @@ fi
 #copy modules into initramfs
 mkdir -p $INITRAMFS/lib/modules
 find -name '*.ko' -exec cp -av {} $INITRAMFS_TMP/lib/modules/ \;
+${CROSS_COMPILE}strip --strip-debug $INITRAMFS_TMP/lib/modules/*.ko
 chmod 755 $INITRAMFS_TMP/lib/modules/*
 nice -n 10 make -j8 zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
 
@@ -78,6 +79,7 @@ cp $KERNELDIR/.config $KERNELDIR/arch/arm/configs/dorimanx_defconfig
 cp $KERNELDIR/.config $KERNELDIR/READY/
 rm $KERNELDIR/READY/boot/zImage
 rm $KERNELDIR/READY/Kernel_Voku-SGII-ICS-V*
+stat $KERNELDIR/zImage
 cp $KERNELDIR/zImage /$KERNELDIR/READY/boot/
 cd $KERNELDIR/READY/
 zip -r Kernel_Voku-SGII-ICS-V1.`date +"%H-%M-%d%m%y"`.zip .
