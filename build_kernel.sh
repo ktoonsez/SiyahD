@@ -78,11 +78,11 @@ $KERNELDIR/mkshbootimg.py $KERNELDIR/zImage $KERNELDIR/arch/arm/boot/zImage $KER
 cp $KERNELDIR/.config $KERNELDIR/arch/arm/configs/dorimanx_defconfig
 cp $KERNELDIR/.config $KERNELDIR/READY/
 rm $KERNELDIR/READY/boot/zImage
-rm $KERNELDIR/READY/Kernel_Dorimanx-SGII-ICS-V*
+rm $KERNELDIR/READY/Kernel_Dorimanx-SGII-ICS*
 stat $KERNELDIR/zImage
 cp $KERNELDIR/zImage /$KERNELDIR/READY/boot/
 cd $KERNELDIR/READY/
-zip -r Kernel_Dorimanx-SGII-ICS-V1.`date +"%H-%M-%d%m%y"`.zip .
+zip -r Kernel_Dorimanx-SGII-ICS-`date +"Time-%H-%M-Date-%d-%m-%y"`.zip .
 else
 echo "Kernel STUCK in BUILD! no zImage exist"
 fi
