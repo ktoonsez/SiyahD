@@ -68,6 +68,7 @@ static unsigned int clkdiv_cpu0[CPUFREQ_LEVEL_END][7] = {
 	 */
         /* ARM L0: 1500MHz */
         { 0, 3, 7, 3, 4, 1, 7 },
+
 	/* ARM L1: 1400MHz */
 	{ 0, 3, 7, 3, 4, 1, 7 },
 
