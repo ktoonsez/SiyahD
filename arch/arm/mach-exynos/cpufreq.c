@@ -116,7 +116,8 @@ static int exynos_target(struct cpufreq_policy *policy,
 			ret = -EINVAL;
 			goto out;
 		}
-	} else {
+	} else 
+	{
 		if (cpufreq_frequency_table_target(policy, freq_table,
 						   freqs.old, relation, &old_index)) {
 			ret = -EINVAL;
