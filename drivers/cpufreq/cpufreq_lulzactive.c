@@ -36,7 +36,7 @@
 #define LULZACTIVE_AUTHOR	"tegrak"
 
 // if you changed some codes for optimization, just write your name here.
-#define LULZACTIVE_TUNER "siyah"
+#define LULZACTIVE_TUNER "mecss"
 
 #define LOGI(fmt...) printk(KERN_INFO "[lulzactive] " fmt)
 #define LOGW(fmt...) printk(KERN_WARNING "[lulzactive] " fmt)
@@ -99,7 +99,7 @@ enum {
 /*
  * CPU freq will be increased if measured load > inc_cpu_load;
  */
-#define DEFAULT_INC_CPU_LOAD 60
+#define DEFAULT_INC_CPU_LOAD 90
 static unsigned long inc_cpu_load;
 
 /*
@@ -120,7 +120,7 @@ static unsigned long pump_up_step;
  * Decreasing frequency table index
  * zero disables and will calculate frequency according to load heuristic.
  */
-#define DEFAULT_PUMP_DOWN_STEP 1
+#define DEFAULT_PUMP_DOWN_STEP 2
 static unsigned long pump_down_step;
 
 /*
