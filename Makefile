@@ -193,7 +193,6 @@ SUBARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ \
 # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
 export KBUILD_BUILDHOST := $(SUBARCH)
 ARCH		?= arm
-CROSS_COMPILE  ?= $(shell cd ..;pwd)/toolchain/bin/arm-eabi-
 CROSS_COMPILE	?= $(CONFIG_CROSS_COMPILE:"%"=%)
 
 # Architecture as present in compile.h
@@ -246,8 +245,8 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 
 HOSTCC       = gcc
 HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -Ofast -fomit-frame-pointer
-HOSTCXXFLAGS = -Ofast
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer
+HOSTCXXFLAGS = -O2
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
@@ -348,22 +347,20 @@ CHECK			= sparse
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 				  -Wbitwise -Wno-return-void $(CF)
-MODFLAGS		= -Ofast -pipe -marm \
-				  -march=armv7-a -mcpu=cortex-a9 \
-				  -mfloat-abi=hard -mfpu=vfp3 \
-				  -funswitch-loops \
-				  -floop-interchange -floop-strip-mine -floop-block \
-				  -fno-inline-functions -fno-tree-vectorize \
-				  -fmodulo-sched -fmodulo-sched-allow-regmoves \
-				  -fsingle-precision-constant -fsched-spec-load \
-			
-CFLAGS_MODULE   = $(MODFLAGS)
-AFLAGS_MODULE   = $(MODFLAGS)
+CFLAGS_MODULE   = 
+AFLAGS_MODULE   = 
 LDFLAGS_MODULE  =
 CFLAGS_KERNEL	=
 AFLAGS_KERNEL	=
 CFLAGS_GCOV		= -fprofile-arcs -ftest-coverage
-
+CFLAGS_MODFLAGS	= -Ofast -pipe
+CFLAGS_ARM      = -marm -mtune=cortex-a9 -mfpu=vfp3 -mfloat-abi=hard -march=armv7-a
+CFLAGS_EXTRA    = -finline-functions -funswitch-loops -fpredictive-commoning \
+          -fgcse-after-reload -ftree-vectorize -fipa-cp-clone \
+          -floop-interchange -floop-strip-mine -floop-block \
+          -fno-inline-functions -fno-tree-vectorize \
+          -fsingle-precision-constant -fsched-spec-load 
+CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 
 # Use LINUXINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
@@ -378,7 +375,8 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 				   -fno-strict-aliasing -fno-common \
 		   		   -Werror-implicit-function-declaration \
 		   		   -Wno-format-security \
-		   		   -fno-delete-null-pointer-checks $(MODFLAGS)
+		   		   -fno-delete-null-pointer-checks $(CFLAGS_MODFLAGS) \
+				   $(CFLAGS_ARM) $(CFLAGS_EXTRA) $(CFLAGS_MODULO) 
 KBUILD_AFLAGS_KERNEL 	:=
 KBUILD_CFLAGS_KERNEL 	:=
 KBUILD_AFLAGS   		:= -D__ASSEMBLY__
@@ -639,7 +637,7 @@ NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)
 CHECKFLAGS     += $(NOSTDINC_FLAGS)
 
 # improve gcc optimization
-CFLAGS += $(call cc-option,-funit-at-a-time,)
+# CFLAGS += $(call cc-option,-funit-at-a-time,)
 
 # warn about C99 declaration after statement
 KBUILD_CFLAGS += $(call cc-option,-Wdeclaration-after-statement,)
