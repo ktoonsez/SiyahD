@@ -41,25 +41,25 @@
 #include <mach/regs-irq.h>
 
 #if defined(CONFIG_MACH_P11) || defined(CONFIG_MACH_P10)
-#define TRANS_LOAD_H0 30
-#define TRANS_LOAD_L1 20
+#define TRANS_LOAD_H0 50
+#define TRANS_LOAD_L1 30
 #define TRANS_LOAD_H1 100
 #endif
 
 #if defined(CONFIG_MACH_U1) || defined(CONFIG_MACH_PX)
-#define TRANS_LOAD_H0 30
-#define TRANS_LOAD_L1 20
+#define TRANS_LOAD_H0 50
+#define TRANS_LOAD_L1 30
 #define TRANS_LOAD_H1 100
 #endif
 
 #if defined(CONFIG_MACH_MIDAS) || defined(CONFIG_MACH_SMDK4X12)
 #ifdef CONFIG_MACH_S2PLUS
-#define TRANS_LOAD_H0 30
-#define TRANS_LOAD_L1 20
+#define TRANS_LOAD_H0 50
+#define TRANS_LOAD_L1 30
 #define TRANS_LOAD_H1 100
 #else
-#define TRANS_LOAD_H0 20
-#define TRANS_LOAD_L1 10
+#define TRANS_LOAD_H0 40
+#define TRANS_LOAD_L1 20
 #define TRANS_LOAD_H1 35
 #endif
 #define TRANS_LOAD_L2 15

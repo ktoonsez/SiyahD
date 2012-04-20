@@ -85,6 +85,9 @@ static unsigned int exynos_get_safe_armvolt(unsigned int old_index, unsigned int
 	return safe_arm_volt;
 }
 
+unsigned int smooth_target = L2;
+unsigned int smooth_offset = 2;
+unsigned int smooth_step = 2;
 static int exynos_target(struct cpufreq_policy *policy,
 			  unsigned int target_freq,
 			  unsigned int relation)
@@ -145,9 +148,14 @@ static int exynos_target(struct cpufreq_policy *policy,
 
 #if defined(CONFIG_CPU_EXYNOS4210)
 	/* Do NOT step up max arm clock directly to reduce power consumption */
-	exynos_cpufreq_get_level(policy->max, &max_index);
-	if (index == max_index && old_index > max_index + 5)
-		index = max_index + 5;
+	// reach 1200MHz step by step starting from 800MHz - thx to gm
+	if(index <= smooth_target && index < old_index)
+	{
+		index = max(index,min(smooth_target + smooth_offset, old_index - smooth_step));
+	}
+	//exynos_cpufreq_get_level(policy->max, &max_index);
+	//if (index == max_index && old_index > max_index + 5)
+	//	index = max_index + 5;
 #endif
 
 	freqs.new = freq_table[index].frequency;
@@ -523,6 +531,7 @@ static int exynos_cpufreq_policy_notifier_call(struct notifier_block *this,
 
 	switch (code) {
 	case CPUFREQ_ADJUST:
+	/*
 		if ((!strnicmp(policy->governor->name, "powersave", CPUFREQ_NAME_LEN))
 		|| (!strnicmp(policy->governor->name, "performance", CPUFREQ_NAME_LEN))
 		|| (!strnicmp(policy->governor->name, "userspace", CPUFREQ_NAME_LEN))) {
@@ -532,6 +541,8 @@ static int exynos_cpufreq_policy_notifier_call(struct notifier_block *this,
 		} else {
 			exynos_cpufreq_lock_disable = false;
 		}
+	*/
+	exynos_cpufreq_lock_disable = !policy->governor->disableScalingDuringSuspend;
 
 	case CPUFREQ_INCOMPATIBLE:
 	case CPUFREQ_NOTIFY:
@@ -576,8 +587,8 @@ static int exynos_cpufreq_cpu_init(struct cpufreq_policy *policy)
 	ret = cpufreq_frequency_table_cpuinfo(policy, exynos_info->freq_table);
 
 	/* Safe default startup limits */
-	policy->max = 1600000;
-	policy->max_suspend = 200000;
+	policy->max = 800000;
+	policy->max_suspend = 100000;
 	policy->min = 25000;
 	policy->min_suspend = 25000;
 
@@ -620,6 +631,46 @@ static struct cpufreq_driver exynos_driver = {
 	.resume		= exynos_cpufreq_resume,
 #endif
 };
+
+extern unsigned int smooth_step;
+ssize_t show_smooth_step(struct cpufreq_policy *policy, char *buf) {
+      return sprintf(buf, "%d\n", smooth_step);
+}
+ssize_t store_smooth_step(struct cpufreq_policy *policy,
+                                      const char *buf, size_t count) {
+	unsigned int ret = -EINVAL, level;
+	ret = sscanf(buf, "%d", &level);
+	if(ret!=1) return -EINVAL;
+	if(level<0 || level>4) return -EINVAL;
+	smooth_step = level;
+	return count;
+}
+extern unsigned int smooth_target;
+ssize_t show_smooth_target(struct cpufreq_policy *policy, char *buf) {
+      return sprintf(buf, "%d\n", smooth_target);
+}
+ssize_t store_smooth_target(struct cpufreq_policy *policy,
+                                      const char *buf, size_t count) {
+	unsigned int ret = -EINVAL, level;
+	ret = sscanf(buf, "%d", &level);
+	if(ret!=1) return -EINVAL;
+	if(level<0 || level>7) return -EINVAL;
+	smooth_target = level;
+	return count;
+}
+extern unsigned int smooth_offset;
+ssize_t show_smooth_offset(struct cpufreq_policy *policy, char *buf) {
+      return sprintf(buf, "%d\n", smooth_offset);
+}
+ssize_t store_smooth_offset(struct cpufreq_policy *policy,
+                                      const char *buf, size_t count) {
+	unsigned int ret = -EINVAL, level;
+	ret = sscanf(buf, "%d", &level);
+	if(ret!=1) return -EINVAL;
+	if(level<0 || level>4) return -EINVAL;
+	smooth_offset = level;
+	return count;
+}
 
 static int __init exynos_cpufreq_init(void)
 {

@@ -643,6 +643,16 @@ static ssize_t store_UV_mV_table(struct cpufreq_policy *policy,
 	return count;
 }
 
+/* sysfs interface for cpu smooth scaling parameters */
+extern ssize_t show_smooth_offset(struct cpufreq_policy *policy, char *buf);
+extern ssize_t store_smooth_offset(struct cpufreq_policy *policy,
+                                      const char *buf, size_t count);
+extern ssize_t show_smooth_target(struct cpufreq_policy *policy, char *buf);
+extern ssize_t store_smooth_target(struct cpufreq_policy *policy,
+                                      const char *buf, size_t count);
+extern ssize_t show_smooth_step(struct cpufreq_policy *policy, char *buf);
+extern ssize_t store_smooth_step(struct cpufreq_policy *policy,
+                                      const char *buf, size_t count);
 /**
  * show_scaling_driver - show the current cpufreq HW/BIOS limitation
  */
@@ -681,6 +691,10 @@ cpufreq_freq_attr_rw(scaling_governor);
 cpufreq_freq_attr_rw(scaling_setspeed);
 cpufreq_freq_attr_rw(UV_mV_table);
 cpufreq_freq_attr_rw(asv_group);
+/* smooth scaling params */
+cpufreq_freq_attr_rw(smooth_offset);
+cpufreq_freq_attr_rw(smooth_target);
+cpufreq_freq_attr_rw(smooth_step);
 
 static struct attribute *default_attrs[] = {
 	&cpuinfo_min_freq.attr,
@@ -698,6 +712,9 @@ static struct attribute *default_attrs[] = {
 	&scaling_setspeed.attr,
 	&UV_mV_table.attr,
 	&asv_group.attr,
+	&smooth_offset.attr,
+	&smooth_target.attr,
+	&smooth_step.attr,
 	NULL
 };
 
@@ -1650,8 +1667,27 @@ int cpufreq_register_governor(struct cpufreq_governor *governor)
 	err = -EBUSY;
 	if (__find_governor(governor->name) == NULL) {
 		err = 0;
+		if (!strnicmp(governor->name, "powersave", CPUFREQ_NAME_LEN)
+		|| !strnicmp(governor->name, "performance", CPUFREQ_NAME_LEN)
+		|| !strnicmp(governor->name, "userspace", CPUFREQ_NAME_LEN)
+		)
+			governor->disableScalingDuringSuspend = 0;
+		else
+			governor->disableScalingDuringSuspend = 1;
+		if (!strnicmp(governor->name, "powersave", CPUFREQ_NAME_LEN)
+		|| !strnicmp(governor->name, "performance", CPUFREQ_NAME_LEN)
+		)
+			governor->enableSmoothScaling = 0;
+		else
+			governor->enableSmoothScaling = 1;
 		list_add(&governor->governor_list, &cpufreq_governor_list);
 	}
+	/*
+	if (__find_governor(governor->name) == NULL) {
+		err = 0;
+		list_add(&governor->governor_list, &cpufreq_governor_list);
+	}
+	*/
 
 	mutex_unlock(&cpufreq_governor_mutex);
 	return err;
