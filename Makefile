@@ -355,11 +355,13 @@ AFLAGS_KERNEL	=
 CFLAGS_GCOV		= -fprofile-arcs -ftest-coverage
 CFLAGS_MODFLAGS	= -Ofast -pipe
 CFLAGS_ARM      = -marm -mtune=cortex-a9 -mfpu=vfp3 -mfloat-abi=hard -march=armv7-a
-CFLAGS_EXTRA    = -finline-functions -funswitch-loops -fpredictive-commoning \
+CFLAGS_EXTRA    = -funswitch-loops -fpredictive-commoning \
           -fgcse-after-reload -ftree-vectorize -fipa-cp-clone \
           -floop-interchange -floop-strip-mine -floop-block \
           -fno-inline-functions -fno-tree-vectorize \
-          -fsingle-precision-constant -fsched-spec-load 
+          -fsingle-precision-constant \
+		  -ftree-loop-distribution -ftree-loop-linear \
+		  -fgraphite-identity -fsched-spec-load 
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 
 # Use LINUXINCLUDE when you must reference the include/ directory.
