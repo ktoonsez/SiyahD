@@ -22,9 +22,6 @@
 #include <linux/tick.h>
 #include <linux/ktime.h>
 #include <linux/sched.h>
-#include <linux/input.h>
-#include <linux/workqueue.h>
-#include <linux/slab.h>
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 #include <linux/earlysuspend.h>
@@ -35,12 +32,12 @@
  * It helps to keep variable names smaller, simpler
  */
 
-#define DEF_FREQUENCY_DOWN_DIFFERENTIAL		(10)
+#define DEF_FREQUENCY_DOWN_DIFFERENTIAL		(5)
 #define DEF_FREQUENCY_UP_THRESHOLD		(85)
 #define DEF_SAMPLING_DOWN_FACTOR		(1)
 #define MAX_SAMPLING_DOWN_FACTOR		(100000)
 #define MICRO_FREQUENCY_DOWN_DIFFERENTIAL	(3)
-#define MICRO_FREQUENCY_UP_THRESHOLD		(60)
+#define MICRO_FREQUENCY_UP_THRESHOLD		(95)
 #define MICRO_FREQUENCY_MIN_SAMPLE_RATE		(10000)
 #define MIN_FREQUENCY_UP_THRESHOLD		(11)
 #define MAX_FREQUENCY_UP_THRESHOLD		(100)
@@ -49,7 +46,6 @@
 #define UP_THRESHOLD_AT_MIN_FREQ		(40)
 #define FREQ_FOR_RESPONSIVENESS			(500000)
 #ifdef CONFIG_HAS_EARLYSUSPEND
-#define DEF_SUSPEND_FREQ        		(200000)
 #define SAMPLING_FACTOR_SUSPEND			(3)
 #define DEF_FREQUENCY_UP_THRESHOLD_SUSPEND	(95)
 #endif
@@ -68,15 +64,14 @@
 
 static unsigned int min_sampling_rate;
 
+#define LATENCY_MULTIPLIER			(1000)
 #define MIN_LATENCY_MULTIPLIER			(100)
-#define TRANSITION_LATENCY_LIMIT		(8000000)
+#define TRANSITION_LATENCY_LIMIT		(10 * 1000 * 1000)
 
 static void do_dbs_timer(struct work_struct *work);
 static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 				unsigned int event);
 
-static struct early_suspend cpufreq_gov_early_suspend;
-static unsigned int cpufreq_gov_lcd_status;
 #ifndef CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND
 static
 #endif
@@ -138,7 +133,6 @@ static struct dbs_tuners {
 	unsigned int freq_step;
 	unsigned int freq_responsiveness;
 #ifdef CONFIG_HAS_EARLYSUSPEND
-	unsigned int suspend_freq;
 	unsigned int sampling_factor_suspend;
 	unsigned int up_threshold_suspend;
 	unsigned int freq_step_suspend;
@@ -163,56 +157,6 @@ static struct dbs_tuners {
 	.freq_step_suspend = FREQ_STEP_SUSPEND,
 	.early_suspend = -1,
 #endif
-	.suspend_freq = DEF_SUSPEND_FREQ,
-};
-
-// used for imoseyon's mods
-static unsigned int suspended = 0;
-static void ondemand_suspend(int suspend)
-{
-	struct cpu_dbs_info_s *dbs_info = &per_cpu(od_cpu_dbs_info, smp_processor_id());
-	if (dbs_enable==0) return;
-	if (!suspend) { // resume at max speed:
-		suspended = 0;
-                __cpufreq_driver_target(dbs_info->cur_policy, dbs_info->cur_policy->max, 
-	CPUFREQ_RELATION_L);
-		pr_info("[imoseyon] ondemandx awake at %d\n", dbs_info->cur_policy->cur);
-	} else {
-		suspended = 1;
-	// let's give it a little breathing room
-		__cpufreq_driver_target(dbs_info->cur_policy, dbs_tuners_ins.suspend_freq, CPUFREQ_RELATION_H);
-		pr_info("[imoseyon] ondemandx suspended at %d\n", dbs_info->cur_policy->cur);
-	}
-}
-
-static void ondemand_early_suspend(struct early_suspend *handler) {
-	ondemand_suspend(1);
-}
-static void ondemand_late_resume(struct early_suspend *handler) {
-	ondemand_suspend(0);
-}
-static struct early_suspend ondemand_power_suspend = {
-	.suspend = ondemand_early_suspend,
-	.resume = ondemand_late_resume,
-        .level = EARLY_SUSPEND_LEVEL_DISABLE_FB + 1,
-};
-
-//intellidemand mod
-
-static unsigned int cpufreq_gov_lcd_status=1;
-static void cpufreq_gov_suspend(struct early_suspend *h)
-{
-	cpufreq_gov_lcd_status = 0;
-}
-static void cpufreq_gov_resume(struct early_suspend *h)
-{
-	cpufreq_gov_lcd_status = 1;
-}
-
-static struct early_suspend cpufreq_gov_early_suspend = {
-	.suspend = cpufreq_gov_suspend,
-	.resume = cpufreq_gov_resume,
-	.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN + 1,
 };
 
 static inline cputime64_t get_cpu_idle_time_jiffy(unsigned int cpu,
@@ -356,69 +300,10 @@ show_one(down_differential, down_differential);
 show_one(freq_step, freq_step);
 show_one(freq_responsiveness, freq_responsiveness);
 #ifdef CONFIG_HAS_EARLYSUSPEND
-show_one(suspend_freq, suspend_freq);
 show_one(sampling_factor_suspend, sampling_factor_suspend);
 show_one(up_threshold_suspend, up_threshold_suspend);
 show_one(freq_step_suspend, freq_step_suspend);
 #endif
-
-/**
- * update_sampling_rate - update sampling rate effective immediately if needed.
- * @new_rate: new sampling rate
- *
- * If new rate is smaller than the old, simply updaing
- * dbs_tuners_int.sampling_rate might not be appropriate. For example,
- * if the original sampling_rate was 1 second and the requested new sampling
- * rate is 10 ms because the user needs immediate reaction from ondemand
- * governor, but not sure if higher frequency will be required or not,
- * then, the governor may change the sampling rate too late; up to 1 second
- * later. Thus, if we are reducing the sampling rate, we need to make the
- * new value effective immediately.
- */
-
-static void update_sampling_rate(unsigned int new_rate)
-{
-	int cpu;
-
-	dbs_tuners_ins.sampling_rate = new_rate
-		= max(new_rate, min_sampling_rate);
-
-	for_each_online_cpu(cpu) {
-		struct cpufreq_policy *policy;
-		struct cpu_dbs_info_s *dbs_info;
-		unsigned long next_sampling, appointed_at;
-
-		policy = cpufreq_cpu_get(cpu);
-		if (!policy)
-			continue;
-		dbs_info = &per_cpu(od_cpu_dbs_info, policy->cpu);
-		cpufreq_cpu_put(policy);
-
-		mutex_lock(&dbs_info->timer_mutex);
-
-		if (!delayed_work_pending(&dbs_info->work)) {
-			mutex_unlock(&dbs_info->timer_mutex);
-			continue;
-		}
-
-		next_sampling  = jiffies + usecs_to_jiffies(new_rate);
-		appointed_at = dbs_info->work.timer.expires;
-
-
-		if (time_before(next_sampling, appointed_at)) {
-
-			mutex_unlock(&dbs_info->timer_mutex);
-			cancel_delayed_work_sync(&dbs_info->work);
-			mutex_lock(&dbs_info->timer_mutex);
-
-			schedule_delayed_work_on(dbs_info->cpu, &dbs_info->work,
-				usecs_to_jiffies(new_rate));
-
-		}
-		mutex_unlock(&dbs_info->timer_mutex);
-	}
-
-}
 
 static ssize_t store_sampling_rate(struct kobject *a, struct attribute *b,
 				   const char *buf, size_t count)
@@ -428,7 +313,7 @@ static ssize_t store_sampling_rate(struct kobject *a, struct attribute *b,
 	ret = sscanf(buf, "%u", &input);
 	if (ret != 1)
 		return -EINVAL;
-	update_sampling_rate(input);	
+	dbs_tuners_ins.sampling_rate = max(input, min_sampling_rate);
 	return count;
 }
 
@@ -570,27 +455,6 @@ static ssize_t store_freq_step(struct kobject *a, struct attribute *b,
 	return count;
 }
 
-static ssize_t store_suspend_freq(struct kobject *a, struct attribute *b,
-		const char *buf, size_t count)
-{
-	unsigned int input;
-	int ret;
-	ret = sscanf(buf, "%u", &input);
-
-	if (ret != 1)
-		return -EINVAL;
-
-	if (input > 1200000)
-		input = 1200000;
-
-	if (input < 200000)
-		input = 200000;
-
-	dbs_tuners_ins.suspend_freq = input;
-
-	return count;
-}
-
 static ssize_t store_freq_responsiveness(struct kobject *a, struct attribute *b,
 				    const char *buf, size_t count)
 {
@@ -666,7 +530,6 @@ define_one_global_rw(down_differential);
 define_one_global_rw(freq_step);
 define_one_global_rw(freq_responsiveness);
 #ifdef CONFIG_HAS_EARLYSUSPEND
-define_one_global_rw(suspend_freq);
 define_one_global_rw(sampling_factor_suspend);
 define_one_global_rw(up_threshold_suspend);
 define_one_global_rw(freq_step_suspend);
@@ -692,7 +555,6 @@ static struct attribute *dbs_attributes[] = {
 	&freq_step.attr,
 	&freq_responsiveness.attr,
 #ifdef CONFIG_HAS_EARLYSUSPEND
-	&suspend_freq.attr,
 	&sampling_factor_suspend.attr,
 	&up_threshold_suspend.attr,
 	&freq_step_suspend.attr,
@@ -722,10 +584,7 @@ static void dbs_freq_increase(struct cpufreq_policy *p, unsigned int freq)
 	else if (p->cur == p->max)
 		return;
 #endif
-	if (suspended && freq > dbs_tuners_ins.suspend_freq) {
-	        freq = dbs_tuners_ins.suspend_freq;
-		__cpufreq_driver_target(p, freq, CPUFREQ_RELATION_H);
-	} else
+
 	__cpufreq_driver_target(p, freq, dbs_tuners_ins.powersave_bias ?
 			CPUFREQ_RELATION_L : CPUFREQ_RELATION_H);
 }
@@ -916,7 +775,6 @@ static void do_dbs_timer(struct work_struct *work)
 				delay -= jiffies % delay;
 		}
 	} else {
-		if (!suspended)
 		__cpufreq_driver_target(dbs_info->cur_policy,
 			dbs_info->freq_lo, CPUFREQ_RELATION_H);
 		delay = dbs_info->freq_lo_jiffies;
@@ -1063,7 +921,7 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 					MIN_LATENCY_MULTIPLIER * latency);
 			dbs_tuners_ins.sampling_rate =
 				max(min_sampling_rate,
-				    latency * CONFIG_LATENCY_MULTIPLIER);
+				    latency * LATENCY_MULTIPLIER);
 			dbs_tuners_ins.io_is_busy = should_io_be_busy();
 		}
 		mutex_unlock(&dbs_mutex);
@@ -1073,8 +931,6 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 
 		mutex_init(&this_dbs_info->timer_mutex);
 		dbs_timer_init(this_dbs_info);
-		register_early_suspend(&cpufreq_gov_early_suspend);
-		register_early_suspend(&ondemand_power_suspend);
 		break;
 
 	case CPUFREQ_GOV_STOP:
@@ -1090,8 +946,7 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 		if (!dbs_enable)
 			sysfs_remove_group(cpufreq_global_kobject,
 					   &dbs_attr_group);
-		unregister_early_suspend(&cpufreq_gov_early_suspend);
-		unregister_early_suspend(&ondemand_power_suspend);
+
 		break;
 
 	case CPUFREQ_GOV_LIMITS:
@@ -1130,7 +985,7 @@ static int __init cpufreq_gov_dbs_init(void)
 	} else {
 		/* For correct statistics, we need 10 ticks for each measure */
 		min_sampling_rate =
-			MIN_SAMPLING_RATE_RATIO * jiffies_to_usecs(CONFIG_CPU_FREQ_MIN_TICKS);
+			MIN_SAMPLING_RATE_RATIO * jiffies_to_usecs(1);
 	}
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
@@ -1373,4 +1228,3 @@ fs_initcall(cpufreq_gov_dbs_init);
 module_init(cpufreq_gov_dbs_init);
 #endif
 module_exit(cpufreq_gov_dbs_exit);
-

@@ -38,7 +38,7 @@ struct cpufreq_clkdiv {
 	unsigned int	clkdiv;
 };
 
-extern int exynos4210_volt_table[CPUFREQ_LEVEL_END];
+static unsigned int exynos4210_volt_table[CPUFREQ_LEVEL_END];
 
 static struct cpufreq_frequency_table exynos4210_freq_table[] = {
     {L0, 1600*1000},
@@ -431,49 +431,59 @@ static void exynos4210_set_frequency(unsigned int old_index,
 	}
 }
 
-static void __init set_volt_table(unsigned int asv_group)
+static void __init set_volt_table(void)
 {
+	unsigned int asv_group = 0;
+	bool for_1400 = false, for_1200 = false, for_1000 = false;
+	unsigned int tmp;
 	unsigned int i;
+
+	tmp = exynos_result_of_asv;
+
+	asv_group = (tmp & 0xF);
+
+	switch (tmp  & (SUPPORT_FREQ_MASK << SUPPORT_FREQ_SHIFT)) {
+	case SUPPORT_1400MHZ:
+		for_1400 = true;
+		max_support_idx = L0;
+		break;
+	case SUPPORT_1200MHZ:
+		for_1200 = true;
+		max_support_idx = L0; //gm L2;
+		break;
+	case SUPPORT_1000MHZ:
+		for_1000 = true;
+		max_support_idx = L6;
+		break;
+	default:
+		for_1000 = true;
+		max_support_idx = L6;
+		break;
+	}
+
+	/*
+	 * If ASV group is S, can not support 1.4GHz
+	 * Disabling table entry
+	 */
+//	if ((asv_group == 0) || !for_1400)
+//		exynos4210_freq_table[L0].frequency = CPUFREQ_ENTRY_INVALID;
+
+	if (for_1000)
+		exynos4210_freq_table[L0].frequency = CPUFREQ_ENTRY_INVALID;
 
 	printk(KERN_INFO "DVFS : VDD_ARM Voltage table set with %d Group\n", asv_group);
 
-	for (i = 0 ; i < CPUFREQ_LEVEL_END ; i++) {
-			exynos4210_volt_table[i] =
-				asv_voltage_A[i][asv_group];
+	if (for_1400) {
+		for (i = 0 ; i < CPUFREQ_LEVEL_END ; i++) {
+				exynos4210_volt_table[i] =
+					asv_voltage_B[i][asv_group];
+		}
+	} else {
+		for (i = 0 ; i < CPUFREQ_LEVEL_END ; i++) {
+				exynos4210_volt_table[i] =
+					asv_voltage_A[i][asv_group];
+		}
 	}
-}
-
-static unsigned int asv_group = DEFAULT_ASV_GROUP;
-
-void update_volt_table(unsigned int asv_group)
-{
-	unsigned int i;
-
-	printk(KERN_INFO "DVFS : VDD_ARM Voltage table updated with %d Group\n", asv_group);
-
-	for (i = 0 ; i < CPUFREQ_LEVEL_END ; i++) {
-			exynos4210_volt_table[i] =
-				asv_voltage_A[i][asv_group];
-	}
-}
-
-ssize_t show_asv_group(struct cpufreq_policy *policy, char *buf)
-{
-	return sprintf(buf, "asv_group: %d\n", asv_group);
-}
-
-ssize_t store_asv_group(struct cpufreq_policy *policy,
-				const char *buf, size_t count)
-{
-	unsigned int ret;
-	ret = sscanf(buf, "%d", &asv_group);
-
-	if (ret != 1 || asv_group < 0 || asv_group > 7)
-		return -EINVAL;
-	else
-		update_volt_table(asv_group);
-
-	return count;
 }
 
 #if defined(CONFIG_REGULATOR_MAX8997)
@@ -503,7 +513,7 @@ int exynos4210_cpufreq_init(struct exynos_dvfs_info *info)
 	unsigned int tmp;
 	unsigned long rate;
 
-	set_volt_table(asv_group);
+	set_volt_table();
 	exynos4210_cpufreq_set_pmic_vol_table();
 
 	cpu_clk = clk_get(NULL, "armclk");
@@ -547,11 +557,6 @@ int exynos4210_cpufreq_init(struct exynos_dvfs_info *info)
 	}
 
 	info->mpll_freq_khz = rate;
-	/*
-	 * Sleep of death fix for overclock freq tables.
-	 * Should always be the 800Mhz step as imposed
-	 * by the Samsung exynos hardware.	--Fluxi
-	*/
 	info->pm_lock_idx = L8;
 	info->pll_safe_idx = L6;
 	info->max_support_idx = max_support_idx;
@@ -561,6 +566,9 @@ int exynos4210_cpufreq_init(struct exynos_dvfs_info *info)
 	info->freq_table = exynos4210_freq_table;
 	info->set_freq = exynos4210_set_frequency;
 	info->need_apll_change = exynos4210_pms_change;
+
+	info->max_current_idx = L4;
+	info->min_current_idx = L14;
 
 	return 0;
 
