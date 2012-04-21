@@ -70,8 +70,8 @@ mali_dvfs_staycount_table mali_dvfs_staycount[MALI_DVFS_STEPS]={
 /*dvfs threshold*/
 mali_dvfs_threshold_table mali_dvfs_threshold[MALI_DVFS_STEPS]={
 		/*step 0*/{((int)((255*0)/100))   ,((int)((255*85)/100))},
-		/*step 1*/{((int)((255*50)/100))  ,((int)((255*120)/100))},
-		/*step 2*/{((int)((255*25)/100))  ,((int)((255*100)/100))} };
+		/*step 1*/{((int)((255*80)/100))  ,((int)((255*90)/100))},
+		/*step 2*/{((int)((255*80)/100))  ,((int)((255*100)/100))} };
 
 /*dvfs status*/
 mali_dvfs_currentstatus maliDvfsStatus;
@@ -79,9 +79,9 @@ int mali_dvfs_control=0;
 
 /*dvfs table*/
 mali_dvfs_table mali_dvfs[MALI_DVFS_STEPS]={
-			/*step 0*/{160  ,1000000    , 950000},
-			/*step 1*/{267  ,1000000    ,1000000},
-			/*step 2*/{300  ,1000000    ,1100000} };
+			/*step 0*/{66   ,1000000    , 925000},
+			/*step 1*/{160  ,1000000    , 950000},
+			/*step 2*/{267  ,1000000    ,1000000} };
 
 #ifdef EXYNOS4_ASV_ENABLED
 
@@ -90,24 +90,24 @@ mali_dvfs_table mali_dvfs[MALI_DVFS_STEPS]={
 #define ASV_LEVEL_SUPPORT 0
 
 static unsigned int asv_3d_volt_5_table[ASV_5_LEVEL][MALI_DVFS_STEPS] = {
-	/* L3(160MHz), L2(267MHz), L1(300MHz) */
-	{1000000, 1100000, 1150000},	/* S */
-	{1000000, 1100000, 1150000},	/* A */
-	{ 950000, 1000000, 1100000},	/* B */
-	{ 950000, 1000000, 1050000},	/* C */
-	{ 950000,  950000, 1000000},	/* D */
+	/* L3 (66MHz) L2(160MHz), L1(267MHz) */
+        { 975000, 1000000, 1100000},	/* S */
+	{ 975000, 1000000, 1100000},	/* A */
+	{ 925000,  950000, 1000000},	/* B */
+	{ 925000,  950000, 1000000},	/* C */
+	{ 925000,  950000,  950000},	/* D */
 };
 
 static unsigned int asv_3d_volt_8_table[ASV_8_LEVEL][MALI_DVFS_STEPS] = {
-	/* L3(160MHz), L2(267MHz)), L1(300MHz) */
-	{1000000, 1100000, 1150000},	/* SS */
-	{1000000, 1100000, 1150000},	/* A1 */
-	{1000000, 1100000, 1150000},	/* A2 */
-	{ 950000, 1000000, 1100000},	/* B1 */
-	{ 950000, 1000000, 1100000},	/* B2 */
-	{ 950000, 1000000, 1050000},	/* C1 */
-	{ 950000, 1000000, 1050000},	/* C2 */
-	{ 950000,  950000, 1000000},	/* D1 */
+	/* L3 (66MHz) L2(160MHz), L1(267MHz) */
+        { 975000, 1000000, 1100000},	/* SS */
+	{ 975000, 1000000, 1100000},	/* A1 */
+	{ 975000, 1000000, 1100000},	/* A2 */
+	{ 925000,  950000, 1000000},	/* B1 */
+	{ 925000,  950000, 1000000},	/* B2 */
+	{ 925000,  950000, 1000000},	/* C1 */
+	{ 925000,  950000, 1000000},	/* C2 */
+	{ 925000,  950000,  950000},	/* D1 */
 };
 #endif
 
@@ -232,13 +232,17 @@ static unsigned int decideNextStatus(unsigned int utilization)
 			case 1:
 				if( utilization > mali_dvfs_threshold[maliDvfsStatus.currentStep].upthreshold)
 					level=2;
-				else if( utilization < mali_dvfs_threshold[maliDvfsStatus.currentStep].downthreshold)
+				else if( utilization < 
+					 (mali_dvfs_threshold[maliDvfsStatus.currentStep].downthreshold*mali_dvfs[maliDvfsStatus.currentStep-1].clock)/
+					 mali_dvfs[maliDvfsStatus.currentStep].clock)
 					level=0;
 				else
 					level = maliDvfsStatus.currentStep;
 				break;
 			case 2:
-				if( utilization < mali_dvfs_threshold[maliDvfsStatus.currentStep].downthreshold)
+				if( utilization < 
+				         (mali_dvfs_threshold[maliDvfsStatus.currentStep].downthreshold*mali_dvfs[maliDvfsStatus.currentStep-1].clock)/
+					 mali_dvfs[maliDvfsStatus.currentStep].clock)
 					level=1;
 				else
 					level = maliDvfsStatus.currentStep;
