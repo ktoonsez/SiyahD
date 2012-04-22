@@ -46,8 +46,11 @@ rm -f usr/initramfs_data.cpio
 rm -f usr/initramfs_data.o
 
 export ARCH=arm
-#I am building with latest toolchain with gcc 4.5.2
-export CROSS_COMPILE=$PARENT_DIR/toolchain/bin/arm-none-eabi-
+#Not building with latest toolchain with gcc 4.5.2
+#export CROSS_COMPILE=$PARENT_DIR/toolchain/bin/arm-none-eabi-
+
+#I am building with latest toolchain with gcc 4.4.3
+export CROSS_COMPILE=/media/Source-Code/android/system/prebuilt/linux-x86/toolchain/arm-eabi-4.4.3/bin/arm-eabi-
 
 cd $KERNELDIR/
 nice -n 10 make -j8 modules || exit 1
