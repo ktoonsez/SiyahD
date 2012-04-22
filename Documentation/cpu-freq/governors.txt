@@ -236,12 +236,10 @@ speed".  Default is 85%.
 above_hispeed_delay: Once speed is set to hispeed_freq, wait for this
 long before bumping speed higher in response to continued high load.
 Default is 20000 uS.
- 
- timer_rate: Sample rate for reevaluating cpu load when the system is
-+not idle.  Default is 20000 uS.
 
 timer_rate: Sample rate for reevaluating cpu load when the system is
-not idle.  Default is 30000 uS.
+not idle.  Default is 20000 uS.
+
 
 3. The Governor Interface in the CPUfreq Core
 =============================================

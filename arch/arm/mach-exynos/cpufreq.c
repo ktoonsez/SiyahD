@@ -85,9 +85,9 @@ static unsigned int exynos_get_safe_armvolt(unsigned int old_index, unsigned int
 	return safe_arm_volt;
 }
 
-unsigned int smooth_target = L0;
+unsigned int smooth_target = L2;
 unsigned int smooth_offset = 2;
-unsigned int smooth_step = 1;
+unsigned int smooth_step = 2;
 static int exynos_target(struct cpufreq_policy *policy,
 			  unsigned int target_freq,
 			  unsigned int relation)
@@ -142,7 +142,7 @@ static int exynos_target(struct cpufreq_policy *policy,
 
 #if defined(CONFIG_CPU_EXYNOS4210)
 	/* Do NOT step up max arm clock directly to reduce power consumption */
-	// reach 1200MHz step by step starting from 800MHz -gm
+	//reach 1200MHz step by step starting from 800MHz -gm
 	if(index <= smooth_target && index < old_index && policy->governor->enableSmoothScaling)
 	{
 		index = max(index,min(smooth_target + smooth_offset, old_index - smooth_step));
@@ -516,7 +516,6 @@ static int exynos_cpufreq_notifier_event(struct notifier_block *this,
 
 static struct notifier_block exynos_cpufreq_notifier = {
 	.notifier_call = exynos_cpufreq_notifier_event,
-	.priority = INT_MIN, /* done last - originally by arighi */
 };
 
 static int exynos_cpufreq_policy_notifier_call(struct notifier_block *this,
@@ -750,23 +749,24 @@ ssize_t store_UV_mV_table(struct cpufreq_policy *policy,
 	unsigned int ret = -EINVAL;
 	int i = 0;
 	int j = 0;
-	int u[7];
+	int u[6];
+
 	//the following 8 step parsing is only for backward compatibility with old scripts
 	int tmp1, tmp2;
 	ret = sscanf(buf, "%d %d %d %d %d %d %d %d", &tmp1, &u[0], &u[1], &u[2], &u[3], &u[4], &u[5], &tmp2);
 	if( ret == 8 ) ret = 6;
 	else
 	//end backward compatibility change
-	ret = sscanf(buf, "%d %d %d %d %d %d %d", &u[0], &u[1], &u[2], &u[3], &u[4], &u[5], &u[6]);
-	if(ret != 7) {
-		ret = sscanf(buf, "%d %d %d %d %d %d", &u[0], &u[1], &u[2], &u[3], &u[4], &u[5]);
-		if(ret != 6) {
-			ret = sscanf(buf, "%d %d %d %d %d", &u[0], &u[1], &u[2], &u[3], &u[4]);
-			if( ret != 5) return -EINVAL;
+	ret = sscanf(buf, "%d %d %d %d %d %d", &u[0], &u[1], &u[2], &u[3], &u[4], &u[5]);
+	if(ret != 6) {
+		ret = sscanf(buf, "%d %d %d %d %d", &u[0], &u[1], &u[2], &u[3], &u[4]);
+		if(ret != 5) {
+			ret = sscanf(buf, "%d %d %d %d", &u[0], &u[1], &u[2], &u[3]);
+			if( ret != 4) return -EINVAL;
 		}
 	}
 
-	for( i = 0; i < 7; i++ )
+	for( i = 0; i < 6; i++ )
 	{
 		if (u[i] > CPU_UV_MV_MAX / 1000)
 		{
@@ -778,7 +778,7 @@ ssize_t store_UV_mV_table(struct cpufreq_policy *policy,
 		}
 	}
 
-	for( i = 7 - ret; i < 7; i++)
+	for( i = 6 - ret; i < 6; i++)
 	{
 		exynos_info->volt_table[i] = u[i]*1000;
 	}

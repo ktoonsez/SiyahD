@@ -40,21 +40,17 @@ static uint32_t lowmem_debug_level = 2;
 static int lowmem_adj[6] = {
 	0,
 	1,
-	3,
-	4,
-	7,
-	15,
+	6,
+	12,
 };
-static int lowmem_adj_size = 6;
+static int lowmem_adj_size = 4;
 static size_t lowmem_minfree[6] = {
 	3 * 512,	/* 6MB */
 	2 * 1024,	/* 8MB */
 	4 * 1024,	/* 16MB */
-	8 * 1024,	/* 32MB */
-	10 * 1024,	/* 40MB */
 	16 * 1024,	/* 64MB */
 };
-static int lowmem_minfree_size = 6;
+static int lowmem_minfree_size = 4;
 
 static struct task_struct *lowmem_deathpending;
 static unsigned long lowmem_deathpending_timeout;
