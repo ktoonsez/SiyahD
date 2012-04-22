@@ -86,7 +86,7 @@ static unsigned int exynos_get_safe_armvolt(unsigned int old_index, unsigned int
 }
 
 unsigned int smooth_target = L0;
-unsigned int smooth_offset = 1;
+unsigned int smooth_offset = 2;
 unsigned int smooth_step = 1;
 static int exynos_target(struct cpufreq_policy *policy,
 			  unsigned int target_freq,
@@ -249,11 +249,9 @@ int exynos_cpufreq_lock(unsigned int nId,
 	policy = cpufreq_cpu_get(0);
 	freq_table = exynos_info->freq_table;
 
-	/*
 	//prevent locking to a freq higher than stock freq unless overclocked -gm
-	cpufreq_level = max( min(exynos_info->max_current_idx, L4) ,
+	cpufreq_level = max( min(exynos_info->max_current_idx, L3) ,
 							(int)cpufreq_level);
-	*/
 
 	mutex_lock(&set_cpu_freq_lock);
 	g_cpufreq_lock_id |= (1 << nId);
