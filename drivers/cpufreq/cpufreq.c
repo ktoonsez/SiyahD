@@ -100,7 +100,6 @@ static void unlock_policy_rwsem_write(int cpu)
 	up_write(&per_cpu(cpu_policy_rwsem, policy_cpu));
 }
 
-
 /* internal prototypes */
 static int __cpufreq_governor(struct cpufreq_policy *policy,
 		unsigned int event);
@@ -1031,16 +1030,6 @@ static int cpufreq_add_dev(struct sys_device *sys_dev)
 		pr_debug("initialization failed\n");
 		goto err_unlock_policy;
 	}
-#ifdef CONFIG_HOTPLUG_CPU
-	for_each_online_cpu(sibling) {
-		struct cpufreq_policy *cp = per_cpu(cpufreq_cpu_data, sibling);
-		if (cp && cp->governor && (cpumask_test_cpu(cpu, cp->related_cpus))) {
-			policy->min = cp->min;
-			policy->max = cp->max;
-			break;
-		}
-	}
-#endif
 	policy->user_policy.min = policy->min;
 	policy->user_policy.max = policy->max;
 
