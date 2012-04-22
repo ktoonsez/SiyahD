@@ -222,7 +222,7 @@ static unsigned int exynos4_apll_pms_table[CPUFREQ_LEVEL_END] = {
 	((325<<16)|(6<<8)|(0x1)),
 
 	/* APLL FOUT L4: 1200MHz */
-	((150<<16)|(3<<8)|(0x1)),
+	((175<<16)|(3<<8)|(0x1)),
 
 	/* APLL FOUT L5: 1100MHz */
 	((275<<16)|(6<<8)|(0x1)),
@@ -301,7 +301,7 @@ static const unsigned int asv_voltage_B[CPUFREQ_LEVEL_END][5] = {
 	 * @200	 :
 	 * @100  :
 	 */
-	{ 1350000, 1350000, 1300000, 1250000, 1225000 },
+	{ 1350000, 1325000, 1300000, 1250000, 1225000 },
 	{ 1325000, 1275000, 1225000, 1175000, 1150000 },
 	{ 1225000, 1175000, 1125000, 1075000, 1050000 },
 	{ 1150000, 1100000, 1050000, 1000000, 975000 },
@@ -567,8 +567,8 @@ int exynos4210_cpufreq_init(struct exynos_dvfs_info *info)
 	info->set_freq = exynos4210_set_frequency;
 	info->need_apll_change = exynos4210_pms_change;
 
-	info->max_current_idx = L4;
-	info->min_current_idx = L14;
+	info->max_current_idx = max_support_idx;
+	info->min_current_idx = min_support_idx;
 
 	return 0;
 
