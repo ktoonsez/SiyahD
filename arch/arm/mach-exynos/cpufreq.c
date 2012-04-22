@@ -85,9 +85,9 @@ static unsigned int exynos_get_safe_armvolt(unsigned int old_index, unsigned int
 	return safe_arm_volt;
 }
 
-unsigned int smooth_target = L2;
+unsigned int smooth_target = L1;
 unsigned int smooth_offset = 2;
-unsigned int smooth_step = 2;
+unsigned int smooth_step = 1;
 static int exynos_target(struct cpufreq_policy *policy,
 			  unsigned int target_freq,
 			  unsigned int relation)
@@ -749,7 +749,7 @@ ssize_t store_UV_mV_table(struct cpufreq_policy *policy,
 	unsigned int ret = -EINVAL;
 	int i = 0;
 	int j = 0;
-	int u[6];
+	int u[7];
 
 	//the following 8 step parsing is only for backward compatibility with old scripts
 	int tmp1, tmp2;
@@ -758,15 +758,15 @@ ssize_t store_UV_mV_table(struct cpufreq_policy *policy,
 	else
 	//end backward compatibility change
 	ret = sscanf(buf, "%d %d %d %d %d %d", &u[0], &u[1], &u[2], &u[3], &u[4], &u[5]);
-	if(ret != 6) {
+	if(ret != 7) {
 		ret = sscanf(buf, "%d %d %d %d %d", &u[0], &u[1], &u[2], &u[3], &u[4]);
-		if(ret != 5) {
+		if(ret != 6) {
 			ret = sscanf(buf, "%d %d %d %d", &u[0], &u[1], &u[2], &u[3]);
-			if( ret != 4) return -EINVAL;
+			if( ret != 5) return -EINVAL;
 		}
 	}
 
-	for( i = 0; i < 6; i++ )
+	for( i = 0; i < 7; i++ )
 	{
 		if (u[i] > CPU_UV_MV_MAX / 1000)
 		{
@@ -778,7 +778,7 @@ ssize_t store_UV_mV_table(struct cpufreq_policy *policy,
 		}
 	}
 
-	for( i = 6 - ret; i < 6; i++)
+	for( i = 7 - ret; i < 7; i++)
 	{
 		exynos_info->volt_table[i] = u[i]*1000;
 	}
