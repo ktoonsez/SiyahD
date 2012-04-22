@@ -85,9 +85,9 @@ static unsigned int exynos_get_safe_armvolt(unsigned int old_index, unsigned int
 	return safe_arm_volt;
 }
 
-unsigned int smooth_target = L2;
-unsigned int smooth_offset = 2;
-unsigned int smooth_step = 2;
+unsigned int smooth_target = L0;
+unsigned int smooth_offset = 1;
+unsigned int smooth_step = 1;
 static int exynos_target(struct cpufreq_policy *policy,
 			  unsigned int target_freq,
 			  unsigned int relation)
@@ -142,7 +142,7 @@ static int exynos_target(struct cpufreq_policy *policy,
 
 #if defined(CONFIG_CPU_EXYNOS4210)
 	/* Do NOT step up max arm clock directly to reduce power consumption */
-	//reach 1200MHz step by step starting from 800MHz -gm
+	// reach 1200MHz step by step starting from 800MHz -gm
 	if(index <= smooth_target && index < old_index && policy->governor->enableSmoothScaling)
 	{
 		index = max(index,min(smooth_target + smooth_offset, old_index - smooth_step));
@@ -249,9 +249,11 @@ int exynos_cpufreq_lock(unsigned int nId,
 	policy = cpufreq_cpu_get(0);
 	freq_table = exynos_info->freq_table;
 
+	/*
 	//prevent locking to a freq higher than stock freq unless overclocked -gm
 	cpufreq_level = max( min(exynos_info->max_current_idx, L4) ,
 							(int)cpufreq_level);
+	*/
 
 	mutex_lock(&set_cpu_freq_lock);
 	g_cpufreq_lock_id |= (1 << nId);
@@ -516,6 +518,7 @@ static int exynos_cpufreq_notifier_event(struct notifier_block *this,
 
 static struct notifier_block exynos_cpufreq_notifier = {
 	.notifier_call = exynos_cpufreq_notifier_event,
+	.priority = INT_MIN, /* done last - originally by arighi */
 };
 
 static int exynos_cpufreq_policy_notifier_call(struct notifier_block *this,
