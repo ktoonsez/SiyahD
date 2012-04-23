@@ -4471,8 +4471,6 @@ static struct wireless_dev *wl_alloc_wdev(struct device *dev)
 	wdev->wiphy =
 	    wiphy_new(&wl_cfg80211_ops, sizeof(struct wl_priv));
 	if (unlikely(!wdev->wiphy)) {
-	//while (unlikely(!wdev->wiphy)) {
-		wdev->wiphy = wiphy_new(&wl_cfg80211_ops, sizeof(struct wl_priv));
 		WL_ERR(("Couldn not allocate wiphy device\n"));
 		err = -ENOMEM;
 		goto wiphy_new_out;

@@ -214,7 +214,7 @@ static void cpufreq_interactive_timer(unsigned long data)
 	 */
 	if (new_freq < pcpu->target_freq) {
 		if (cputime64_sub(pcpu->timer_run_time,
-			  pcpu->target_validate_time)
+				  pcpu->target_validate_time)
 		    < min_sample_time) {
 			trace_cpufreq_interactive_notyet(data, cpu_load,
 					 pcpu->target_freq, new_freq);
@@ -623,9 +623,9 @@ static int cpufreq_governor_interactive(struct cpufreq_policy *policy,
 				get_cpu_idle_time_us(j,
 					     &pcpu->target_set_time);
 			pcpu->target_validate_time =
-   			  pcpu->target_set_time;
+				pcpu->target_set_time;
 			pcpu->target_validate_time_in_idle =
-			  pcpu->target_set_time_in_idle;
+				pcpu->target_set_time_in_idle;
 			pcpu->governor_enabled = 1;
 			smp_wmb();
 		}
@@ -710,7 +710,7 @@ void start_interactive(void)
 	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
 
 	up_task = kthread_create(cpufreq_interactive_up_task, NULL,
-				 "kinteractiveup");
+		"kinteractiveup");
 
 	sched_setscheduler_nocheck(up_task, SCHED_FIFO, &param);
 	get_task_struct(up_task);
@@ -784,3 +784,4 @@ MODULE_AUTHOR("Mike Chan <mike@android.com>");
 MODULE_DESCRIPTION("'cpufreq_interactive' - A cpufreq governor for "
 	"Latency sensitive workloads");
 MODULE_LICENSE("GPL");
+
