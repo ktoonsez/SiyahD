@@ -49,15 +49,16 @@ static void process_port_intr(struct usb_hcd *hcd)
 		/* wake_lock(&otghost->wake_lock); */
 	}
 
+
 	if (hprt.b.prtenchng) {
 		otg_dbg(true, "port enable/disable changed\n");
 		otghost->port_flag.b.port_enable_change = 1;
-	}
 
-	// kevinh - it seems the hw implicitly disables the interface on unplug, so mark that we are unplugged
-	if(!hprt.b.prtconnsts) {
-		otghost->port_flag.b.port_connect_status_change = 1;
-		otghost->port_flag.b.port_connect_status = 0;
+		// kevinh - it seems the hw implicitly disables the interface on unplug, so mark that we are unplugged
+		if(!hprt.b.prtconnsts) {
+		  otghost->port_flag.b.port_connect_status_change = 1;
+		  otghost->port_flag.b.port_connect_status = 0;
+		}
 	}
 
 	if (hprt.b.prtovrcurrchng) {

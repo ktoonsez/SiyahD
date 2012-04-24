@@ -204,7 +204,7 @@ static int oci_core_init(void)
 	usbcfg.b.forcehstmode	= 1;
 	write_reg_32(GUSBCFG, usbcfg.d32);
 	// per
-	// http://forum.xda-developers.com/showthread.php?t=709135&page=21
+    // http://forum.xda-developers.com/showthread.php?t=709135&page=21
 	// we need a 25msec delay after setting this -kevinh
 	mdelay(100); 
 
@@ -751,16 +751,15 @@ int oci_stop_transfer(struct sec_otghost *otghost, u8 ch_num)
 	//kevinh: wait for  Channel Disabled Interrupt
   	count = 0;
   	do {
-    	hcintmsk.d32 = read_reg_32(HCINT(ch_num));
-
-	    if(count > max_error_count) {
-	   		printk("chhltd int never occurred! ch=%d, intreg=0x%x\n",
+    		hcintmsk.d32 = read_reg_32(HCINT(ch_num));
+	    	if(count > max_error_count) {
+	      		printk("chhltd int never occurred! ch=%d, intreg=0x%x\n",
 	        	ch_num, hcintmsk.d32);  
-	      	break;
-    	}
+	      		break;
+    		}
    		count++;
 	} while(!hcintmsk.b.chhltd); 
-
+	
 	oci_channel_dealloc(ch_num);
 
 	clear_reg_32(HAINTMSK, ch_num);
