@@ -36,7 +36,7 @@ struct sync_fence;
  * @compare:		returns:
  *			  1 if b will signal before a
  *			  0 if a and b will signal at the same time
- *			 -1 if a will signabl before b
+ *			 -1 if a will signal before b
  * @free_pt:		called before sync_pt is freed
  * @release_obj:	called before sync_timeline is freed
  * @print_obj:		print aditional debug information about sync_timeline.
