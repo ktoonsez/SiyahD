@@ -83,9 +83,10 @@ cp $KERNELDIR/.config $KERNELDIR/READY/
 rm $KERNELDIR/READY/boot/zImage
 rm $KERNELDIR/READY/Kernel_Dorimanx-SGII-ICS*
 stat $KERNELDIR/zImage
+GETVER=`grep 'Dorimanx-V' arch/arm/configs/dorimanx_defconfig | cut -c 32-35`
 cp $KERNELDIR/zImage /$KERNELDIR/READY/boot/
 cd $KERNELDIR/READY/
-zip -r Kernel_Dorimanx-SGII-ICS-`date +"Date-%d-%m-%y-Time-%H-%M"`.zip .
+zip -r Kernel_Dorimanx-SGII-ICS-$GETVER-`date +"Date-%d-%m-Time-%H-%M"`.zip .
 else
 echo "Kernel STUCK in BUILD! no zImage exist"
 fi
