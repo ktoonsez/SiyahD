@@ -47,7 +47,8 @@ rm -f usr/initramfs_data.o
 
 export ARCH="arm"
 #export EXTRA_AFLAGS=-mfpu=neon
-export CROSS_COMPILE="/usr/bin/arm-linux-gnueabi-"
+#export CROSS_COMPILE="/usr/bin/arm-linux-gnueabi-"
+export CROSS_COMPILE="~/sgs2/android-toolchain-eabi/bin/arm-eabi-"
 
 cd $KERNELDIR/
 nice -n 10 make -j8 modules || exit 1
@@ -67,7 +68,7 @@ fi
 #copy modules into initramfs
 mkdir -p $INITRAMFS/lib/modules
 find -name '*.ko' -exec cp -av {} $INITRAMFS_TMP/lib/modules/ \;
-${CROSS_COMPILE}strip --strip-debug $INITRAMFS_TMP/lib/modules/*.ko
+/usr/bin/arm-linux-gnueabi-strip --strip-debug $INITRAMFS_TMP/lib/modules/*.ko
 chmod 755 $INITRAMFS_TMP/lib/modules/*
 nice -n 10 make -j8 zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
 
