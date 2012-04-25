@@ -326,11 +326,12 @@ asmlinkage void __cpuinit secondary_start_kernel(void)
 	 * before we continue - which happens after __cpu_up returns.
 	 */
 	set_cpu_online(cpu, true);
+
 	complete(&cpu_running);
 
-       /*
-	* Setup the percpu timer for this CPU.
-	*/
+	/*
+	 * Setup the percpu timer for this CPU.
+	 */
 	percpu_timer_setup();
 
 	local_irq_enable();
