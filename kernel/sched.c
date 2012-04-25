@@ -5972,15 +5972,6 @@ void __cpuinit init_idle(struct task_struct *idle, int cpu)
 }
 
 /*
- * In a system that switches off the HZ timer nohz_cpu_mask
- * indicates which cpus entered this state. This is used
- * in the rcu update to wait only for active cpus. For system
- * which do not switch off the HZ timer nohz_cpu_mask should
- * always be CPU_BITS_NONE.
- */
-cpumask_var_t nohz_cpu_mask;
-
-/*
  * Increase the granularity value when there are more CPUs,
  * because with more CPUs the 'effective latency' as visible
  * to users decreases. But the relationship is not linear,
@@ -6527,7 +6518,7 @@ static int __cpuinit sched_cpu_active(struct notifier_block *nfb,
 				      unsigned long action, void *hcpu)
 {
 	switch (action & ~CPU_TASKS_FROZEN) {
-	case CPU_ONLINE:
+	case CPU_STARTING:
 	case CPU_DOWN_FAILED:
 		set_cpu_active((long)hcpu, true);
 		return NOTIFY_OK;
@@ -8203,8 +8194,6 @@ void __init sched_init(void)
 	 */
 	current->sched_class = &fair_sched_class;
 
-	/* Allocate the nohz_cpu_mask if CONFIG_CPUMASK_OFFSTACK */
-	zalloc_cpumask_var(&nohz_cpu_mask, GFP_NOWAIT);
 #ifdef CONFIG_SMP
 	zalloc_cpumask_var(&sched_domains_tmpmask, GFP_NOWAIT);
 #ifdef CONFIG_NO_HZ
