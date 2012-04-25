@@ -174,7 +174,7 @@ static const unsigned int asv_voltage_B[CPUFREQ_LEVEL_END][5] = {
 	 * @500	 :
 	 * @200	 :
 	 */
-	{ 1350000, 1350000, 1300000, 1250000, 1225000 },
+	{ 1400000, 1350000, 1300000, 1275000, 1250000 },
 	{ 1350000, 1350000, 1300000, 1250000, 1225000 },
 	{ 1325000, 1275000, 1225000, 1175000, 1150000 },
 	{ 1225000, 1175000, 1125000, 1075000, 1050000 },
@@ -430,6 +430,11 @@ int exynos4210_cpufreq_init(struct exynos_dvfs_info *info)
 	}
 
 	info->mpll_freq_khz = rate;
+       /*
+	* Sleep of death fix for overclock freq tables.
+	* Should always be the 800Mhz step as imposed
+	* by the Samsung exynos hardware. --Fluxi
+	*/
 	info->pm_lock_idx = L4;
 	info->pll_safe_idx = L3;
 	info->max_support_idx = max_support_idx;
@@ -439,8 +444,6 @@ int exynos4210_cpufreq_init(struct exynos_dvfs_info *info)
 	info->freq_table = exynos4210_freq_table;
 	info->set_freq = exynos4210_set_frequency;
 	info->need_apll_change = exynos4210_pms_change;
-	info->max_current_idx = max_support_idx;
-	info->min_current_idx = min_support_idx;
 	
 	return 0;
 
