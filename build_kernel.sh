@@ -20,6 +20,8 @@ fi
 #Remove previous zImage files
 if [ -e $KERNELDIR/zImage ]; then
 rm $KERNELDIR/zImage
+fi
+if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
 rm $KERNELDIR/arch/arm/boot/zImage
 fi
 
@@ -49,7 +51,7 @@ export ARCH=arm
 #Not building with latest toolchain with gcc 4.5.2
 #export CROSS_COMPILE=$PARENT_DIR/toolchain/bin/arm-none-eabi-
 
-#I am building with latest toolchain with gcc 4.4.3
+#I am building with latest CM9 toolchain with gcc 4.4.3
 export CROSS_COMPILE=/media/Source-Code/android/system/prebuilt/linux-x86/toolchain/arm-eabi-4.4.3/bin/arm-eabi-
 
 cd $KERNELDIR/
@@ -58,7 +60,7 @@ nice -n 10 make -j8 modules || exit 1
 #Copy initramfs files to tmp directory
 cp -ax $INITRAMFS_SOURCE $INITRAMFS_TMP
 #Clear git repositories in initramfs
-if [ -e $INITRAMFS_TMP/.git ]; then
+if [ -d $INITRAMFS_TMP/.git ]; then
 find $INITRAMFS_TMP -name .git -exec rm -rf {} \;
 fi
 #Remove empty directory placeholders
