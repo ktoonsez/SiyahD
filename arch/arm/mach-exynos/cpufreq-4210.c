@@ -152,12 +152,12 @@ static const unsigned int asv_voltage_A[CPUFREQ_LEVEL_END][8] = {
 	 * @200  :
 	 * @100  :
 	 */
-	{ 1400000, 1400000, 1375000, 1350000, 1350000, 1300000, 1300000, 1300000 },
-	{ 1350000, 1350000, 1300000, 1275000, 1250000, 1225000, 1200000, 1175000 },
+	{ 0, 0, 0, 0, 0, 0, 0, 0 },
+	{ 1350000, 1325000, 1300000, 1275000, 1250000, 1225000, 1200000, 1175000 },
 	{ 1300000, 1250000, 1200000, 1175000, 1150000, 1125000, 1100000, 1075000 },
 	{ 1200000, 1150000, 1100000, 1075000, 1050000, 1025000, 1000000,  975000 },
 	{ 1100000, 1050000, 1000000,  975000,  975000,  950000,  925000,  925000 },
-	{ 1050000, 1000000,  975000,  950000,  950000,  925000,  925000,  925000 },
+	{ 1050000, 1000000,  975000,  950000,  950000,  925000,  925000,  900000 },
 	{ 1025000, 1000000,  975000,  950000,  950000,  925000,  900000,  875000 },
 
 };
@@ -321,7 +321,7 @@ static void __init set_volt_table(void)
 			break;
 		case SUPPORT_1200MHZ:
 			for_1200 = true;
-			max_support_idx = L0;
+			max_support_idx = L1;
 			break;
 		case SUPPORT_1000MHZ:
 			for_1000 = true;
@@ -337,8 +337,8 @@ static void __init set_volt_table(void)
 	 * If ASV group is S, can not support 1.4GHz
 	 * Disabling table entry
 	 */
-//	if ((asv_group == 0) || !for_1400)
-//		exynos4210_freq_table[L0].frequency = CPUFREQ_ENTRY_INVALID;
+	if ((asv_group == 0) || !for_1400)
+		exynos4210_freq_table[L0].frequency = CPUFREQ_ENTRY_INVALID;
 
 	if (for_1000)
 		exynos4210_freq_table[L1].frequency = CPUFREQ_ENTRY_INVALID;
@@ -439,7 +439,6 @@ int exynos4210_cpufreq_init(struct exynos_dvfs_info *info)
 	info->set_freq = exynos4210_set_frequency;
 	info->need_apll_change = exynos4210_pms_change;
 
-	
 	return 0;
 
 err_mout_apll:
