@@ -11,15 +11,12 @@
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/cpuidle.h>
-#include <linux/cpu_pm.h>
 #include <linux/io.h>
 #include <linux/suspend.h>
 #include <linux/platform_device.h>
 #include <linux/gpio.h>
 
 #include <asm/proc-fns.h>
-#include <asm/smp_scu.h>
-#include <asm/unified.h>
 #include <asm/tlbflush.h>
 #include <asm/cacheflush.h>
 
@@ -485,13 +482,6 @@ static int exynos4_enter_core0_aftr(struct cpuidle_device *dev,
 		tmp = __raw_readl(S5P_CENTRAL_SEQ_CONFIGURATION);
 		tmp |= (S5P_CENTRAL_LOWPWR_CFG);
 		__raw_writel(tmp, S5P_CENTRAL_SEQ_CONFIGURATION);
-
-		cpu_pm_enter();
-		if (arm_pm_idle)
-			arm_pm_idle();
-		else
-			cpu_do_idle();
-		cpu_pm_exit();
 
 		goto early_wakeup;
 	}
