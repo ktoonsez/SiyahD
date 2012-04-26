@@ -35,18 +35,18 @@
  * It helps to keep variable names smaller, simpler
  */
 
-#define DEF_FREQUENCY_DOWN_DIFFERENTIAL		(10)
-#define DEF_FREQUENCY_UP_THRESHOLD		(70)
-#define DEF_SAMPLING_DOWN_FACTOR		(10)
+#define DEF_FREQUENCY_DOWN_DIFFERENTIAL		(30)
+#define DEF_FREQUENCY_UP_THRESHOLD		(80)
+#define DEF_SAMPLING_DOWN_FACTOR		(5)
 #define MAX_SAMPLING_DOWN_FACTOR		(100000)
 #define MICRO_FREQUENCY_DOWN_DIFFERENTIAL	(2)
-#define MICRO_FREQUENCY_UP_THRESHOLD		(70)
+#define MICRO_FREQUENCY_UP_THRESHOLD		(80)
 #define MICRO_FREQUENCY_MIN_SAMPLE_RATE		(10000)
 #define MIN_FREQUENCY_UP_THRESHOLD		(11)
 #define MAX_FREQUENCY_UP_THRESHOLD		(100)
 #define FREQ_STEP				(100)
 #define FREQ_STEP_SUSPEND			(20)
-#define UP_THRESHOLD_AT_MIN_FREQ		(40)
+#define UP_THRESHOLD_AT_MIN_FREQ		(50)
 #define FREQ_FOR_RESPONSIVENESS			(800000)
 #ifdef CONFIG_HAS_EARLYSUSPEND
 #define SAMPLING_FACTOR_SUSPEND			(3)
@@ -68,7 +68,7 @@
 static unsigned int min_sampling_rate;
 
 #define MIN_LATENCY_MULTIPLIER			(100)
-#define TRANSITION_LATENCY_LIMIT		(10000000)
+#define TRANSITION_LATENCY_LIMIT		(10 * 1000 * 1000)
 
 static void do_dbs_timer(struct work_struct *work);
 static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
