@@ -46,6 +46,7 @@ struct cpufreq_interactive_cpuinfo {
 	u64 target_set_time;
 	u64 target_set_time_in_idle;
 	u64 target_validate_time;
+	u64 target_validate_time_in_idle;
 	struct cpufreq_policy *policy;
 	struct cpufreq_frequency_table *freq_table;
 	unsigned int target_freq;
@@ -74,13 +75,13 @@ static unsigned long go_hispeed_load;
 /*
  * The minimum amount of time to spend at a frequency before we can ramp down.
  */
-#define DEFAULT_MIN_SAMPLE_TIME (80 * USEC_PER_MSEC)
+#define DEFAULT_MIN_SAMPLE_TIME (60 * USEC_PER_MSEC)
 static unsigned long min_sample_time;
 
 /*
  * The sample rate of the timer used to increase frequency
  */
-#define DEFAULT_TIMER_RATE (20 * USEC_PER_MSEC)
+#define DEFAULT_TIMER_RATE (15 * USEC_PER_MSEC)
 static unsigned long timer_rate;
 
 /*
