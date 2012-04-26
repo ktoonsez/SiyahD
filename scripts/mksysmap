@@ -42,4 +42,3 @@
 # (At least sparc64 has __crc_ in the middle).
 
 /usr/bin/arm-linux-gnueabi-nm -n $1 | grep -v '\( [aNUw] \)\|\(__crc_\)\|\( \$[adt]\)' > $2
-
