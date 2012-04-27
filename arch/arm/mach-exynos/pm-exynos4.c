@@ -338,7 +338,10 @@ void exynos4_cpu_suspend(void)
     __raw_writel(tmp, S5P_CENTRAL_SEQ_CONFIGURATION);
 
     /* issue the standby signal into the pm unit. */
-    cpu_do_idle();
+	if (arm_pm_idle)
+		arm_pm_idle();
+	else
+		cpu_do_idle();
 
     tmp = __raw_readl(S5P_CENTRAL_SEQ_CONFIGURATION);
     tmp |= (S5P_CENTRAL_LOWPWR_CFG);
