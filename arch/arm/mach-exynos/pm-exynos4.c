@@ -59,7 +59,24 @@ static struct sleep_save exynos4_set_clksrc[] = {
 };
 
 static struct sleep_save exynos4210_set_clksrc[] = {
+	{ .reg = EXYNOS4_CLKSRC_DMC					, .val = 0x00010000, },
+	{ .reg = EXYNOS4_CLKSRC_CAM					, .val = 0x11111111, },
+	{ .reg = EXYNOS4_CLKSRC_LCD0				, .val = 0x00001111, },
+	{ .reg = EXYNOS4_CLKSRC_LCD1				, .val = 0x00001111, },
+	{ .reg = EXYNOS4_CLKSRC_FSYS				, .val = 0x00011111, },
+	{ .reg = EXYNOS4_CLKSRC_PERIL0				, .val = 0x01111111, },
+	{ .reg = EXYNOS4_CLKSRC_PERIL1				, .val = 0x01110055, },
+	{ .reg = EXYNOS4_CLKSRC_MAUDIO				, .val = 0x00000006, },
+	{ .reg = EXYNOS4_CLKSRC_MASK_TOP			, .val = 0x00000001, },
+	{ .reg = EXYNOS4_CLKSRC_MASK_CAM			, .val = 0x11111111, },
+	{ .reg = EXYNOS4_CLKSRC_MASK_TV				, .val = 0x00000111, },
+	{ .reg = EXYNOS4_CLKSRC_MASK_LCD0			, .val = 0x00001111, },
 	{ .reg = EXYNOS4_CLKSRC_MASK_LCD1			, .val = 0x00001111, },
+	{ .reg = EXYNOS4_CLKSRC_MASK_MAUDIO			, .val = 0x00000001, },
+	{ .reg = EXYNOS4_CLKSRC_MASK_FSYS			, .val = 0x01011111, },
+	{ .reg = EXYNOS4_CLKSRC_MASK_PERIL0			, .val = 0x01111111, },
+	{ .reg = EXYNOS4_CLKSRC_MASK_PERIL1			, .val = 0x01110111, },
+	{ .reg = EXYNOS4_CLKSRC_MASK_DMC			, .val = 0x00010000, },
 };
 
 static struct sleep_save exynos4_core_save[] = {
@@ -222,30 +239,63 @@ static struct sleep_save exynos4_regs_save[] = {
 };
 
 static struct sleep_save exynos4210_regs_save[] = {
-	/* SROM side */
-	SAVE_ITEM(S5P_SROM_BW),
-	SAVE_ITEM(S5P_SROM_BC0),
-	SAVE_ITEM(S5P_SROM_BC1),
-	SAVE_ITEM(S5P_SROM_BC2),
-	SAVE_ITEM(S5P_SROM_BC3),
-	/* GPIO Part1 */
-	SAVE_ITEM(S5P_VA_GPIO + 0x71C),
-	SAVE_ITEM(S5P_VA_GPIO + 0x720),
-	SAVE_ITEM(S5P_VA_GPIO + 0x724),
-	SAVE_ITEM(S5P_VA_GPIO + 0x728),
-	SAVE_ITEM(S5P_VA_GPIO + 0x72C),
-	SAVE_ITEM(S5P_VA_GPIO + 0x91C),
-	SAVE_ITEM(S5P_VA_GPIO + 0x920),
-	SAVE_ITEM(S5P_VA_GPIO + 0x924),
-	SAVE_ITEM(S5P_VA_GPIO + 0x928),
-	SAVE_ITEM(S5P_VA_GPIO + 0x92C),
-	/* GPIO Part2 */
-	SAVE_ITEM(S5P_VA_GPIO2 + 0x700),
-	SAVE_ITEM(S5P_VA_GPIO2 + 0x704),
-	SAVE_ITEM(S5P_VA_GPIO2 + 0x900),
-	SAVE_ITEM(S5P_VA_GPIO2 + 0x904),
+    /* SROM side */
+    SAVE_ITEM(S5P_SROM_BW),
+    SAVE_ITEM(S5P_SROM_BC0),
+    SAVE_ITEM(S5P_SROM_BC1),
+    SAVE_ITEM(S5P_SROM_BC2),
+    SAVE_ITEM(S5P_SROM_BC3),
+    SAVE_ITEM(S5P_VA_GPIO + 0x700),
+    SAVE_ITEM(S5P_VA_GPIO + 0x704),
+    SAVE_ITEM(S5P_VA_GPIO + 0x708),
+    SAVE_ITEM(S5P_VA_GPIO + 0x70C),
+    SAVE_ITEM(S5P_VA_GPIO + 0x710),
+    SAVE_ITEM(S5P_VA_GPIO + 0x714),
+    SAVE_ITEM(S5P_VA_GPIO + 0x718),
+    SAVE_ITEM(S5P_VA_GPIO + 0x71C),
+    SAVE_ITEM(S5P_VA_GPIO + 0x720),
+    SAVE_ITEM(S5P_VA_GPIO + 0x724),
+    SAVE_ITEM(S5P_VA_GPIO + 0x728),
+    SAVE_ITEM(S5P_VA_GPIO + 0x72C),
+    SAVE_ITEM(S5P_VA_GPIO + 0x730),
+    SAVE_ITEM(S5P_VA_GPIO + 0x734),
+    SAVE_ITEM(S5P_VA_GPIO + 0x738),
+    SAVE_ITEM(S5P_VA_GPIO + 0x73C),
+    SAVE_ITEM(S5P_VA_GPIO + 0x900),
+    SAVE_ITEM(S5P_VA_GPIO + 0x904),
+    SAVE_ITEM(S5P_VA_GPIO + 0x908),
+    SAVE_ITEM(S5P_VA_GPIO + 0x90C),
+    SAVE_ITEM(S5P_VA_GPIO + 0x910),
+    SAVE_ITEM(S5P_VA_GPIO + 0x914),
+    SAVE_ITEM(S5P_VA_GPIO + 0x918),
+    SAVE_ITEM(S5P_VA_GPIO + 0x91C),
+    SAVE_ITEM(S5P_VA_GPIO + 0x920),
+    SAVE_ITEM(S5P_VA_GPIO + 0x924),
+    SAVE_ITEM(S5P_VA_GPIO + 0x928),
+    SAVE_ITEM(S5P_VA_GPIO + 0x92C),
+    SAVE_ITEM(S5P_VA_GPIO + 0x930),
+    SAVE_ITEM(S5P_VA_GPIO + 0x934),
+    SAVE_ITEM(S5P_VA_GPIO + 0x938),
+    SAVE_ITEM(S5P_VA_GPIO + 0x93C),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x700),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x704),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x708),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x70C),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x710),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x714),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x718),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x71C),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x720),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x900),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x904),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x908),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x90C),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x910),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x914),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x918),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x91C),
+    SAVE_ITEM(S5P_VA_GPIO2 + 0x920),
 };
-
 
 static struct sleep_save exynos4x12_regs_save[] = {
 	/* SROM side */
@@ -330,6 +380,7 @@ void exynos4_cpu_suspend(void)
 #ifdef CONFIG_ARM_TRUSTZONE
 	exynos_smc(SMC_CMD_SLEEP, 0, 0, 0);
 #else
+
     /*
      * Setting Central Sequence Register for power down mode
      */
@@ -348,6 +399,7 @@ void exynos4_cpu_suspend(void)
     __raw_writel(tmp, S5P_CENTRAL_SEQ_CONFIGURATION);
 #endif
 }
+EXPORT_SYMBOL(exynos4_cpu_suspend);
 
 static int exynos4_pm_prepare(void)
 {
@@ -383,10 +435,10 @@ static void exynos4_cpu_prepare(void)
 
 	/* Before enter central sequence mode, clock src register have to set */
 
-	s3c_pm_do_restore_core(exynos4_set_clksrc, ARRAY_SIZE(exynos4_set_clksrc));
-
 	if (soc_is_exynos4210())
 		s3c_pm_do_restore_core(exynos4210_set_clksrc, ARRAY_SIZE(exynos4210_set_clksrc));
+	else
+		s3c_pm_do_restore_core(exynos4_set_clksrc, ARRAY_SIZE(exynos4_set_clksrc));
 }
 
 static int exynos4_pm_add(struct sys_device *sysdev)
@@ -395,9 +447,7 @@ static int exynos4_pm_add(struct sys_device *sysdev)
 	pm_cpu_sleep = exynos4_cpu_suspend;
 
 	pm_prepare = exynos4_pm_prepare;
-#ifdef CONFIG_SLP
 	pm_finish = exynos4_pm_finish;
-#endif
 
 	return 0;
 }
