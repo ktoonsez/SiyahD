@@ -746,13 +746,13 @@ static ssize_t store_input_boost(struct kobject *kobj, struct attribute *attr,
 define_one_global_rw(input_boost);
 
 static ssize_t show_boost(struct kobject *kobj, struct attribute *attr,
-	char *buf)
+			  char *buf)
 {
 	return sprintf(buf, "%d\n", boost_val);
 }
 
 static ssize_t store_boost(struct kobject *kobj, struct attribute *attr,
-		const char *buf, size_t count)
+			   const char *buf, size_t count)
 {
 	int ret;
 	unsigned long val;
