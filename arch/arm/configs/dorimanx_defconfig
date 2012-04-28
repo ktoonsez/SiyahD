@@ -1,6 +1,6 @@
 #
 # Automatically generated make config: don't edit
-# Linux/arm 3.0.29 Kernel Configuration
+# Linux/arm 3.0.30 Kernel Configuration
 #
 CONFIG_ARM=y
 CONFIG_HAVE_PWM=y
@@ -2565,7 +2565,7 @@ CONFIG_ZRAM=y
 CONFIG_ZRAM_NUM_DEVICES=3
 CONFIG_ZRAM_DEFAULT_PERCENTAGE=20
 # CONFIG_ZRAM_DEBUG is not set
-CONFIG_ZRAM_DEFAULT_DISKSIZE=100000000
+CONFIG_ZRAM_DEFAULT_DISKSIZE=100663296
 # CONFIG_FB_SM7XX is not set
 # CONFIG_LIRC_STAGING is not set
 # CONFIG_EASYCAP is not set
