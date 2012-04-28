@@ -786,9 +786,7 @@ static int m5mo_flash_power(int enable)
 		if (regulator_is_enabled(movie))
 			regulator_disable(movie);
 	}
-#if defined(CONFIG_MACH_Q1_BD)
 torch_exit:
-#endif
 	regulator_put(flash);
 	regulator_put(movie);
 
@@ -2289,8 +2287,8 @@ REGULATOR_INIT(ldo10, "VPLL_1.2V", 1200000, 1200000, 1,
 REGULATOR_INIT(ldo10, "VPLL_1.1V", 1100000, 1100000, 1,
 		REGULATOR_CHANGE_STATUS, 1);
 #endif
-REGULATOR_INIT(ldo11, "TOUCH_2.8V", 2800000, 2800000, 1,
-		REGULATOR_CHANGE_STATUS, 0);
+REGULATOR_INIT(ldo11, "TOUCH_2.8V", 2800000, 2800000, 0,
+		REGULATOR_CHANGE_STATUS, 1);
 REGULATOR_INIT(ldo12, "VT_CAM_1.8V", 1800000, 1800000, 0,
 		REGULATOR_CHANGE_STATUS, 1);
 REGULATOR_INIT(ldo13, "VCC_3.0V_LCD", 3000000, 3000000, 1,
@@ -2308,8 +2306,8 @@ REGULATOR_INIT(ldo16, "CAM_SENSOR_IO_1.8V", 1800000, 1800000, 0,
 		REGULATOR_CHANGE_STATUS, 1);
 REGULATOR_INIT(ldo17, "VTF_2.8V", 2800000, 2800000, 0,
 		REGULATOR_CHANGE_STATUS, 1);
-REGULATOR_INIT(ldo18, "TOUCH_LED_3.3V", 3000000, 3300000, 1,
-		REGULATOR_CHANGE_STATUS | REGULATOR_CHANGE_VOLTAGE, 0);
+REGULATOR_INIT(ldo18, "TOUCH_LED_3.3V", 3000000, 3300000, 0,
+		REGULATOR_CHANGE_STATUS | REGULATOR_CHANGE_VOLTAGE, 1);
 REGULATOR_INIT(ldo21, "VDDQ_M1M2_1.2V", 1200000, 1200000, 1,
 		REGULATOR_CHANGE_STATUS, 1);
 
@@ -3536,7 +3534,6 @@ static unsigned int sec_bat_get_lpcharging_state(void)
 	return val;
 }
 
-#if defined(CONFIG_MACH_Q1_BD)
 static void sec_bat_initial_check(void)
 {
 	pr_info("%s: connected_cable_type:%d\n",
@@ -3544,7 +3541,6 @@ static void sec_bat_initial_check(void)
 	if (connected_cable_type != CABLE_TYPE_NONE)
 		max8997_muic_charger_cb(connected_cable_type);
 }
-#endif
 
 static struct sec_bat_platform_data sec_bat_pdata = {
 	.fuel_gauge_name	= "fuelgauge",
@@ -3789,7 +3785,6 @@ struct gpio_keys_button u1_buttons[] = {
 		.wakeup = 1,
 		.isr_hook = sec_debug_check_crash_key,
 	},			/* power key */
-#if !defined(CONFIG_TARGET_LOCALE_NAATT_TEMP)
 	{
 		.code = KEY_HOME,
 		.gpio = GPIO_OK_KEY,
@@ -3797,7 +3792,6 @@ struct gpio_keys_button u1_buttons[] = {
 		.type = EV_KEY,
 		.wakeup = 1,
 	},			/* ok key */
-#endif
 };
 
 struct gpio_keys_platform_data u1_keypad_platform_data = {
@@ -3943,14 +3937,14 @@ static void mxt224_power_off(void)
   Configuration for MXT224
 */
 #define MXT224_THRESHOLD_BATT		40
-#define MXT224_THRESHOLD_BATT_INIT	50
+#define MXT224_THRESHOLD_BATT_INIT		50
 #define MXT224_THRESHOLD_CHRG		55
-#define MXT224_NOISE_THRESHOLD_BATT	15
-#define MXT224_NOISE_THRESHOLD_CHRG	40
+#define MXT224_NOISE_THRESHOLD_BATT		30
+#define MXT224_NOISE_THRESHOLD_CHRG		40
 #define MXT224_MOVFILTER_BATT		11
 #define MXT224_MOVFILTER_CHRG		47
-#define MXT224_ATCHCALST			 4
-#define MXT224_ATCHCALTHR			35
+#define MXT224_ATCHCALST		4
+#define MXT224_ATCHCALTHR		35
 
 static u8 t7_config[] = { GEN_POWERCONFIG_T7,
 	48,			/* IDLEACQINT */
@@ -3965,7 +3959,7 @@ static u8 t8_config[] = { GEN_ACQUISITIONCONFIG_T8,
 static u8 t9_config[] = { TOUCH_MULTITOUCHSCREEN_T9,
 	131, 0, 0, 19, 11, 0, 32, MXT224_THRESHOLD_BATT, 2, 1,
 	0,
-	2,			/* MOVHYSTI */
+	5,			/* MOVHYSTI */
 	1, MXT224_MOVFILTER_BATT, MXT224_MAX_MT_FINGERS, 5, 40, 10, 31, 3,
 	223, 1, 0, 0, 0, 0, 143, 55, 143, 90, 18
 };
@@ -3980,7 +3974,8 @@ static u8 t20_config[] = { PROCI_GRIPFACESUPPRESSION_T20,
 
 static u8 t22_config[] = { PROCG_NOISESUPPRESSION_T22,
 	143, 0, 0, 0, 0, 0, 0, 3, MXT224_NOISE_THRESHOLD_BATT, 0,
-	0, 10, 12, 18, 20, 29, 3
+	0, 29, 34, 39, 49, 58, 3
+//	0, 10, 12, 18, 20, 29, 3
 };
 
 static u8 t28_config[] = { SPT_CTECONFIG_T28,

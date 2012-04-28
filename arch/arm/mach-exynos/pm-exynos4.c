@@ -399,7 +399,6 @@ void exynos4_cpu_suspend(void)
     __raw_writel(tmp, S5P_CENTRAL_SEQ_CONFIGURATION);
 #endif
 }
-EXPORT_SYMBOL(exynos4_cpu_suspend);
 
 static int exynos4_pm_prepare(void)
 {
@@ -447,7 +446,9 @@ static int exynos4_pm_add(struct sys_device *sysdev)
 	pm_cpu_sleep = exynos4_cpu_suspend;
 
 	pm_prepare = exynos4_pm_prepare;
+#ifdef CONFIG_SLP
 	pm_finish = exynos4_pm_finish;
+#endif
 
 	return 0;
 }
