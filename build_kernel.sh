@@ -49,8 +49,12 @@ rm -f usr/initramfs_data.o
 
 export ARCH="arm"
 #export EXTRA_AFLAGS=-mfpu=neon
+# default gcc
 #export CROSS_COMPILE="/usr/bin/arm-linux-gnueabi-"
-export CROSS_COMPILE="~/sgs2/android-toolchain-eabi/bin/arm-eabi-"
+# use linaro compiler
+# export CROSS_COMPILE="~/sgs2/android-toolchain-eabi/bin/arm-eabi-"
+# use codesourcery compiler
+export CROSS_COMPILE="~/sgs2/android-toolchain-eabi2/bin/arm-none-eabi-"
 
 cd $KERNELDIR/
 nice -n 10 make -j8 modules || exit 1
