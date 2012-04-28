@@ -44,11 +44,12 @@ struct cpufreq_interactive_cpuinfo {
 	int idling;
 	u64 target_set_time;
 	u64 target_set_time_in_idle;
-	u64 target_validate_time;
 	u64 target_validate_time_in_idle;
 	struct cpufreq_policy *policy;
 	struct cpufreq_frequency_table *freq_table;
 	unsigned int target_freq;
+	unsigned int floor_freq;
+	u64 floor_validate_time;
 	int governor_enabled;
 };
 
@@ -229,12 +230,12 @@ static void cpufreq_interactive_timer(unsigned long data)
 	new_freq = pcpu->freq_table[index].frequency;
 
 	/*
-	 * Do not scale down unless we have been at this frequency for the
-	 * minimum sample time since last validated.
+	 * Do not scale below floor_freq unless we have been at or above the
+	 * floor frequency for the minimum sample time since last validated.
 	 */
-	if (new_freq < pcpu->target_freq) {
+	if (new_freq < pcpu->floor_freq) {
 		if (cputime64_sub(pcpu->timer_run_time,
-				  pcpu->target_validate_time)
+				  pcpu->floor_validate_time)
 		    < min_sample_time) {
 			trace_cpufreq_interactive_notyet(data, cpu_load,
 					 pcpu->target_freq, new_freq);
@@ -242,7 +243,8 @@ static void cpufreq_interactive_timer(unsigned long data)
 		}
 	}
 
-	pcpu->target_validate_time = pcpu->timer_run_time;
+	pcpu->floor_freq = new_freq;
+	pcpu->floor_validate_time = pcpu->timer_run_time;
 
 	if (pcpu->target_freq == new_freq) {
 		trace_cpufreq_interactive_already(data, cpu_load,
@@ -510,12 +512,12 @@ static void cpufreq_interactive_boost(void)
 		}
 
 		/*
-		 * Refresh time at which current (possibly being
-		 * boosted) speed last validated (reset timer for
-		 * allowing speed to drop).
+		 * Set floor freq and (re)start timer for when last
+		 * validated.
 		 */
 
-		pcpu->target_validate_time = ktime_to_us(ktime_get());
+		pcpu->floor_freq = hispeed_freq;
+		pcpu->floor_validate_time = ktime_to_us(ktime_get());
 	}
 
 	spin_unlock_irqrestore(&up_cpumask_lock, flags);
@@ -746,13 +748,13 @@ static ssize_t store_input_boost(struct kobject *kobj, struct attribute *attr,
 define_one_global_rw(input_boost);
 
 static ssize_t show_boost(struct kobject *kobj, struct attribute *attr,
-	char *buf)
+			  char *buf)
 {
 	return sprintf(buf, "%d\n", boost_val);
 }
 
 static ssize_t store_boost(struct kobject *kobj, struct attribute *attr,
-		const char *buf, size_t count)
+			   const char *buf, size_t count)
 {
 	int ret;
 	unsigned long val;
@@ -816,7 +818,8 @@ static int cpufreq_governor_interactive(struct cpufreq_policy *policy,
 			pcpu->target_set_time_in_idle =
 				get_cpu_idle_time_us(j,
 					     &pcpu->target_set_time);
-			pcpu->target_validate_time =
+			pcpu->floor_freq = pcpu->target_freq;
+			pcpu->floor_validate_time =
 				pcpu->target_set_time;
 			pcpu->governor_enabled = 1;
 			smp_wmb();
