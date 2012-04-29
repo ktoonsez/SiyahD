@@ -213,11 +213,6 @@ SYSCALL_ALIAS(sys_ftruncate64, SyS_ftruncate64);
 #endif
 #endif /* BITS_PER_LONG == 32 */
 
-/*
- * enable/disable FALLOC_FL_NO_HIDE_STALE flag
- * 0: disable (default), 1: enable
- */
-int sysctl_enable_falloc_no_hide_stale = 0;
 
 int do_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
 {
@@ -253,12 +248,6 @@ int do_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
 	ret = security_file_permission(file, MAY_WRITE);
 	if (ret)
 		return ret;
-
-
-	/* Check for enabling _NO_HIDE_STALE flag */
-	if (mode & FALLOC_FL_NO_HIDE_STALE &&
-	    	  !sysctl_enable_falloc_no_hide_stale)
-		return -EPERM;
 
 	if (S_ISFIFO(inode->i_mode))
 		return -ESPIPE;
