@@ -348,20 +348,17 @@ CHECK			= sparse
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 				  -Wbitwise -Wno-return-void $(CF)
 CFLAGS_MODULE   = -fgcse-sm
-AFLAGS_MODULE   = 
+AFLAGS_MODULE   =
 LDFLAGS_MODULE  =
 CFLAGS_KERNEL	= -fgcse-sm
 AFLAGS_KERNEL	=
-CFLAGS_GCOV		= -fprofile-arcs -ftest-coverage
-CFLAGS_MODFLAGS	= -Ofast -pipe
-CFLAGS_ARM      = -marm -mtune=cortex-a9 -mfpu=vfp3 -mfloat-abi=hard -march=armv7-a
-CFLAGS_EXTRA    = -funswitch-loops -fpredictive-commoning \
-          -fgcse-after-reload -ftree-vectorize -fipa-cp-clone \
-          -floop-interchange -floop-strip-mine -floop-block \
-          -fno-inline-functions -fno-tree-vectorize \
-          -fsingle-precision-constant \
-		  -ftree-loop-distribution -ftree-loop-linear \
-		  -fgraphite-identity -fsched-spec-load 
+CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
+CFLAGS_MODFLAGS	= -Ofast -pipe -fno-ident
+CFLAGS_ARM      = -marm -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard -march=armv7-a
+# CFLAGS_REGISTER = -fweb -frename-registers -fsched-spec-load
+CFLAGS_LOOPS	= -funswitch-loops -fsingle-precision-constant -fgraphite-identity \
+                  -ftree-loop-distribution -ftree-loop-linear \
+                  -floop-interchange -floop-strip-mine -floop-block
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 
 # Use LINUXINCLUDE when you must reference the include/ directory.
@@ -374,11 +371,11 @@ LINUXINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include \
 KBUILD_CPPFLAGS := -D__KERNEL__
 
 KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
-				   -fno-strict-aliasing -fno-common \
-		   		   -Werror-implicit-function-declaration \
-		   		   -Wno-format-security \
-		   		   -fno-delete-null-pointer-checks $(CFLAGS_MODFLAGS) \
-				   $(CFLAGS_ARM) $(CFLAGS_EXTRA) $(CFLAGS_MODULO) 
+		   -fno-strict-aliasing -fno-common \
+		   -Werror-implicit-function-declaration \
+		   -Wno-format-security \
+		   -fno-delete-null-pointer-checks $(CFLAGS_MODFLAGS) \
+		   $(CFLAGS_ARM) $(CFLAGS_LOOPS) $(CFLAGS_MODULO) 
 KBUILD_AFLAGS_KERNEL 	:=
 KBUILD_CFLAGS_KERNEL 	:=
 KBUILD_AFLAGS   		:= -D__ASSEMBLY__
