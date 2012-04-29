@@ -79,8 +79,8 @@ int mali_dvfs_control=0;
 
 /*dvfs table*/
 mali_dvfs_table mali_dvfs[MALI_DVFS_STEPS]={
-			/*step 0*/{66   ,1000000    , 925000},
-			/*step 1*/{160  ,1000000    , 950000},
+			/*step 0*/{133  ,1000000    , 950000},
+			/*step 1*/{200  ,1000000    ,1000000},
 			/*step 2*/{267  ,1000000    ,1000000} };
 
 #ifdef EXYNOS4_ASV_ENABLED
