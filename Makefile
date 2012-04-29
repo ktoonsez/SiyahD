@@ -354,7 +354,7 @@ CFLAGS_KERNEL	= -fgcse-sm
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 CFLAGS_MODFLAGS	= -Ofast -pipe -fno-ident
-CFLAGS_ARM      = -mthumb -mtune=cortex-a9 -mfpu=neon -mfloat-abi=hard -march=armv7-a
+CFLAGS_ARM      = -mtune=cortex-a9 -mfpu=vfp3 -mfloat-abi=hard -march=armv7-a
 # CFLAGS_REGISTER = -fweb -frename-registers -fsched-spec-load
 CFLAGS_LOOPS	= -funswitch-loops -fsingle-precision-constant -fgraphite-identity \
                   -ftree-loop-distribution -ftree-loop-linear \
