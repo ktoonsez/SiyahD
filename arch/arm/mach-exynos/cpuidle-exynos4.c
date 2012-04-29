@@ -68,11 +68,9 @@ struct check_device_op {
 	enum hc_type		type;
 };
 
-#if defined(CONFIG_MACH_MIDAS)
-#define CPUDILE_ENABLE_MASK (ENABLE_LPA)
-#else
+/* removed CPUDILE_ENABLE_MASK (ENABLE_LPA) -> testing */
 #define CPUDILE_ENABLE_MASK (ENABLE_AFTR | ENABLE_LPA)
-#endif
+#define ENABLE_LOWPWRMASK (ENABLE_AFTR | ENABLE_LPA)
 
 static enum {
 	ENABLE_IDLE = 0x0,
@@ -80,8 +78,6 @@ static enum {
 	ENABLE_LPA  = 0x2
 } enable_mask = CPUDILE_ENABLE_MASK;
 module_param_named(enable_mask, enable_mask, uint, 0644);
-
-#define ENABLE_LOWPWRMASK (ENABLE_AFTR | ENABLE_LPA)
 
 static struct check_device_op chk_sdhc_op[] = {
 #if defined(CONFIG_EXYNOS4_DEV_DWMCI)
