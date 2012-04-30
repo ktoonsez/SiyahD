@@ -293,7 +293,7 @@ static const unsigned int asv_voltage_A[CPUFREQ_LEVEL_END][8] = {
 	{ 1325000, 1325000, 1250000, 1225000, 1200000, 1175000, 1150000, 1125000 }, //1100MHz
 	{ 1300000, 1250000, 1200000, 1175000, 1150000, 1125000, 1100000, 1075000 }, //1000MHz
 	{ 1250000, 1200000, 1150000, 1125000, 1100000, 1075000, 1050000, 1025000 }, // 900MHz
-	{ 1200000, 1150000, 1100000, 1100000, 1050000, 1025000, 1000000,  975000 }, // 800MHz
+	{ 1200000, 1150000, 1100000, 1075000, 1050000, 1025000, 1000000,  975000 }, // 800MHz
 	{ 1150000, 1100000, 1075000, 1025000, 1025000, 1000000,  975000,  950000 }, // 700MHz
 	{ 1125000, 1075000, 1025000, 1000000, 1000000,  975000,  950000,  950000 }, // 600MHz
 	{ 1100000, 1050000, 1000000,  975000,  975000,  950000,  925000,  925000 }, // 500MHz
@@ -585,7 +585,7 @@ int exynos4210_cpufreq_init(struct exynos_dvfs_info *info)
 
 	info->mpll_freq_khz = rate;
 	info->pm_lock_idx = L8;
-	info->pll_safe_idx = L6;
+	info->pll_safe_idx = L4;
 	info->max_support_idx = max_support_idx;
 	info->min_support_idx = min_support_idx;
 	info->cpu_clk = cpu_clk;
@@ -593,7 +593,7 @@ int exynos4210_cpufreq_init(struct exynos_dvfs_info *info)
 	info->freq_table = exynos4210_freq_table;
 	info->set_freq = exynos4210_set_frequency;
 	info->need_apll_change = exynos4210_pms_change;
-	info->max_current_idx = L4;
+	info->max_current_idx = L2;
 	info->min_current_idx = L14;
 	
 	return 0;
