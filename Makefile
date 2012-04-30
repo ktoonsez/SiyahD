@@ -354,7 +354,7 @@ CFLAGS_KERNEL	= -fgcse-sm
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 CFLAGS_MODFLAGS	= -pipe -fno-ident
-CFLAGS_ARM	= -marm -mtune=cortex-a9 -march=armv7-a -pipe \
+CFLAGS_ARM	= -mtune=cortex-a9 -march=armv7-a -pipe \
 		  -msoft-float -mfloat-abi=softfp -mfpu=neon -mthumb \
 		  -mthumb-interwork
 CFLAGS_GRAPHITE	= -finline-functions -fpredictive-commoning \
