@@ -347,23 +347,21 @@ CHECK		= sparse
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-CFLAGS_MODULE   = -fgcse-sm
-AFLAGS_MODULE   =
-LDFLAGS_MODULE  =
-CFLAGS_KERNEL	= -fgcse-sm
-AFLAGS_KERNEL	=
-CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
-CFLAGS_MODFLAGS	= -pipe -fno-ident
-CFLAGS_ARM	= -mtune=cortex-a9 -march=armv7-a -pipe \
-		  -msoft-float -mfloat-abi=softfp -mfpu=neon -mthumb \
+CFLAGS_MODULE 	= -fgcse-sm
+AFLAGS_MODULE 	=
+LDFLAGS_MODULE 	=
+CFLAGS_KERNEL 	= -fgcse-sm
+AFLAGS_KERNEL 	=
+CFLAGS_GCOV 	= -fprofile-arcs -ftest-coverage
+CFLAGS_MODFLAGS = -pipe -fno-ident
+CFLAGS_ARM 	= -mtune=cortex-a9 -pipe -mfpu=neon -march=armv7-a \
+		  -msoft-float -mfloat-abi=softfp -mthumb \
 		  -mthumb-interwork
-CFLAGS_GRAPHITE	= -finline-functions -fpredictive-commoning \
-		  -fgcse-after-reload -ftree-vectorize -fipa-cp-clone
-CFLAGS_LOOPS	= -funswitch-loops -fsingle-precision-constant -fgraphite-identity \
-                  -ftree-loop-distribution -ftree-loop-linear \
-                  -floop-interchange -floop-strip-mine -floop-block
-
-CFLAGS_MODULO	= -fmodulo-sched -fmodulo-sched-allow-regmoves
+# CFLAGS_REGISTER = -fweb -frename-registers -fsched-spec-load
+CFLAGS_LOOPS 	= -finline-functions -funswitch-loops -fsingle-precision-constant \
+		  -ftree-loop-distribution -ftree-loop-linear -fgcse-after-reload \
+		  -ftree-vectorize -fpredictive-commoning -fipa-cp-clone
+CFLAGS_MODULO 	= -fmodulo-sched -fmodulo-sched-allow-regmoves
 
 # Use LINUXINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
@@ -380,7 +378,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
 		   -fno-delete-null-pointer-checks $(CFLAGS_MODFLAGS) \
-		    $(CFLAGS_ARM) $(CFLAGS_GRAPHITE) $(CFLAGS_LOOPS) $(CFLAGS_MODULO)
+		   $(CFLAGS_ARM) $(CFLAGS_LOOPS) $(CFLAGS_MODULO)
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
@@ -573,7 +571,7 @@ all: vmlinux
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os
 else
-KBUILD_CFLAGS  	+= -O3
+KBUILD_CFLAGS  	+= -O2
 endif
 
 ifdef CONFIG_CC_CHECK_WARNING_STRICTLY
