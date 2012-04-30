@@ -353,10 +353,17 @@ LDFLAGS_MODULE  =
 CFLAGS_KERNEL	= -fgcse-sm
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
-XX_A9		= -marm -mtune=cortex-a9 -pipe -mfpu=neon -march=armv7-a 
-XX_GRAPHITE	= -finline-functions -funswitch-loops -fpredictive-commoning \
-		  -fgcse-after-reload -ftree-vectorize -fipa-cp-clone 
-XX_MODULO	= -fmodulo-sched -fmodulo-sched-allow-regmoves
+CFLAGS_MODFLAGS	= -pipe -fno-ident
+CFLAGS_ARM	= -marm -mtune=cortex-a9 -march=armv7-a -pipe \
+		  -msoft-float -mfloat-abi=softfp -mfpu=neon -mthumb \
+		  -mthumb-interwork
+CFLAGS_GRAPHITE	= -finline-functions -fpredictive-commoning \
+		  -fgcse-after-reload -ftree-vectorize -fipa-cp-clone
+CFLAGS_LOOPS	= -funswitch-loops -fsingle-precision-constant -fgraphite-identity \
+                  -ftree-loop-distribution -ftree-loop-linear \
+                  -floop-interchange -floop-strip-mine -floop-block
+
+CFLAGS_MODULO	= -fmodulo-sched -fmodulo-sched-allow-regmoves
 
 # Use LINUXINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
@@ -372,8 +379,8 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
-		   -fno-delete-null-pointer-checks \
-		    $(XX_A9) $(XX_GRAPHITE) $(XX_MODULO)
+		   -fno-delete-null-pointer-checks $(CFLAGS_MODFLAGS) \
+		    $(CFLAGS_ARM) $(CFLAGS_GRAPHITE) $(CFLAGS_LOOPS) $(CFLAGS_MODULO)
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
