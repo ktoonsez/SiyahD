@@ -304,7 +304,6 @@ static const unsigned int asv_voltage_A[CPUFREQ_LEVEL_END][8] = {
 	{ 1000000,  950000,  925000,  900000,  900000,  875000,  875000,  875000 }, // 50MHz
 	{  975000,  925000,  900000,  875000,  875000,  850000,  850000,  850000 }, // 25MHz
 
-#endif
 };
 
 static const unsigned int asv_voltage_B[CPUFREQ_LEVEL_END][5] = {
