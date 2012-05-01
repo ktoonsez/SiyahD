@@ -347,21 +347,12 @@ CHECK		= sparse
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-CFLAGS_MODULE 	= -fgcse-sm 
+CFLAGS_MODULE 	= -DMODULE -mtune=cortex-a9 -march=armv7-a -mfpu=neon -funswitch-loops -fpredictive-commoning -fgcse-after-reload -ftree-vectorize -fipa-cp-clone -fsingle-precision-constant -pipe 
 AFLAGS_MODULE 	=
 LDFLAGS_MODULE 	=
-CFLAGS_KERNEL 	= -fgcse-sm
+CFLAGS_KERNEL 	= -funswitch-loops -fpredictive-commoning -fgcse-after-reload -ftree-vectorize -fipa-cp-clone -fsingle-precision-constant -pipe
 AFLAGS_KERNEL 	=
 CFLAGS_GCOV 	= -fprofile-arcs -ftest-coverage
-CFLAGS_MODFLAGS = -pipe -fno-ident
-CFLAGS_ARM 	= -mtune=cortex-a9 -pipe -mfpu=neon -march=armv7-a \
-		  -msoft-float -mfloat-abi=softfp -mthumb \
-		  -mthumb-interwork
-# CFLAGS_REGISTER = -fweb -frename-registers -fsched-spec-load
-CFLAGS_LOOPS 	= -finline-functions -funswitch-loops -fsingle-precision-constant \
-		  -ftree-loop-distribution -ftree-loop-linear -fgcse-after-reload \
-		  -ftree-vectorize -fpredictive-commoning -fipa-cp-clone
-CFLAGS_MODULO 	= -fmodulo-sched -fmodulo-sched-allow-regmoves
 
 # Use LINUXINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
@@ -377,8 +368,9 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
-		   -fno-delete-null-pointer-checks $(CFLAGS_MODFLAGS) \
-		   $(CFLAGS_ARM) $(CFLAGS_LOOPS) $(CFLAGS_MODULO)
+		   -fno-delete-null-pointer-checks \
+                   -mfpu=neon \
+                   -mtune=cortex-a9 -march=armv7-a
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
