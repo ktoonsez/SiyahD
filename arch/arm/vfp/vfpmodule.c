@@ -427,7 +427,7 @@ static int vfp_pm_suspend(void)
 	}
 
 	/* clear any information we had about last context state */
-	vfp_current_hw_state[ti->cpu] = NULL;	
+	vfp_current_hw_state[ti->cpu] = NULL;
 
 	return 0;
 }
