@@ -355,7 +355,7 @@ AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 CFLAGS_MODFLAGS	= -Ofast -pipe -fno-ident
 CFLAGS_ARM      = -mtune=cortex-a9 -march=armv7-a \
-				  -msoft-float -mfloat-abi=softfp -mfpu=neon -mthumb \
+				  -mfloat-abi=hard -mfpu=neon -mthumb \
 				  -mthumb-interwork
 # CFLAGS_REGISTER = -fweb -frename-registers -fsched-spec-load
 CFLAGS_LOOPS	= -funswitch-loops -fsingle-precision-constant -fgraphite-identity \

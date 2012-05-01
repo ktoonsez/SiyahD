@@ -48,7 +48,7 @@ rm -f usr/initramfs_data.cpio
 rm -f usr/initramfs_data.o
 
 export ARCH="arm"
-#export EXTRA_AFLAGS=-mfpu=neon
+export EXTRA_AFLAGS=-mfpu=neon
 # default gcc
 #export CROSS_COMPILE="/usr/bin/arm-linux-gnueabi-"
 # use linaro compiler
