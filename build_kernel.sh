@@ -74,7 +74,8 @@ fi
 #copy modules into initramfs
 mkdir -p $INITRAMFS/lib/modules
 find -name '*.ko' -exec cp -av {} $INITRAMFS_TMP/lib/modules/ \;
-/usr/bin/arm-linux-gnueabi-strip --strip-debug $INITRAMFS_TMP/lib/modules/*.ko
+# /usr/bin/arm-linux-gnueabi-strip --strip-debug $INITRAMFS_TMP/lib/modules/*.ko
+/root/sgs2/android-toolchain-eabi2/bin/arm-none-eabi-strip --strip-debug $INITRAMFS_TMP/lib/modules/*.ko
 chmod 755 $INITRAMFS_TMP/lib/modules/*
 nice -n 10 make -j8 zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
 
