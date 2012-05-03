@@ -12,7 +12,7 @@
  * processes with a oom_score_adj value of 8 or higher when the free memory
  * drops below 4096 pages and kill processes with a oom_score_adj value of 0 or
  * higher when the free memory drops below 1024 pages. 
-
+ *
  * The driver considers memory used for caches to be free, but if a large
  * percentage of the cached memory is locked this can be very inaccurate
  * and processes may not get killed until the normal oom killer is triggered.
