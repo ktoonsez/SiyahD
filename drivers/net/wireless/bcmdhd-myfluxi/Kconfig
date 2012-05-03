@@ -1,0 +1,24 @@
+
+config BCM4334_MYFLUXI
+	tristate "---Broadcom WiFi Driver for 4334-MYFLUXI"
+	depends on WLAN
+	---help---
+		Select this option to build Broadcom wlan driver
+
+config BCM4330_MYFLUXI
+	tristate "---Broadcom WiFi Driver for 4330-MYFLUXI"
+	depends on WLAN
+	---help---
+		Select this option to build Broadcom wlan driver
+
+config BCM43241_MYFLUXI
+	tristate "---Broadcom WiFi Driver for 43241-MYFLUXI"
+	depends on WLAN
+	---help---
+		Select this option to build Broadcom wlan driver
+
+config BROADCOM_WIFI_RESERVED_MEM_MYFLUXI
+	bool "BROADCOM Reserved memory for wifi device-MYFLUXI"
+    depends on (BCM4330_MYFLUXI || BCM4334_MYFLUXI || BCM43241_MYFLUXI)
+	---help---
+		This is a configuration for broadcom WLAN driver.
