@@ -347,12 +347,22 @@ CHECK		= sparse
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-CFLAGS_MODULE 	= -DMODULE -mtune=cortex-a9 -march=armv7-a -mfpu=neon -funswitch-loops -fpredictive-commoning -fgcse-after-reload -ftree-vectorize -fipa-cp-clone -fsingle-precision-constant -pipe 
-AFLAGS_MODULE 	=
-LDFLAGS_MODULE 	=
-CFLAGS_KERNEL 	= -funswitch-loops -fpredictive-commoning -fgcse-after-reload -ftree-vectorize -fipa-cp-clone -fsingle-precision-constant -pipe
-AFLAGS_KERNEL 	=
-CFLAGS_GCOV 	= -fprofile-arcs -ftest-coverage
+CFLAGS_COMPILE	= -O3 -pipe -fno-ident
+CFLAGS_ARM      = -mtune=cortex-a9 -march=armv7-a \
+		  -mfpu=neon -mthumb -mthumb-interwork
+CFLAGS_LOOPS	= -fsingle-precision-constant -ftree-loop-distribution \
+		  -fpredictive-commoning -funswitch-loops -fpredictive-commoning \
+		  -fgcse-after-reload
+CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
+CFLAGS_DISABLE	= -fno-inline-functions -fno-tree-vectorize -fno-ipa-cp-clone
+MODFLAGS	= -DMODULE $(CFLAGS_COMPILE) $(CFLAGS_DISABLE) \
+		  -mtune=cortex-a9 -march=armv7-a -mfpu=neon
+CFLAGS_MODULE   = $(MODFLAGS) 
+AFLAGS_MODULE   = $(MODFLAGS) 
+LDFLAGS_MODULE  =
+CFLAGS_KERNEL	= $(CFLAGS_COMPILE) $(CFLAGS_DISABLE)
+AFLAGS_KERNEL	=
+CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 
 # Use LINUXINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
@@ -369,14 +379,17 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
 		   -fno-delete-null-pointer-checks \
-                   -mfpu=neon \
-                   -mtune=cortex-a9 -march=armv7-a
-KBUILD_AFLAGS_KERNEL :=
-KBUILD_CFLAGS_KERNEL :=
-KBUILD_AFLAGS   := -D__ASSEMBLY__
-KBUILD_AFLAGS_MODULE  := -DMODULE
-KBUILD_CFLAGS_MODULE  := -DMODULE
-KBUILD_LDFLAGS_MODULE := -T $(srctree)/scripts/module-common.lds
+		   $(CFLAGS_COMPILE) \
+		   $(CFLAGS_ARM) \
+		   $(CFLAGS_LOOPS) \
+		   $(CFLAGS_MODULO) \
+		   $(CFLAGS_DISABLE)
+KBUILD_AFLAGS_KERNEL 	:=
+KBUILD_CFLAGS_KERNEL 	:=
+KBUILD_AFLAGS   	:= -D__ASSEMBLY__
+KBUILD_AFLAGS_MODULE  	:= -DMODULE
+KBUILD_CFLAGS_MODULE  	:= -DMODULE
+KBUILD_LDFLAGS_MODULE 	:= -T $(srctree)/scripts/module-common.lds
 
 # Read KERNELRELEASE from include/config/kernel.release (if it exists)
 KERNELRELEASE = $(shell cat include/config/kernel.release 2> /dev/null)
@@ -563,7 +576,7 @@ all: vmlinux
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os
 else
-KBUILD_CFLAGS  	+= -O2
+KBUILD_CFLAGS  	+= -O3
 endif
 
 ifdef CONFIG_CC_CHECK_WARNING_STRICTLY
