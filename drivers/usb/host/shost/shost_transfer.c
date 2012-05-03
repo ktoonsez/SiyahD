@@ -144,7 +144,7 @@ static int cancel_transfer(struct sec_otghost *otghost,
 				otg_dbg(OTG_DBG_TRANSFER,
 						"cancel_to_transfer_td\n");
 				cancel_td->error_code = err;
-				// otg_usbcore_giveback(cancel_td);
+			//	otg_usbcore_giveback(cancel_td);
 				goto ErrorStatus;
 			}
 

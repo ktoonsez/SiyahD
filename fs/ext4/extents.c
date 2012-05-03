@@ -3774,7 +3774,6 @@ long ext4_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
 	int ret = 0;
 	int ret2 = 0;
 	int retries = 0;
-	int flags;
 	struct ext4_map_blocks map;
 	unsigned int credits, blkbits = inode->i_blkbits;
 
@@ -3786,7 +3785,7 @@ long ext4_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
 		return -EOPNOTSUPP;
 
 	/* Return error if mode is not supported */
-	if (mode & ~FALLOC_FL_SUPPORTED_FLAGS)
+	if (mode & ~(FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE))
 		return -EOPNOTSUPP;
 
 	if (mode & FALLOC_FL_PUNCH_HOLE)
@@ -3857,12 +3856,6 @@ retry:
 	trace_ext4_fallocate_exit(inode, offset, max_blocks,
 				ret > 0 ? ret2 : ret);
 	return ret > 0 ? ret2 : ret;
-
-	if (mode & FALLOC_FL_NO_HIDE_STALE)
-		flags = EXT4_GET_BLOCKS_CREATE;
-	else
-		flags = EXT4_GET_BLOCKS_CREATE_UNINIT_EXT;
-
 }
 
 /*

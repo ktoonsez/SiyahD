@@ -308,8 +308,8 @@ static void sg_complete(struct urb *urb)
 				retval = usb_unlink_urb(io->urbs [i]);
 				if (retval != -EINPROGRESS &&
 				    retval != -ENODEV &&
-				    retval != -EBUSY &&
-				    retval != -EIDRM)
+					retval != -EBUSY &&
+					retval != -EIDRM)
 					dev_err(&io->dev->dev,
 						"%s, unlink --> %d\n",
 						__func__, retval);
@@ -592,9 +592,9 @@ void usb_sg_cancel(struct usb_sg_request *io)
 				continue;
 			retval = usb_unlink_urb(io->urbs [i]);
 			if (retval != -EINPROGRESS
-					&& retval != -ENODEV
-					&& retval != -EBUSY
-					&& retval != -EIDRM)
+				  && retval != -ENODEV
+				  && retval != -EBUSY
+				  && retval != -EIDRM)
 				dev_warn(&io->dev->dev, "%s, unlink --> %d\n",
 					__func__, retval);
 		}
