@@ -348,19 +348,18 @@ CHECK			= sparse
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 				  -Wbitwise -Wno-return-void $(CF)
 CFLAGS_COMPILE	= -Ofast -pipe -fno-ident
-CFLAGS_ARM      = -mtune=cortex-a9 -march=armv7-a \
-		  -mfloat-abi=hard -mfpu=neon -mthumb -mthumb-interwork
+CFLAGS_ARM      = -marm -mtune=cortex-a9 -march=armv7-a \
+		  -mfloat-abi=hard -mfpu=vfp3
 CFLAGS_LOOPS	= -fsingle-precision-constant -fgraphite-identity \
                   -ftree-loop-distribution -ftree-loop-linear \
                   -floop-interchange -floop-strip-mine -floop-block
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 CFLAGS_DISABLE	= -fno-inline-functions -fno-tree-vectorize -fno-ipa-cp-clone
-MODFLAGS	= -DMODULE $(CFLAGS_COMPILE) $(CFLAGS_DISABLE) \
-		  -mtune=cortex-a9 -march=armv7-a -mfpu=neon
+MODFLAGS	= -DMODULE $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_DISABLE)
 CFLAGS_MODULE   = $(MODFLAGS) 
 AFLAGS_MODULE   = $(MODFLAGS) 
 LDFLAGS_MODULE  =
-CFLAGS_KERNEL	= $(CFLAGS_COMPILE) $(CFLAGS_DISABLE)
+CFLAGS_KERNEL	= $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_DISABLE)
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
 

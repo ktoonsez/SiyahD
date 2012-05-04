@@ -11,7 +11,7 @@
  * "1024,4096" to /sys/module/lowmemorykiller/parameters/minfree to kill
  * processes with a oom_score_adj value of 8 or higher when the free memory
  * drops below 4096 pages and kill processes with a oom_score_adj value of 0 or
- * higher when the free memory drops below 1024 pages.
+ * higher when the free memory drops below 1024 pages. 
  *
  * The driver considers memory used for caches to be free, but if a large
  * percentage of the cached memory is locked this can be very inaccurate
@@ -36,7 +36,10 @@
 #include <linux/oom.h>
 #include <linux/sched.h>
 #include <linux/rcupdate.h>
+#include <linux/profile.h>
 #include <linux/notifier.h>
+#include <linux/memory.h>
+#include <linux/memory_hotplug.h>
 
 static uint32_t lowmem_debug_level = 2;
 static int lowmem_adj[6] = {
@@ -54,6 +57,7 @@ static size_t lowmem_minfree[6] = {
 };
 static int lowmem_minfree_size = 4;
 
+static unsigned int offlining;
 static unsigned long lowmem_deathpending_timeout;
 
 #define lowmem_print(level, x...)			\
@@ -61,6 +65,30 @@ static unsigned long lowmem_deathpending_timeout;
 		if (lowmem_debug_level >= (level))	\
 			printk(x);			\
 	} while (0)
+
+#ifdef CONFIG_MEMORY_HOTPLUG
+static int lmk_hotplug_callback(struct notifier_block *self,
+				unsigned long cmd, void *data)
+{
+	switch (cmd) {
+	/* Don't care LMK cases */
+	case MEM_ONLINE:
+	case MEM_OFFLINE:
+	case MEM_CANCEL_ONLINE:
+	case MEM_CANCEL_OFFLINE:
+	case MEM_GOING_ONLINE:
+		offlining = 0;
+		lowmem_print(4, "lmk in normal mode\n");
+		break;
+	/* LMK should account for movable zone */
+	case MEM_GOING_OFFLINE:
+		offlining = 1;
+		lowmem_print(4, "lmk in hotplug mode\n");
+		break;
+	}
+	return NOTIFY_DONE;
+}
+#endif
 
 static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 {
@@ -76,7 +104,20 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 	int other_free = global_page_state(NR_FREE_PAGES);
 	int other_file = global_page_state(NR_FILE_PAGES) -
 						global_page_state(NR_SHMEM);
+	struct zone *zone;
 
+	if (offlining) {
+		/* Discount all free space in the section being offlined */
+		for_each_zone(zone) {
+			 if (zone_idx(zone) == ZONE_MOVABLE) {
+				other_free -= zone_page_state(zone,
+						NR_FREE_PAGES);
+				lowmem_print(4, "lowmem_shrink discounted "
+					"%lu pages in movable zone\n",
+					zone_page_state(zone, NR_FREE_PAGES));
+			}
+		}
+	}
 	if (lowmem_adj_size < array_size)
 		array_size = lowmem_adj_size;
 	if (lowmem_minfree_size < array_size)
@@ -116,7 +157,7 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 			continue;
 
 		if (test_tsk_thread_flag(p, TIF_MEMDIE) &&
-		    time_before_eq(jiffies, lowmem_deathpending_timeout)) {
+				time_before_eq(jiffies, lowmem_deathpending_timeout)) {
 			task_unlock(p);
 			rcu_read_unlock();
 			return 0;
@@ -165,6 +206,9 @@ static struct shrinker lowmem_shrinker = {
 static int __init lowmem_init(void)
 {
 	register_shrinker(&lowmem_shrinker);
+#ifdef CONFIG_MEMORY_HOTPLUG
+	hotplug_memory_notifier(lmk_hotplug_callback, 0);
+#endif
 	return 0;
 }
 
@@ -184,5 +228,4 @@ module_init(lowmem_init);
 module_exit(lowmem_exit);
 
 MODULE_LICENSE("GPL");
-
 

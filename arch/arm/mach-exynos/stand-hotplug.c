@@ -28,6 +28,7 @@
 #include <linux/reboot.h>
 #include <linux/gpio.h>
 #include <linux/cpufreq.h>
+#include <linux/earlysuspend.h>
 #include <linux/device.h>       //for second_core by tegrak
 #include <linux/miscdevice.h>   //for second_core by tegrak
 #include <linux/earlysuspend.h>
@@ -41,25 +42,25 @@
 #include <mach/regs-irq.h>
 
 #if defined(CONFIG_MACH_P11) || defined(CONFIG_MACH_P10)
-#define TRANS_LOAD_H0 50
-#define TRANS_LOAD_L1 30
+#define TRANS_LOAD_H0 30
+#define TRANS_LOAD_L1 20
 #define TRANS_LOAD_H1 100
 #endif
 
 #if defined(CONFIG_MACH_U1) || defined(CONFIG_MACH_PX)
-#define TRANS_LOAD_H0 50
-#define TRANS_LOAD_L1 30
+#define TRANS_LOAD_H0 30
+#define TRANS_LOAD_L1 20
 #define TRANS_LOAD_H1 100
 #endif
 
 #if defined(CONFIG_MACH_MIDAS) || defined(CONFIG_MACH_SMDK4X12)
 #ifdef CONFIG_MACH_S2PLUS
-#define TRANS_LOAD_H0 50
-#define TRANS_LOAD_L1 30
+#define TRANS_LOAD_H0 30
+#define TRANS_LOAD_L1 20
 #define TRANS_LOAD_H1 100
 #else
-#define TRANS_LOAD_H0 40
-#define TRANS_LOAD_L1 20
+#define TRANS_LOAD_H0 20
+#define TRANS_LOAD_L1 10
 #define TRANS_LOAD_H1 35
 #endif
 #define TRANS_LOAD_L2 15
@@ -132,7 +133,6 @@ struct cpu_hotplug_info {
 	unsigned long nr_running;
 	pid_t tgid;
 };
-
 
 static DEFINE_PER_CPU(struct cpu_time_info, hotplug_cpu_time);
 
@@ -265,8 +265,8 @@ static void hotplug_timer(struct work_struct *work)
 	flag_hotplug = standalone_hotplug(load, nr_rq_min, cpu_rq_min);
 
 	/*do not ever hotplug out CPU 0*/
-	//if((cpu_rq_min == 0) && (flag_hotplug == HOTPLUG_OUT))
-	//	goto no_hotplug;
+	if((cpu_rq_min == 0) && (flag_hotplug == HOTPLUG_OUT))
+		goto no_hotplug;
 
 	/*cpu hotplug*/
 	if (flag_hotplug == HOTPLUG_IN && cpu_online(select_off_cpu) == CPU_OFF) {
@@ -514,7 +514,6 @@ static int __init exynos4_pm_hotplug_init(void)
 	register_pm_notifier(&exynos4_pm_hotplug_notifier);
 	register_reboot_notifier(&hotplug_reboot_notifier);
 	register_early_suspend(&hotplug_early_suspend_notifier);
-	
 	// register second_core device by tegrak
 	ret = misc_register(&second_core_device);
 	if (ret) {
