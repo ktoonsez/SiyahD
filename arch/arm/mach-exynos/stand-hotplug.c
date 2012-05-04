@@ -28,6 +28,7 @@
 #include <linux/reboot.h>
 #include <linux/gpio.h>
 #include <linux/cpufreq.h>
+#include <linux/earlysuspend.h>
 #include <linux/device.h>       //for second_core by tegrak
 #include <linux/miscdevice.h>   //for second_core by tegrak
 #include <linux/earlysuspend.h>
@@ -133,7 +134,6 @@ struct cpu_hotplug_info {
 	pid_t tgid;
 };
 
-
 static DEFINE_PER_CPU(struct cpu_time_info, hotplug_cpu_time);
 
 static bool screen_off;
@@ -208,7 +208,6 @@ static void hotplug_timer(struct work_struct *work)
 	if (screen_off && !cpu_online(1)) {
 		printk(KERN_INFO "pm-hotplug: disable cpu auto-hotplug\n");
 		goto off_hotplug;
-
 	}
 
 	// exit if we turned off dynamic hotplug by tegrak
@@ -515,7 +514,6 @@ static int __init exynos4_pm_hotplug_init(void)
 	register_pm_notifier(&exynos4_pm_hotplug_notifier);
 	register_reboot_notifier(&hotplug_reboot_notifier);
 	register_early_suspend(&hotplug_early_suspend_notifier);
-	
 	// register second_core device by tegrak
 	ret = misc_register(&second_core_device);
 	if (ret) {

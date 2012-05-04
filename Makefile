@@ -347,22 +347,16 @@ CHECK		= sparse
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-CFLAGS_COMPILE	= -O3 -pipe -fno-ident
-CFLAGS_ARM      = -mtune=cortex-a9 -march=armv7-a \
-		  -mfpu=neon -mthumb -mthumb-interwork
-CFLAGS_LOOPS	= -fsingle-precision-constant -ftree-loop-distribution \
-		  -fpredictive-commoning -funswitch-loops -fpredictive-commoning \
-		  -fgcse-after-reload
-CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
-CFLAGS_DISABLE	= -fno-inline-functions -fno-tree-vectorize -fno-ipa-cp-clone
-MODFLAGS	= -DMODULE $(CFLAGS_COMPILE) $(CFLAGS_DISABLE) \
-		  -mtune=cortex-a9 -march=armv7-a -mfpu=neon
-CFLAGS_MODULE   = $(MODFLAGS) 
-AFLAGS_MODULE   = $(MODFLAGS) 
+CFLAGS_MODULE   =
+AFLAGS_MODULE   =
 LDFLAGS_MODULE  =
-CFLAGS_KERNEL	= $(CFLAGS_COMPILE) $(CFLAGS_DISABLE)
+CFLAGS_KERNEL	=
 AFLAGS_KERNEL	=
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
+XX_A9		= -marm -mtune=cortex-a9 -mfpu=neon -march=armv7-a
+XX_GRAPHITE	= -fgraphite-identity -floop-block -ftree-loop-linear \
+		  -floop-strip-mine -ftree-loop-distribution
+XX_MODULO	= -fmodulo-sched -fmodulo-sched-allow-regmoves
 
 # Use LINUXINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
@@ -373,23 +367,18 @@ LINUXINCLUDE    := -I$(srctree)/arch/$(hdr-arch)/include \
 
 KBUILD_CPPFLAGS := -D__KERNEL__
 
-#Kernel Tweaks versions.
 KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -fno-strict-aliasing -fno-common \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
 		   -fno-delete-null-pointer-checks \
-		   $(CFLAGS_COMPILE) \
-		   $(CFLAGS_ARM) \
-		   $(CFLAGS_LOOPS) \
-		   $(CFLAGS_MODULO) \
-		   $(CFLAGS_DISABLE)
-KBUILD_AFLAGS_KERNEL 	:=
-KBUILD_CFLAGS_KERNEL 	:=
-KBUILD_AFLAGS   	:= -D__ASSEMBLY__
-KBUILD_AFLAGS_MODULE  	:= -DMODULE
-KBUILD_CFLAGS_MODULE  	:= -DMODULE
-KBUILD_LDFLAGS_MODULE 	:= -T $(srctree)/scripts/module-common.lds
+		    $(XX_A9) $(XX_GRAPHITE) $(XX_MODULO)
+KBUILD_AFLAGS_KERNEL :=
+KBUILD_CFLAGS_KERNEL :=
+KBUILD_AFLAGS   := -D__ASSEMBLY__
+KBUILD_AFLAGS_MODULE  := -DMODULE
+KBUILD_CFLAGS_MODULE  := -DMODULE
+KBUILD_LDFLAGS_MODULE := -T $(srctree)/scripts/module-common.lds
 
 # Read KERNELRELEASE from include/config/kernel.release (if it exists)
 KERNELRELEASE = $(shell cat include/config/kernel.release 2> /dev/null)
