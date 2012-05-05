@@ -362,6 +362,11 @@ uint dhd_console_ms = 0;
 module_param(dhd_console_ms, uint, 0644);
 #endif /* defined(DHD_DEBUG) */
 
+#if defined(CONFIG_HAS_EARLYSUSPEND)
+bool wifi_fast = false;
+module_param(wifi_fast, bool, 0644);
+#endif
+
 uint dhd_slpauto = TRUE;
 module_param(dhd_slpauto, uint, 0);
 
@@ -606,6 +611,10 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 	int bcn_li_dtim = 3;
 	uint roamvar = 1;
 #endif
+
+	static int power_mode;
+	if (wifi_fast)
+	power_mode = PM_FAST;
 
 	DHD_ERROR(("%s: enter, value = %d in_suspend=%d\n",
 		__FUNCTION__, value, dhd->in_suspend));
