@@ -1,4 +1,4 @@
-ui_print(" Dorimanx-Kernel-V1.0   ");
+ui_print(" Dorimanx-SGII-Kernel   ");
 ui_print("                        ");
 
 show_progress(0.100000, 0);

@@ -95,7 +95,7 @@ static int mmc_decode_cid(struct mmc_card *card)
 		card->cid.prod_name[3]	= UNSTUFF_BITS(resp, 72, 8);
 		card->cid.prod_name[4]	= UNSTUFF_BITS(resp, 64, 8);
 		card->cid.prod_name[5]	= UNSTUFF_BITS(resp, 56, 8);
-		card->cid.fwrev      = UNSTUFF_BITS(resp, 48, 8);
+		card->cid.fwrev    	= UNSTUFF_BITS(resp, 48, 8);
 		card->cid.serial	= UNSTUFF_BITS(resp, 16, 32);
 		card->cid.month		= UNSTUFF_BITS(resp, 12, 4);
 		card->cid.year		= UNSTUFF_BITS(resp, 8, 4) + 1997;
@@ -770,6 +770,10 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 		err = mmc_decode_cid(card);
 		if (err)
 			goto free_card;
+	       /* Detect on first access quirky cards that need help when
+		* powered-on
+		*/
+		mmc_fixup_device(card, mmc_fixups);
 	}
 
 	/*
@@ -1092,10 +1096,10 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 
 	mmc_free_ext_csd(ext_csd);
 
-    /*
-     * Patch the firmware in certain Samsung emmc chips to fix a
-     * wear leveling bug.
-     */
+       /*
+    	* Patch the firmware in certain Samsung emmc chips to fix a
+    	* wear leveling bug.
+    	*/
 	if (card->quirks & MMC_QUIRK_SAMSUNG_WL_PATCH)
 		mmc_fixup_samsung_fw(card);
 
@@ -1156,8 +1160,9 @@ static void mmc_detect(struct mmc_host *host)
  */
 static int mmc_suspend(struct mmc_host *host)
 {
+
 	int err = 0;
-	
+
 	BUG_ON(!host);
 	BUG_ON(!host->card);
 

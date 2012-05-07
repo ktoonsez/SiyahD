@@ -205,8 +205,8 @@ ENTRY(v7_coherent_user_range)
 	isb
 
 /* This patch was been introduced by zeusk shans95g@gmail.com */
-9001: 									@ tag defined, instead of looping through extra pages, it will return from the function.
-	mov     pc, lr 						@ This statement returns the function by moving the return address from lr register to pc register (program counter)
+9001:                                           @ tag defined, instead of looping through extra pages, it will return from the function.
+        mov     pc, lr                          @ This statement returns the function by moving the return address from lr register to pc register (program counter)
 ENDPROC(v7_coherent_kern_range)
 ENDPROC(v7_coherent_user_range)
 

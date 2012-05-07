@@ -45,8 +45,8 @@
 
 #define MAX_LOAD		100
 #define DIVIDING_FACTOR		10000
-#define UP_THRESHOLD_DEFAULT	30
-#define DOWN_THRESHOLD_DEFAULT	30
+#define UP_THRESHOLD_DEFAULT	23
+#define DOWN_THRESHOLD_DEFAULT	23
 
 static unsigned up_threshold;
 static unsigned down_threshold;
@@ -104,10 +104,10 @@ static unsigned int exynos4_asv_volt[ASV_GROUP][LV_END] = {
 	{1150000, 1050000, 1050000},
 	{1125000, 1025000, 1025000},
 	{1100000, 1000000, 1000000},
-	{1075000,  975000,  975000},
-	{1050000,  950000,  950000},
-	{1025000,  950000,  925000},
-	{1000000,  925000,  900000},
+	{1075000, 975000,   975000},
+	{1050000, 950000,   950000},
+	{1025000, 950000,   925000},
+	{1000000, 925000,   900000},
 };
 
 static unsigned int clkdiv_dmc0[LV_END][8] = {

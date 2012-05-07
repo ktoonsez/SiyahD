@@ -507,3 +507,4 @@ static __init int exynos4_pm_syscore_init(void)
 	return 0;
 }
 arch_initcall(exynos4_pm_syscore_init);
+

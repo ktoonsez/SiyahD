@@ -179,6 +179,7 @@ MODULE_DEVICE_TABLE(sdio, bcmsdh_sdmmc_ids);
 static int bcmsdh_sdmmc_suspend(struct device *pdev)
 {
 	struct sdio_func *func = dev_to_sdio_func(pdev);
+
 	mmc_pm_flag_t sdio_flags;
 	int ret;
 

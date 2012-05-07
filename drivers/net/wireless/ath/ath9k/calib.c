@@ -19,7 +19,6 @@
 
 /* Common calibration code */
 
-
 static int16_t ath9k_hw_get_nf_hist_mid(int16_t *nfCalBuffer)
 {
 	int16_t nfval;

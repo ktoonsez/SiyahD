@@ -200,6 +200,7 @@ EXPORT_SYMBOL_GPL(cpu_idle_wait);
 /*
  * This is our default idle handler.
  */
+
 void (*arm_pm_idle)(void);
 
 static void default_idle(void)
@@ -254,9 +255,8 @@ void cpu_idle(void)
 				 * return with IRQs enabled.
 				 */
 				WARN_ON(irqs_disabled());
-			} else {
+			} else
 				local_irq_enable();
-			}
 		}
 		tick_nohz_restart_sched_tick();
 		idle_notifier_call_chain(IDLE_END);

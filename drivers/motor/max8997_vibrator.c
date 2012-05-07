@@ -31,8 +31,8 @@ struct vibrator_drvdata {
 struct vibrator_drvdata *g_data;
 #endif
 
-//#define VIBRATOR_PERIOD  38022
-//extern int vibrator_duty;
+#define VIBRATOR_PERIOD  38022
+extern int vibrator_duty;
 
 static int vibetonz_clk_on(struct device *dev, bool en)
 {
@@ -110,8 +110,7 @@ static void vibrator_work(struct work_struct *_work)
 			regulator_enable(data->regulator);
 		i2c_max8997_hapticmotor(data, true);
 		pwm_config(data->pwm,
-			data->pdata->duty, data->pdata->period);
-//			vibrator_duty, VIBRATOR_PERIOD);
+			vibrator_duty, VIBRATOR_PERIOD);
 		pwm_enable(data->pwm);
 
 		data->running = true;

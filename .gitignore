@@ -29,7 +29,10 @@ modules.builtin
 *.gz
 *.bz2
 *.lzma
+<<<<<<< HEAD
 *.xz
+=======
+>>>>>>> ac374fd489d07e2564821db3b20bb5b31b7b8053
 *.lzo
 *.patch
 *.gcno
@@ -56,11 +59,14 @@ modules.builtin
 #
 # Generated include files
 #
+<<<<<<< HEAD
 include/config
 include/linux/version.h
 include/generated
 arch/*/include/generated
 zImage
+=======
+>>>>>>> ac374fd489d07e2564821db3b20bb5b31b7b8053
 include/asm
 include/asm-arm
 include/config

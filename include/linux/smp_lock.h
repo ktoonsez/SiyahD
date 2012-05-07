@@ -63,3 +63,4 @@ static inline void cycle_kernel_lock(void)
 
 #endif /* CONFIG_LOCK_KERNEL */
 #endif /* __LINUX_SMPLOCK_H */
+
