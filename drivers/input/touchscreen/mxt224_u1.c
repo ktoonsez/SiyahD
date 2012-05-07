@@ -3843,4 +3843,3 @@ module_exit(mxt224_exit);
 MODULE_DESCRIPTION("Atmel MaXTouch 224 driver");
 MODULE_AUTHOR("Rom Lemarchand <rlemarchand@sta.samsung.com>");
 MODULE_LICENSE("GPL");
-

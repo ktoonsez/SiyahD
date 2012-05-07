@@ -1065,10 +1065,6 @@ static int sec_touchkey_late_resume(struct early_suspend *h)
 
 	touchkey_enable = 1;
 
-<<<<<<< HEAD
-//prevents leds turning off for CM9
-CYANOGENMOD BLN_ongoing = false;
-=======
 	bln_suspended = 0;
 	/* see if late_resume is running before DISABLE_BL */
 	if (BLN_ongoing) {
@@ -1086,7 +1082,6 @@ CYANOGENMOD BLN_ongoing = false;
 		/* force DISABLE_BL to ignore the led state because we want it left on */
 		BLN_ongoing = 0;
 	}
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 
 #if defined(CONFIG_TARGET_LOCALE_NAATT) \
 || defined(CONFIG_TARGET_LOCALE_NA) || defined(CONFIG_MACH_Q1_BD)
