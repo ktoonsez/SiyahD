@@ -347,16 +347,21 @@ CHECK		= sparse
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-CFLAGS_MODULE   =
-AFLAGS_MODULE   =
+CFLAGS_COMPILE  = -pipe -fno-ident 
+CFLAGS_ARM      = -marm -mtune=cortex-a9 -march=armv7-a -mfpu=neon
+CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
+                  -ftree-loop-distribution -ftree-loop-linear \
+                  -floop-strip-mine -floop-block
+CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
+CFLAGS_DISABLE  = -fno-ipa-cp-clone
+MODFLAGS        = -DMODULE $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_DISABLE)
+KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_DISABLE)
+CFLAGS_MODULE   = $(MODFLAGS)
+AFLAGS_MODULE   = $(MODFLAGS)
 LDFLAGS_MODULE  =
-CFLAGS_KERNEL	=
-AFLAGS_KERNEL	=
+CFLAGS_KERNEL	= $(KERNELFLAGS)
+AFLAGS_KERNEL	= $(KERNELFLAGS)
 CFLAGS_GCOV	= -fprofile-arcs -ftest-coverage
-XX_A9		= -marm -mtune=cortex-a9 -mfpu=neon -march=armv7-a
-XX_GRAPHITE	= -fgraphite-identity -floop-block -ftree-loop-linear \
-		  -floop-strip-mine -ftree-loop-distribution
-XX_MODULO	= -fmodulo-sched -fmodulo-sched-allow-regmoves
 
 # Use LINUXINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
@@ -372,7 +377,12 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
 		   -fno-delete-null-pointer-checks \
-		    $(XX_A9) $(XX_GRAPHITE) $(XX_MODULO)
+		   $(CFLAGS_COMPILE) \
+		   $(CFLAGS_ARM) \
+		   $(CFLAGS_LOOPS) \
+		   $(CFLAGS_MODULO) \
+		   $(CFLAGS_DISABLE)
+
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 KBUILD_AFLAGS   := -D__ASSEMBLY__
@@ -631,6 +641,9 @@ endif
 # arch Makefile may override CC so keep this after arch Makefile is included
 NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)
 CHECKFLAGS     += $(NOSTDINC_FLAGS)
+
+# improve gcc optimization
+# CFLAGS += $(call cc-option,-funit-at-a-time,)
 
 # warn about C99 declaration after statement
 KBUILD_CFLAGS += $(call cc-option,-Wdeclaration-after-statement,)
