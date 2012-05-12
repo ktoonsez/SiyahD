@@ -1355,6 +1355,8 @@ static inline struct xfrm_dst *xfrm_alloc_dst(struct net *net, int family)
 		xdst->flo.ops = &xfrm_bundle_fc_ops;
 	} else
 		xdst = ERR_PTR(-ENOBUFS);
+		
+	xfrm_policy_put_afinfo(afinfo);
 
 	return xdst;
 }
