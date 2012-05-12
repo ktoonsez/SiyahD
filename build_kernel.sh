@@ -52,7 +52,10 @@ rm -f usr/initramfs_data.o
 export ARCH=arm
 export EXTRA_AFLAGS=-mfpu=neon
 #building with latest toolchain with gcc 4.5.2
-export CROSS_COMPILE=$PARENT_DIR/toolchain/bin/arm-none-eabi-
+#export CROSS_COMPILE=$PARENT_DIR/toolchain/bin/arm-none-eabi-
+
+#building with latest toolchain with gcc 4.7
+export CROSS_COMPILE=$PARENT_DIR/xxChain/bin/arm-eabi-
 
 #building with latest CM9 toolchain with gcc 4.4.3
 #export CROSS_COMPILE=/media/Source-Code/android/system/prebuilt/linux-x86/toolchain/arm-eabi-4.4.3/bin/arm-eabi-
