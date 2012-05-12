@@ -770,9 +770,9 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
 		err = mmc_decode_cid(card);
 		if (err)
 			goto free_card;
-	       /* Detect on first access quirky cards that need help when
-		* powered-on
-		*/
+		/* Detect on first access quirky cards that need help when
+		 * powered-on
+		 */
 		mmc_fixup_device(card, mmc_fixups);
 	}
 
