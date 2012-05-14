@@ -1480,7 +1480,8 @@ static void android_disconnect(struct usb_gadget *gadget)
 	composite_disconnect(gadget);
 
 	spin_lock_irqsave(&cdev->lock, flags);
-	dev->connected = 0;
+	if (dev->connected) {
+		dev->connected = 0;
 #ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
 	/* avoid sending a disconnect switch event
 	 * until after we disconnect.
@@ -1495,6 +1496,7 @@ static void android_disconnect(struct usb_gadget *gadget)
 #else
 	schedule_work(&dev->work);
 #endif
+	}
 	spin_unlock_irqrestore(&cdev->lock, flags);
 }
 
