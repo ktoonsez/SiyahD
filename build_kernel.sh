@@ -81,6 +81,8 @@ if [ ! -e /system/lib/modules ]
 then
 mkdir -p /system/lib/modules/
 fi
+#Clean $KERNELDIR/READY/system/lib/modules/ from old modules.
+rm -rf $KERNELDIR/READY/system/lib/modules/*
 #Find all modules in kernel folders an cp them to READY kernel folder
 find -name '*.ko' -exec cp -av {} $KERNELDIR/READY/system/lib/modules/ \;
 #Strip debug code from modules to reduce size
