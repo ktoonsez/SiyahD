@@ -29,7 +29,7 @@ fi
 
 #Remove all old modules before compile.
 cd $KERNELDIR
-OLDMODULES=`find -name *.ko`
+OLDMODULES=`find -name '*.ko'`
 for i in $OLDMODULES
 do
 rm -f $i
@@ -82,9 +82,14 @@ then
 mkdir -p /system/lib/modules/
 fi
 #Clean $KERNELDIR/READY/system/lib/modules/ from old modules.
-rm -rf $KERNELDIR/READY/system/lib/modules/*
-#Find all modules in kernel folders an cp them to READY kernel folder
-find -name '*.ko' -exec cp -av {} $KERNELDIR/READY/system/lib/modules/ \;
+rm -rf $KERNELDIR/READY/system/lib/modules/*.ko
+rm -rf /system/lib/modules/*.ko 
+#Find all new modules in kernel folders an cp them to READY kernel folder
+NEWMODULES=`find -name '*.ko'`
+for n in $NEWMODULES
+do
+cp -av $n $KERNELDIR/READY/system/lib/modules/
+done
 #Strip debug code from modules to reduce size
 ${CROSS_COMPILE}strip --strip-debug $KERNELDIR/READY/system/lib/modules/*.ko
 #Symlink READY kernel folder modules to lib/modules just in case rom read them there.
@@ -94,10 +99,9 @@ cp $KERNELDIR/READY/system/lib/modules/* /system/lib/modules/
 READYMODULES=`ls $KERNELDIR/READY/system/lib/modules/`
 for m in $READYMODULES
 do
-ln -s /system/lib/modules/$m $INITRAMFS_TMP/lib/modules/
+ln -sv /system/lib/modules/$m $INITRAMFS_TMP/lib/modules/
 done
 #Clean /system/lib/modules/ for next build.
-rm -rf /system/lib/modules/*
 nice -n 10 make -j$NAMBEROFCPUS zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
 
 if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
