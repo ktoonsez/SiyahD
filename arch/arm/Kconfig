@@ -140,10 +140,11 @@ choice
 	default RWSEM_GENERIC_SPINLOCK
 
 config RWSEM_GENERIC_SPINLOCK
-	bool "RWSEM_GENERIC_SPINLOCK"
+	bool
+	default y
 
 config RWSEM_XCHGADD_ALGORITHM
-	bool "RWSEM_XCHGADD_ALGORITHM"
+	bool
 
 endchoice
 
