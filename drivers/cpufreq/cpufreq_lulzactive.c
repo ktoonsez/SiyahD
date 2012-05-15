@@ -1069,7 +1069,7 @@ void start_lulzactive(void)
 		cpufreq_frequency_table_target(
 				pcpu->policy, pcpu->lulzfreq_table,
 				500000, CPUFREQ_RELATION_H,
-				&index200);
+				&index500);
 		cpufreq_frequency_table_target(
 				pcpu->policy, pcpu->lulzfreq_table,
 				800000, CPUFREQ_RELATION_H,
