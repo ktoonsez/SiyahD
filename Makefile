@@ -354,7 +354,7 @@ CFLAGS_ARM      = -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr \
 CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
                   -ftree-loop-distribution -ftree-loop-linear \
                   -floop-strip-mine -floop-block \
-		  -ftree-vectorize
+		  -ftree-vectorize -mvectorize-with-neon-quad
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 CFLAGS_DISABLE  = -fno-ipa-cp-clone
 MODFLAGS        = -DMODULE $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_DISABLE)
