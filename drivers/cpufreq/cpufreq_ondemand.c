@@ -907,12 +907,12 @@ static int should_io_be_busy(void)
 #ifdef CONFIG_HAS_EARLYSUSPEND
 static struct early_suspend early_suspend;
 unsigned int prev_up_threshold;
-unsigned int prev_freq_step;
 unsigned int prev_sampling_rate;
+unsigned int prev_freq_step_ondemand;
 static void cpufreq_ondemand_early_suspend(struct early_suspend *h)
 {
 	dbs_tuners_ins.early_suspend = 1;
-	prev_freq_step = dbs_tuners_ins.freq_step;
+	prev_freq_step_ondemand = dbs_tuners_ins.freq_step;
 	prev_sampling_rate = dbs_tuners_ins.sampling_rate;
 	prev_up_threshold = dbs_tuners_ins.up_threshold;
 	dbs_tuners_ins.freq_step = dbs_tuners_ins.freq_step_suspend;
@@ -922,7 +922,7 @@ static void cpufreq_ondemand_early_suspend(struct early_suspend *h)
 static void cpufreq_ondemand_late_resume(struct early_suspend *h)
 {
 	dbs_tuners_ins.early_suspend = -1;
-	dbs_tuners_ins.freq_step = prev_freq_step;
+	dbs_tuners_ins.freq_step = prev_freq_step_ondemand;
 	dbs_tuners_ins.sampling_rate = prev_sampling_rate;
 	dbs_tuners_ins.up_threshold = prev_up_threshold;
 }

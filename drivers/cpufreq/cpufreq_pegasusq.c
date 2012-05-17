@@ -1248,13 +1248,13 @@ static struct notifier_block reboot_notifier = {
 #ifdef CONFIG_HAS_EARLYSUSPEND
 static struct early_suspend early_suspend;
 unsigned int prev_freq_step;
-unsigned int prev_sampling_rate;
+unsigned int prev_sampling_rate_pegasusq;
 static void cpufreq_pegasusq_early_suspend(struct early_suspend *h)
 {
 	dbs_tuners_ins.early_suspend =
 		atomic_read(&g_hotplug_lock);
 	prev_freq_step = dbs_tuners_ins.freq_step;
-	prev_sampling_rate = dbs_tuners_ins.sampling_rate;
+	prev_sampling_rate_pegasusq = dbs_tuners_ins.sampling_rate;
 	dbs_tuners_ins.freq_step = 20;
 	dbs_tuners_ins.sampling_rate *= 4;
 	atomic_set(&g_hotplug_lock, 1);
@@ -1266,7 +1266,7 @@ static void cpufreq_pegasusq_late_resume(struct early_suspend *h)
 	atomic_set(&g_hotplug_lock, dbs_tuners_ins.early_suspend);
 	dbs_tuners_ins.early_suspend = -1;
 	dbs_tuners_ins.freq_step = prev_freq_step;
-	dbs_tuners_ins.sampling_rate = prev_sampling_rate;
+	dbs_tuners_ins.sampling_rate = prev_sampling_rate_pegasusq;
 	apply_hotplug_lock();
 	start_rq_work();
 }
@@ -1439,3 +1439,4 @@ fs_initcall(cpufreq_gov_dbs_init);
 module_init(cpufreq_gov_dbs_init);
 #endif
 module_exit(cpufreq_gov_dbs_exit);
+
