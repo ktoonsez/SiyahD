@@ -352,8 +352,7 @@ CFLAGS_ARM      = -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr \
 		  -ffast-math -marm -mtune=cortex-a9 \
 		  -march=armv7-a -mfpu=neon
 CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
-                  -ftree-loop-distribution -ftree-loop-linear \
-                  -floop-strip-mine -floop-block \
+                  -ftree-loop-distribution \
 		  -ftree-vectorize -mvectorize-with-neon-quad
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 CFLAGS_DISABLE  = -fno-ipa-cp-clone
