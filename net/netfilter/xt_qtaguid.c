@@ -1117,6 +1117,7 @@ done_put:
 		in_dev_put(in_dev);
 }
 
+#ifdef CONFIG_IPV6
 static void iface_stat_create_ipv6(struct net_device *net_dev,
 				   struct inet6_ifaddr *ifa)
 {
@@ -1179,6 +1180,7 @@ done_unlock_put:
 done_put:
 	in_dev_put(in_dev);
 }
+#endif
 
 static struct sock_tag *get_sock_stat_nl(const struct sock *sk)
 {
@@ -1516,6 +1518,7 @@ static int iface_netdev_event_handler(struct notifier_block *nb,
 	return NOTIFY_DONE;
 }
 
+#ifdef CONFIG_IPV6
 static int iface_inet6addr_event_handler(struct notifier_block *nb,
 					 unsigned long event, void *ptr)
 {
@@ -1546,6 +1549,7 @@ static int iface_inet6addr_event_handler(struct notifier_block *nb,
 	}
 	return NOTIFY_DONE;
 }
+#endif
 
 static int iface_inetaddr_event_handler(struct notifier_block *nb,
 					unsigned long event, void *ptr)
@@ -1586,9 +1590,11 @@ static struct notifier_block iface_inetaddr_notifier_blk = {
 	.notifier_call = iface_inetaddr_event_handler,
 };
 
+#ifdef CONFIG_IPV6
 static struct notifier_block iface_inet6addr_notifier_blk = {
 	.notifier_call = iface_inet6addr_event_handler,
 };
+#endif
 
 static int __init iface_stat_init(struct proc_dir_entry *parent_procdir)
 {
@@ -1650,8 +1656,10 @@ static int __init iface_stat_init(struct proc_dir_entry *parent_procdir)
 
 	return 0;
 
+#ifdef CONFIG_IPV6
 err_unreg_ip4_addr:
 	unregister_inetaddr_notifier(&iface_inetaddr_notifier_blk);
+#endif
 err_unreg_nd:
 	unregister_netdevice_notifier(&iface_netdev_notifier_blk);
 err_zap_all_stats_entries:
