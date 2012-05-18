@@ -347,21 +347,20 @@ CHECK		= sparse
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-CFLAGS_COMPILE  = -pipe -fno-ident 
+CFLAGS_COMPILE  = -pipe -fno-ident
 CFLAGS_ARM      = -marm -mtune=cortex-a9 -march=armv7-a -mfpu=neon
 CFLAGS_REGISTER	= -fschedule-insns -fsched-spec-load -fforce-addr
-CFLAGS_MATH	= -ffast-math -funsafe-math-optimizations
+CFLAGS_MATH	= -ffast-math
 CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
                   -ftree-loop-distribution \
 		  -ftree-vectorize -mvectorize-with-neon-quad \
+		  -floop-interchange -floop-strip-mine -floop-block \
 		  -fgcse-lm -fgcse-sm
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 CFLAGS_DISABLE  = -fno-ipa-cp-clone
-MODFLAGS        = -DMODULE \
-		  $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_REGISTER) \
-		  $(CFLAGS_DISABLE)
 KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_REGISTER) \
 		  $(CFLAGS_MATH) $(CFLAGS_LOOPS) $(CFLAGS_DISABLE) 
+MODFLAGS        = -DMODULE $(KERNELFLAGS)
 CFLAGS_MODULE   = $(MODFLAGS)
 AFLAGS_MODULE   = $(MODFLAGS)
 LDFLAGS_MODULE  =
@@ -574,16 +573,25 @@ all: vmlinux
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os
+CFLAGS_MODULE	+= -Os
+AFLAGS_MODULE	+= -Os
 endif
 ifdef CONFIG_CC_OPTIMIZE_DEFAULT
-KBUILD_CFLAGS  	+= -O2
+KBUILD_CFLAGS	+= -O2
+CFLAGS_MODULE	+= -O2
+AFLAGS_MODULE	+= -O2
 endif
 ifdef CONFIG_CC_OPTIMIZE_ALOT
-KBUILD_CFLAGS   += -O3
+KBUILD_CFLAGS	+= -O3
+CFLAGS_MODULE	+= -O3
+AFLAGS_MODULE	+= -O3
 endif
 ifdef CONFIG_CC_OPTIMIZE_FAST
-KBUILD_CFLAGS   += -Ofast
+KBUILD_CFLAGS	+= -Ofast
+CFLAGS_MODULE	+= -Ofast
+AFLAGS_MODULE	+= -Ofast
 endif
+
 
 ifdef CONFIG_CC_CHECK_WARNING_STRICTLY
 KBUILD_CFLAGS	+= -fdiagnostics-show-option -Werror \
