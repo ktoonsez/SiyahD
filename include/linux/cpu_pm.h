@@ -2,7 +2,7 @@
  * Copyright (C) 2011 Google, Inc.
  *
  * Author:
- *	Colin Cross <ccross@xxxxxxxxxxx>
+ *	Colin Cross <ccross@android.com>
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -10,7 +10,7 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  */
@@ -25,7 +25,7 @@
  * When a CPU goes to a low power state that turns off power to the CPU's
  * power domain, the contents of some blocks (floating point coprocessors,
  * interrupt controllers, caches, timers) in the same power domain can
- * be lost. The cpm_pm notifiers provide a method for platform idle, suspend,
+ * be lost.  The cpm_pm notifiers provide a method for platform idle, suspend,
  * and hotplug implementations to notify the drivers for these blocks that
  * they may be reset.
  *
@@ -35,7 +35,7 @@
  * cluster notifications.
  *
  * CPU notifications apply to a single CPU and must be called on the affected
- * CPU. They are used to save per-cpu context for affected blocks.
+ * CPU.  They are used to save per-cpu context for affected blocks.
  *
  * CPU cluster notifications apply to all CPUs in a single power domain. They
  * are used to save any global context for affected blocks, and must be called

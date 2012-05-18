@@ -41,6 +41,11 @@
 #include <linux/memory.h>
 #include <linux/memory_hotplug.h>
 
+#ifdef CONFIG_SWAP
+#include <linux/fs.h>
+#include <linux/swap.h>
+#endif
+
 static uint32_t lowmem_debug_level = 2;
 static int lowmem_adj[6] = {
 	0,
@@ -59,6 +64,9 @@ static int lowmem_minfree_size = 4;
 
 static unsigned int offlining;
 static unsigned long lowmem_deathpending_timeout;
+#ifdef CONFIG_SWAP
+static int fudgeswap = 512;
+#endif
 
 #define lowmem_print(level, x...)			\
 	do {						\
@@ -118,6 +126,21 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 			}
 		}
 	}
+
+#ifdef CONFIG_SWAP
+	if(fudgeswap != 0){
+		struct sysinfo si;
+		si_swapinfo(&si);
+
+		if(si.freeswap > 0){
+			if(fudgeswap > si.freeswap)
+				other_file += si.freeswap;
+			else
+				other_file += fudgeswap;
+		}
+	}
+#endif
+
 	if (lowmem_adj_size < array_size)
 		array_size = lowmem_adj_size;
 	if (lowmem_minfree_size < array_size)
@@ -223,6 +246,10 @@ module_param_array_named(adj, lowmem_adj, int, &lowmem_adj_size,
 module_param_array_named(minfree, lowmem_minfree, uint, &lowmem_minfree_size,
 			 S_IRUGO | S_IWUSR);
 module_param_named(debug_level, lowmem_debug_level, uint, S_IRUGO | S_IWUSR);
+
+#ifdef CONFIG_SWAP
+module_param_named(fudgeswap, fudgeswap, int, S_IRUGO | S_IWUSR);
+#endif
 
 module_init(lowmem_init);
 module_exit(lowmem_exit);

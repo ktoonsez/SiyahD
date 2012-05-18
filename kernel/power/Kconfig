@@ -185,7 +185,7 @@ config PM
 	depends on PM_SLEEP || PM_RUNTIME
 
 config CPU_PM
-	bool
+	bool "CPU Power Managment"
 	depends on SUSPEND || CPU_IDLE
 
 config PM_DEBUG
