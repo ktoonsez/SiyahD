@@ -348,16 +348,20 @@ CHECK		= sparse
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
 CFLAGS_COMPILE  = -pipe -fno-ident 
-CFLAGS_ARM      = -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr \
-		  -ffast-math -marm -mtune=cortex-a9 \
-		  -march=armv7-a -mfpu=neon
+CFLAGS_ARM      = -marm -mtune=cortex-a9 -march=armv7-a -mfpu=neon
+CFLAGS_REGISTER	= -fschedule-insns -fsched-spec-load -fforce-addr
+CFLAGS_MATH	= -ffast-math -funsafe-math-optimizations
 CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
                   -ftree-loop-distribution \
-		  -ftree-vectorize -mvectorize-with-neon-quad
+		  -ftree-vectorize -mvectorize-with-neon-quad \
+		  -fgcse-lm -fgcse-sm
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 CFLAGS_DISABLE  = -fno-ipa-cp-clone
-MODFLAGS        = -DMODULE $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_DISABLE)
-KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_DISABLE)
+MODFLAGS        = -DMODULE \
+		  $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_REGISTER) \
+		  $(CFLAGS_DISABLE)
+KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_REGISTER) \
+		  $(CFLAGS_MATH) $(CFLAGS_LOOPS) $(CFLAGS_DISABLE) 
 CFLAGS_MODULE   = $(MODFLAGS)
 AFLAGS_MODULE   = $(MODFLAGS)
 LDFLAGS_MODULE  =
@@ -377,11 +381,7 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
 		   -fno-delete-null-pointer-checks \
-		   $(CFLAGS_COMPILE) \
-		   $(CFLAGS_ARM) \
-		   $(CFLAGS_LOOPS) \
-		   $(CFLAGS_MODULO) \
-		   $(CFLAGS_DISABLE)
+		   $(KERNELFLAGS)
 
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
