@@ -29,7 +29,7 @@ fi
 
 #Remove all old modules before compile.
 cd $KERNELDIR
-OLDMODULES=`find -name '*.ko'`
+OLDMODULES=`find -name *.ko`
 for i in $OLDMODULES
 do
 rm -f $i
@@ -75,33 +75,11 @@ find $INITRAMFS_TMP -name EMPTY_DIRECTORY -exec rm -rf {} \;
 if [ -d $INITRAMFS_TMP/.hg ]; then
 rm -rf $INITRAMFS_TMP/.hg
 fi
-#Copy modules into /system/lib/modules for symlink creation.
+#Copy modules into initramfs
 mkdir -p $INITRAMFS/lib/modules
-if [ ! -e /system/lib/modules ]
-then
-mkdir -p /system/lib/modules/
-fi
-#Clean $KERNELDIR/READY/system/lib/modules/ from old modules.
-rm -rf $KERNELDIR/READY/system/lib/modules/*.ko
-rm -rf /system/lib/modules/*.ko 
-#Find all new modules in kernel folders an cp them to READY kernel folder
-NEWMODULES=`find -name '*.ko'`
-for n in $NEWMODULES
-do
-cp -av $n $KERNELDIR/READY/system/lib/modules/
-done
-#Strip debug code from modules to reduce size
-${CROSS_COMPILE}strip --strip-debug $KERNELDIR/READY/system/lib/modules/*.ko
-#Symlink READY kernel folder modules to lib/modules just in case rom read them there.
-chmod 755 $KERNELDIR/READY/system/lib/modules/*
-#Copy modules to symlink folder
-cp $KERNELDIR/READY/system/lib/modules/* /system/lib/modules/
-READYMODULES=`ls $KERNELDIR/READY/system/lib/modules/`
-for m in $READYMODULES
-do
-ln -sv /system/lib/modules/$m $INITRAMFS_TMP/lib/modules/
-done
-#Clean /system/lib/modules/ for next build.
+find -name '*.ko' -exec cp -av {} $INITRAMFS_TMP/lib/modules/ \;
+${CROSS_COMPILE}strip --strip-debug $INITRAMFS_TMP/lib/modules/*.ko
+chmod 755 $INITRAMFS_TMP/lib/modules/*
 nice -n 10 make -j$NAMBEROFCPUS zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
 
 if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
@@ -113,7 +91,7 @@ cp $KERNELDIR/.config $KERNELDIR/READY/
 rm $KERNELDIR/READY/boot/zImage
 rm $KERNELDIR/READY/Kernel_Dorimanx-SGII-ICS*
 stat $KERNELDIR/zImage
-GETVER=`grep 'Dorimanx-V' arch/arm/configs/dorimanx_defconfig | cut -c 32-35`
+GETVER=`grep 'Siyah-Dorimanx-V' arch/arm/configs/dorimanx_defconfig | cut -c 32-35`
 cp $KERNELDIR/zImage /$KERNELDIR/READY/boot/
 cd $KERNELDIR/READY/
 zip -r Kernel_Dorimanx-SGII-ICS-$GETVER-`date +"Date-%d-%m-Time-%H-%M"`.zip .
