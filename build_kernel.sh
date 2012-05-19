@@ -62,7 +62,7 @@ rm -f usr/initramfs_data.cpio
 rm -f usr/initramfs_data.o
 
 cd $KERNELDIR/
-nice -n 10 make -j$NAMBEROFCPUS modules || exit 1
+nice -n 15 make -j$NAMBEROFCPUS modules || exit 1
 
 # copy initramfs files to tmp directory
 cp -ax $INITRAMFS_SOURCE $INITRAMFS_TMP
@@ -78,34 +78,28 @@ if [ -d $INITRAMFS_TMP/.hg ];
 then
 	rm -rf $INITRAMFS_TMP/.hg
 fi
-# copy modules into /system/lib/modules for symlink creation
-mkdir -p $INITRAMFS/lib/modules
-if [ ! -e /system/lib/modules ];
+# copy modules into $KERNELDIR/READY/lib/modules for symlink creation
+if [ ! -e $KERNELDIR/READY/lib/modules ];
 then
-	mkdir -p /system/lib/modules/
+	mkdir -p $KERNELDIR/READY/lib/modules
 fi
-# clean $KERNELDIR/READY/system/lib/modules/ from old modules
-rm -rf $KERNELDIR/READY/system/lib/modules/*.ko
-rm -rf /system/lib/modules/*.ko 
+# clean $KERNELDIR/READY/lib/modules/ from old modules
+rm -rf $KERNELDIR/READY/lib/modules/*.ko
 # find all new modules in kernel folders an cp them to READY kernel folder
-NEWMODULES=`find -name '*.ko'`
-for n in $NEWMODULES;
+for n in `find -name '*.ko'`;
 do
-	cp -av $n $KERNELDIR/READY/system/lib/modules/
+	cp -av $n $KERNELDIR/READY/lib/modules/
 done
 # strip debug code from modules to reduce size
-${CROSS_COMPILE}strip --strip-debug $KERNELDIR/READY/system/lib/modules/*.ko
+${CROSS_COMPILE}strip --strip-debug $KERNELDIR/READY/lib/modules/*.ko
 # symlink READY kernel folder modules to lib/modules just in case rom read them there
-chmod 755 $KERNELDIR/READY/system/lib/modules/*
+chmod 755 $KERNELDIR/READY/lib/modules/*
 # copy modules to symlink folder
-cp $KERNELDIR/READY/system/lib/modules/* /system/lib/modules/
-READYMODULES=`ls $KERNELDIR/READY/system/lib/modules/`
-for m in $READYMODULES;
+for m in `ls $KERNELDIR/READY/lib/modules/`;
 do
-	ln -sv /system/lib/modules/$m $INITRAMFS_TMP/lib/modules/
+	ln -sv $KERNELDIR/READY/lib/modules/$m $INITRAMFS_TMP/lib/modules/
 done
-# clean /system/lib/modules/ for next build
-nice -n 10 make -j$NAMBEROFCPUS zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
+nice -n 15 make -j$NAMBEROFCPUS zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
 
 if [ -e $KERNELDIR/arch/arm/boot/zImage ];
 then
