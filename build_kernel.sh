@@ -50,7 +50,7 @@ rm -f usr/initramfs_data.cpio
 rm -f usr/initramfs_data.o
 
 export ARCH=arm
-#export EXTRA_AFLAGS=-mfpu=neon
+export EXTRA_AFLAGS=-mfpu=neon
 #building with latest toolchain with gcc 4.5.2
 #export CROSS_COMPILE=$PARENT_DIR/toolchain/bin/arm-none-eabi-
 
