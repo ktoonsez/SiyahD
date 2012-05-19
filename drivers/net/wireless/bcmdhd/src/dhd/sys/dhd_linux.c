@@ -4919,8 +4919,8 @@ int net_os_set_packet_filter(struct net_device *dev, int val)
 	return ret;
 }
 
-
-int dhd_dev_init_ioctl(struct net_device *dev)
+int
+dhd_dev_init_ioctl(struct net_device *dev)
 {
 	dhd_info_t *dhd = *(dhd_info_t **)netdev_priv(dev);
 	 /* Writing STA's MAC ID to the Dongle for SOFTAP */

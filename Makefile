@@ -347,20 +347,17 @@ CHECK		= sparse
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-CFLAGS_COMPILE  = -pipe -fno-ident
-CFLAGS_ARM      = -marm -mtune=cortex-a9 -march=armv7-a -mfpu=neon
-CFLAGS_REGISTER	= -fschedule-insns -fsched-spec-load -fforce-addr
-CFLAGS_MATH		= -ffast-math
+CFLAGS_COMPILE  = -pipe -fno-ident -fno-delete-null-pointer-checks 
+CFLAGS_ARM      = -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr \
+		  -ffast-math -marm -mtune=cortex-a9 \
+		  -march=armv7-a -mfpu=neon
 CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
-                  -ftree-loop-distribution \
-				  -ftree-vectorize -mvectorize-with-neon-quad \
-				  -floop-interchange -floop-strip-mine -floop-block \
-				  -fgcse-lm -fgcse-sm
+                  -ftree-loop-distribution -floop-interchange \
+		  -ftree-vectorize -mvectorize-with-neon-quad
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 CFLAGS_DISABLE  = -fno-ipa-cp-clone
-KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_REGISTER) \
-		  $(CFLAGS_MATH) $(CFLAGS_LOOPS) $(CFLAGS_DISABLE) 
-MODFLAGS        = -DMODULE $(KERNELFLAGS)
+MODFLAGS        = -DMODULE $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_DISABLE)
+KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_DISABLE)
 CFLAGS_MODULE   = $(MODFLAGS)
 AFLAGS_MODULE   = $(MODFLAGS)
 LDFLAGS_MODULE  =
@@ -380,7 +377,11 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Werror-implicit-function-declaration \
 		   -Wno-format-security \
 		   -fno-delete-null-pointer-checks \
-		   $(KERNELFLAGS)
+		   $(CFLAGS_COMPILE) \
+		   $(CFLAGS_ARM) \
+		   $(CFLAGS_LOOPS) \
+		   $(CFLAGS_MODULO) \
+		   $(CFLAGS_DISABLE)
 
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
@@ -573,15 +574,23 @@ all: vmlinux
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os
+CFLAGS_MODULE  	+= -Os
+AFLAGS_MODULE  	+= -Os
 endif
 ifdef CONFIG_CC_OPTIMIZE_DEFAULT
-KBUILD_CFLAGS	+= -O2
+KBUILD_CFLAGS  	+= -O2
+CFLAGS_MODULE  	+= -O2
+AFLAGS_MODULE  	+= -O2
 endif
 ifdef CONFIG_CC_OPTIMIZE_ALOT
-KBUILD_CFLAGS	+= -O3
+KBUILD_CFLAGS   += -O3
+CFLAGS_MODULE  	+= -O3
+AFLAGS_MODULE  	+= -O3
 endif
 ifdef CONFIG_CC_OPTIMIZE_FAST
-KBUILD_CFLAGS	+= -Ofast
+KBUILD_CFLAGS   += -Ofast
+CFLAGS_MODULE  	+= -Ofast
+AFLAGS_MODULE  	+= -Ofast
 endif
 
 ifdef CONFIG_CC_CHECK_WARNING_STRICTLY

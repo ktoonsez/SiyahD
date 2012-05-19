@@ -128,7 +128,7 @@ static unsigned int clkdiv_dmc0[LV_END][8] = {
 	/* DMC L2: 133MHz */
 	{ 5, 2, 1, 5, 1, 1, 3, 1 },
 
-	/* DMC L5: 100MHz */
+	/* DMC L3: 100MHz */
 	{ 5, 2, 1, 5, 1, 1, 3, 1 },
 };
 
@@ -147,7 +147,7 @@ static unsigned int clkdiv_top[LV_END][5] = {
 	/* ACLK200 L2: 133MHz */
 	{ 5, 7, 7, 7, 1 },
 
-	/* ACLK200 L5: 100MHz */
+	/* ACLK200 L3: 100MHz */
 	{ 5, 7, 7, 7, 1 },
 };
 
@@ -177,16 +177,16 @@ static unsigned int clkdiv_ip_bus[LV_END][3] = {
 	 */
 
 	/* SCLK_MFC: 200MHz */
-	{ 3, 3, 4 },
+	{ 3, 2, 4 },
 
 	/* SCLK_MFC: 160MHz */
-	{ 4, 4, 5 }, 
+	{ 3, 4, 5 }, 
 
 	/* SCLK_MFC: 133MHz */
-	{ 5, 5, 5 },
+	{ 3, 5, 7 },
 
 	/* SCLK_MFC: 100MHz */
-	{ 5, 5, 5 },
+	{ 3, 5, 7 },
 };
 
 static void exynos4_set_busfreq(unsigned int div_index)

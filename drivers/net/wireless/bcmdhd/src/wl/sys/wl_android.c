@@ -552,7 +552,7 @@ int wl_android_wifi_on(struct net_device *dev)
 		ret = dhd_dev_reset(dev, FALSE);
 		sdioh_start(NULL, 1);
 		if (dhd_dev_init_ioctl(dev) < 0)
-			ret = -EFAULT;
+			ret = -EFAULT;	
 		g_wifi_on = TRUE;
 	}
 
