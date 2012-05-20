@@ -101,7 +101,7 @@ static struct busfreq_table exynos4_busfreq_table[] = {
 	{0, 0, 0, 0, 0},
 };
 
-#define ASV_GROUP	7
+#define ASV_GROUP	8
 static unsigned int exynos4_asv_volt[ASV_GROUP][LV_END] = {
 	{1150000, 1050000, 1050000},
 	{1125000, 1025000, 1025000},
@@ -110,6 +110,7 @@ static unsigned int exynos4_asv_volt[ASV_GROUP][LV_END] = {
 	{1050000, 950000,   950000},
 	{1025000, 950000,   925000},
 	{1000000, 925000,   900000},
+	{ 975000, 900000,   875000},
 };
 
 static unsigned int clkdiv_dmc0[LV_END][8] = {
@@ -647,7 +648,7 @@ static ssize_t store_busfreq_asv_group(struct kobject *kobj,
 		struct attribute *attr, const char *buf, size_t count)
 {
 	sscanf(buf, "%d", &asv_group);
-	if (asv_group < 0 || asv_group > 6)
+	if (asv_group < 0 || asv_group > 7)
 		return -EINVAL;
 	else
 		exynos4_update_bus_volt(asv_group);
