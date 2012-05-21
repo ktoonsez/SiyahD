@@ -354,11 +354,11 @@ CFLAGS_REGISTER	= -fschedule-insns -fsched-spec-load -fforce-addr
 CFLAGS_MATH		= -ffast-math
 CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
 				  -ftree-loop-distribution -ftree-vectorize \
-				  -floop-interchange -floop-strip-mine -floop-block \
+				  -floop-strip-mine -floop-block \
 				  -mvectorize-with-neon-quad \
 				  -fgcse-lm -fgcse-sm 
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
-CFLAGS_DISABLE  = -fno-ipa-cp-clone -fno-delete-null-pointer-checks
+CFLAGS_DISABLE  = -fno-ipa-cp-clone
 KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_REGISTER) \
 				  $(CFLAGS_MATH) $(CFLAGS_LOOPS) $(CFLAGS_DISABLE) 
 MODFLAGS        = -DMODULE $(KERNELFLAGS)
@@ -574,23 +574,15 @@ all: vmlinux
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os
-CFLAGS_MODULE	+= -Os
-AFLAGS_MODULE	+= -Os
 endif
 ifdef CONFIG_CC_OPTIMIZE_DEFAULT
 KBUILD_CFLAGS  	+= -O2
-CFLAGS_MODULE   += -O2
-AFLAGS_MODULE   += -O2
 endif
 ifdef CONFIG_CC_OPTIMIZE_ALOT
 KBUILD_CFLAGS   += -O3
-CFLAGS_MODULE   += -O3
-AFLAGS_MODULE   += -O3
 endif
 ifdef CONFIG_CC_OPTIMIZE_FAST
 KBUILD_CFLAGS   += -Ofast
-CFLAGS_MODULE   += -Ofast
-AFLAGS_MODULE   += -Ofast
 endif
 
 ifdef CONFIG_CC_CHECK_WARNING_STRICTLY
