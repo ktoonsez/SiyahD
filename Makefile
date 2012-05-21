@@ -347,12 +347,12 @@ CHECK		= sparse
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
-CFLAGS_COMPILE  = -pipe -fno-ident -fno-delete-null-pointer-checks 
+CFLAGS_COMPILE  = -pipe -fno-ident  
 CFLAGS_ARM      = -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr \
 		  -ffast-math -marm -mtune=cortex-a9 \
 		  -march=armv7-a -mfpu=neon
 CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
-                  -ftree-loop-distribution -floop-interchange \
+                  -ftree-loop-distribution \
 		  -ftree-vectorize -mvectorize-with-neon-quad
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 CFLAGS_DISABLE  = -fno-ipa-cp-clone
