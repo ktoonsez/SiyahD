@@ -348,14 +348,15 @@ CHECK		= sparse
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 		  -Wbitwise -Wno-return-void $(CF)
 CFLAGS_COMPILE  = -pipe -fno-ident
-CFLAGS_ARM      = -marm -mtune=cortex-a9 -march=armv7-a -mfpu=neon
+CFLAGS_ARM      = -marm -mtune=cortex-a9 -march=armv7-a \
+				  -mfpu=neon -mfloat-abi=softfp
 CFLAGS_REGISTER	= -fschedule-insns -fsched-spec-load -fforce-addr
 CFLAGS_MATH		= -ffast-math
 CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
 				  -ftree-loop-distribution -ftree-vectorize \
 				  -floop-interchange -floop-strip-mine -floop-block \
 				  -mvectorize-with-neon-quad \
-				  -fgcse-lm -fgcse-sm
+				  -fgcse-lm -fgcse-sm 
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 CFLAGS_DISABLE  = -fno-ipa-cp-clone -fno-delete-null-pointer-checks
 KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_REGISTER) \
