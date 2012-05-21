@@ -350,7 +350,7 @@ CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 CFLAGS_COMPILE  = -pipe -fno-ident  
 CFLAGS_ARM      = -fgcse-lm -fgcse-sm -fsched-spec-load -fforce-addr \
 		  -ffast-math -marm -mtune=cortex-a9 \
-		  -march=armv7-a -mfpu=neon
+		  -march=armv7-a -mfpu=neon -mfloat-abi=softfp
 CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
                   -ftree-loop-distribution \
 		  -ftree-vectorize -mvectorize-with-neon-quad
@@ -574,23 +574,15 @@ all: vmlinux
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os
-CFLAGS_MODULE  	+= -Os
-AFLAGS_MODULE  	+= -Os
 endif
 ifdef CONFIG_CC_OPTIMIZE_DEFAULT
 KBUILD_CFLAGS  	+= -O2
-CFLAGS_MODULE  	+= -O2
-AFLAGS_MODULE  	+= -O2
 endif
 ifdef CONFIG_CC_OPTIMIZE_ALOT
 KBUILD_CFLAGS   += -O3
-CFLAGS_MODULE  	+= -O3
-AFLAGS_MODULE  	+= -O3
 endif
 ifdef CONFIG_CC_OPTIMIZE_FAST
 KBUILD_CFLAGS   += -Ofast
-CFLAGS_MODULE  	+= -Ofast
-AFLAGS_MODULE  	+= -Ofast
 endif
 
 ifdef CONFIG_CC_CHECK_WARNING_STRICTLY
