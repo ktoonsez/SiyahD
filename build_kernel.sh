@@ -22,7 +22,7 @@ fi
 
 if [ ! -f $KERNELDIR/.config ];
 then
-	make dorimanx_defconfig
+	make voku_defconfig
 fi
 
 . $KERNELDIR/.config
@@ -39,7 +39,7 @@ fi
 
 # remove all old modules before compile
 cd $KERNELDIR
-OLDMODULES=`find -name '*.ko'`
+OLDMODULES=`find -name *.ko`
 for i in $OLDMODULES;
 do
 	rm -f $i
@@ -62,7 +62,7 @@ rm -f usr/initramfs_data.cpio
 rm -f usr/initramfs_data.o
 
 cd $KERNELDIR/
-nice -n 15 make -j$NAMBEROFCPUS modules || exit 1
+make -j$NAMBEROFCPUS modules || exit 1
 
 # copy initramfs files to tmp directory
 cp -ax $INITRAMFS_SOURCE $INITRAMFS_TMP
@@ -78,43 +78,28 @@ if [ -d $INITRAMFS_TMP/.hg ];
 then
 	rm -rf $INITRAMFS_TMP/.hg
 fi
-# copy modules into $KERNELDIR/READY/lib/modules for symlink creation
-if [ ! -e $KERNELDIR/READY/lib/modules ];
-then
-	mkdir -p $KERNELDIR/READY/lib/modules
-fi
-# clean $KERNELDIR/READY/lib/modules/ from old modules
-rm -rf $KERNELDIR/READY/lib/modules/*.ko
-# find all new modules in kernel folders an cp them to READY kernel folder
-for n in `find -name '*.ko'`;
-do
-	cp -av $n $KERNELDIR/READY/lib/modules/
-done
-# strip debug code from modules to reduce size
-${CROSS_COMPILE}strip --strip-debug $KERNELDIR/READY/lib/modules/*.ko
-# symlink READY kernel folder modules to lib/modules just in case rom read them there
-chmod 755 $KERNELDIR/READY/lib/modules/*
-# copy modules to symlink folder
-for m in `ls $KERNELDIR/READY/lib/modules/`;
-do
-	ln -sv $KERNELDIR/READY/lib/modules/$m $INITRAMFS_TMP/lib/modules/
-done
-nice -n 15 make -j$NAMBEROFCPUS zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
+
+#Copy modules into initramfs
+mkdir -p $INITRAMFS/lib/modules
+find -name *.ko -exec cp -av {} $INITRAMFS_TMP/lib/modules/ \;
+${CROSS_COMPILE}strip --strip-debug $INITRAMFS_TMP/lib/modules/*.ko
+chmod 755 $INITRAMFS_TMP/lib/modules/*
+make -j$NAMBEROFCPUS zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
 
 if [ -e $KERNELDIR/arch/arm/boot/zImage ];
 then
 	$KERNELDIR/mkshbootimg.py $KERNELDIR/zImage $KERNELDIR/arch/arm/boot/zImage $KERNELDIR/payload.tar $KERNELDIR/recovery.tar.xz
 
 	# copy all needed to ready kernel folder
-	cp $KERNELDIR/.config $KERNELDIR/arch/arm/configs/dorimanx_defconfig
+	cp $KERNELDIR/.config $KERNELDIR/arch/arm/configs/voku_defconfig
 	cp $KERNELDIR/.config $KERNELDIR/READY/
 	rm $KERNELDIR/READY/boot/zImage
-	rm $KERNELDIR/READY/Kernel_Dorimanx-SGII-ICS*
+	rm $KERNELDIR/READY/Kernel_Voku-SGII-ICS*
 	stat $KERNELDIR/zImage
-	GETVER=`grep 'Dorimanx-V' arch/arm/configs/dorimanx_defconfig | cut -c 32-35`
+	GETVER=`grep 'Siyah-Voku-V' arch/arm/configs/voku_defconfig | cut -c 38-41`
 	cp $KERNELDIR/zImage /$KERNELDIR/READY/boot/
 	cd $KERNELDIR/READY/
-	zip -r Kernel_Dorimanx-SGII-ICS-$GETVER-`date +"Date-%d-%m-Time-%H-%M"`.zip .
+	zip -r Kernel_Voku-SGII-ICS-$GETVER-`date +"Date-%d-%m-Time-%H-%M"`.zip .
 else
 	echo "Kernel STUCK in BUILD! no zImage exist"
 fi

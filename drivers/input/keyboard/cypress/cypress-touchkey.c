@@ -1246,10 +1246,10 @@ static void disable_led_notification(void){
 
 		down(&enable_sem);
         bln_blink_enabled = false;
+        BLN_ongoing = false;
         printk(KERN_DEBUG "[TouchKey] BLN_ongoing set to false\n");
 
-        if( touchkey_enable == 1 && BLN_ongoing ){
-	        BLN_ongoing = false;
+        if( touchkey_enable == 1 ){
             disable_touchkey_backlights();
             if( bln_suspended ){
                 touchkey_deactivate();

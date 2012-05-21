@@ -191,6 +191,8 @@ int __cpu_disable(void)
 	flush_cache_all();
 	local_flush_tlb_all();
 
+	printk("CPU%u: Booted secondary processor\n", cpu);
+
 	read_lock(&tasklist_lock);
 	for_each_process(p) {
 		if (p->mm)
@@ -293,8 +295,6 @@ asmlinkage void __cpuinit secondary_start_kernel(void)
 {
 	struct mm_struct *mm = &init_mm;
 	unsigned int cpu = smp_processor_id();
-
-	printk("CPU%u: Booted secondary processor\n", cpu);
 
 	/*
 	 * All kernel threads share the same mm context; grab a
