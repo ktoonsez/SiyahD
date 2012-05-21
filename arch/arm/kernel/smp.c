@@ -120,13 +120,12 @@ int __cpuinit __cpu_up(unsigned int cpu)
 	 */
 	ret = boot_secondary(cpu, idle);
 	if (ret == 0) {
-
 		/*
 		 * CPU was successfully started, wait for it
 		 * to come online or time out.
 		 */
 		wait_for_completion_timeout(&cpu_running,
-			msecs_to_jiffies(1000));
+						 msecs_to_jiffies(1000));
 
 		if (!cpu_online(cpu)) {
 			pr_crit("CPU%u: failed to come online\n", cpu);
@@ -190,8 +189,6 @@ int __cpu_disable(void)
 	 */
 	flush_cache_all();
 	local_flush_tlb_all();
-
-	printk("CPU%u: Booted secondary processor\n", cpu);
 
 	read_lock(&tasklist_lock);
 	for_each_process(p) {
@@ -307,6 +304,8 @@ asmlinkage void __cpuinit secondary_start_kernel(void)
 	enter_lazy_tlb(mm, current);
 	local_flush_tlb_all();
 
+	printk("CPU%u: Booted secondary processor\n", cpu);
+
 	cpu_init();
 	preempt_disable();
 	trace_hardirqs_off();
@@ -317,6 +316,7 @@ asmlinkage void __cpuinit secondary_start_kernel(void)
 	platform_secondary_init(cpu);
 
 	notify_cpu_starting(cpu);
+
 	calibrate_delay();
 
 	smp_store_cpu_info(cpu);
@@ -327,7 +327,6 @@ asmlinkage void __cpuinit secondary_start_kernel(void)
 	 * before we continue - which happens after __cpu_up returns.
 	 */
 	set_cpu_online(cpu, true);
-
 	complete(&cpu_running);
 
 	/*
