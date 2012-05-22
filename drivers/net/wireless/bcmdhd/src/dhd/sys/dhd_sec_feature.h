@@ -41,7 +41,7 @@
 #endif
 
 #ifdef CONFIG_MACH_U1
-#define USE_CID_CHECK
+//#define USE_CID_CHECK
 #define U1_MACADDR
 #define WRITE_MACADDR
 #endif
