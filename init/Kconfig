@@ -906,7 +906,10 @@ choice
   default CC_OPTIMIZE_DEFAULT
 
 config CC_OPTIMIZE_FOR_SIZE
-	bool "Use -Os"
+	bool "Use -Os may not boot!"
+	help
+	  in this kernel, using this will not boot kernel.
+	  use and see.
 
 config CC_OPTIMIZE_DEFAULT
 	bool "Use -O2"

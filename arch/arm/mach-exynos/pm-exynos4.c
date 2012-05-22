@@ -340,9 +340,9 @@ static int __maybe_unused exynos4_pm_finish(void)
 {
 	int ret = 0;
 
-#ifdef CONFIG_SLP
+//#ifdef CONFIG_SLP
 	ret = regulator_suspend_finish();
-#endif
+//#endif
 	
 	return ret;
 }
