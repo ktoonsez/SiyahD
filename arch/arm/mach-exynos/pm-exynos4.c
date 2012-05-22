@@ -451,8 +451,8 @@ void exynos4_scu_enable(void __iomem *scu_base)
 	if (scu_ctrl & 1)
 		return;
 
-	scu_ctrl |= 1;
-	//scu_ctrl |= ((0x1 << 5)|(0x1 << 0));
+	//scu_ctrl |= 1;
+	scu_ctrl |= ((0x1 << 5)|(0x1 << 0));
 	__raw_writel(scu_ctrl, scu_base);
 
 	/*

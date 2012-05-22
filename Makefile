@@ -1,6 +1,6 @@
 VERSION = 3
 PATCHLEVEL = 0
-SUBLEVEL = 31
+SUBLEVEL = 32
 EXTRAVERSION =
 NAME = Sneaky Weasel
 
@@ -350,13 +350,15 @@ CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 CFLAGS_COMPILE  = -pipe -fno-ident
 CFLAGS_ARM      = -marm -mtune=cortex-a9 -march=armv7-a \
 				  -mfpu=neon -mfloat-abi=softfp
-CFLAGS_REGISTER	= -fschedule-insns -fsched-spec-load -fforce-addr
+CFLAGS_REGISTER	= -fschedule-insns -fsched-spec-load -fforce-addr \
+				  -frename-registers -fweb
 CFLAGS_MATH		= -ffast-math
 CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
 				  -ftree-loop-distribution -ftree-vectorize \
-				  -floop-strip-mine -floop-block \
+				  -ftree-loop-im -ftree-loop-linear -ftree-loop-ivcanon \
+				  -floop-interchange -floop-strip-mine -floop-block \
 				  -mvectorize-with-neon-quad \
-				  -fgcse-lm -fgcse-sm 
+				  -fgcse -fgcse-lm -fgcse-sm -fgcse-las 
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 CFLAGS_DISABLE  = -fno-ipa-cp-clone
 KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_REGISTER) \
