@@ -141,7 +141,6 @@ enum mmc_blk_status {
 	MMC_BLK_ABORT,
 	MMC_BLK_DATA_ERR,
 	MMC_BLK_ECC_ERR,
-	MMC_BLK_NOMEDIUM,
 };
 
 module_param(perdev_minors, int, 0444);
@@ -595,7 +594,6 @@ static int get_card_status(struct mmc_card *card, u32 *status, int retries)
 	return err;
 }
 
-#define ERR_NOMEDIUM	3
 #define ERR_RETRY	2
 #define ERR_ABORT	1
 #define ERR_CONTINUE	0
@@ -683,12 +681,8 @@ static int mmc_blk_cmd_recovery(struct mmc_card *card, struct request *req,
 	}
 
 	/* We couldn't get a response from the card.  Give up. */
-	if (err) {
-		/* Check if the card is removed */
-		if (mmc_detect_card_removed(card->host))
-			return ERR_NOMEDIUM;
+	if (err)
 		return ERR_ABORT;
-	}
 
 	/* Flag ECC errors */
 	if ((status & R1_CARD_ECC_FAILED) ||
@@ -961,8 +955,6 @@ static int mmc_blk_err_check(struct mmc_card *card,
 			return MMC_BLK_RETRY;
 		case ERR_ABORT:
 			return MMC_BLK_ABORT;
-		case ERR_NOMEDIUM:
-			return MMC_BLK_NOMEDIUM;
 		case ERR_CONTINUE:
 			break;
 		}
@@ -1810,8 +1802,6 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 			if (!ret)
 				goto start_new_req;
 			break;
-		case MMC_BLK_NOMEDIUM:
-			goto cmd_abort;
 		}
 
 		if (ret) {
@@ -1841,10 +1831,6 @@ snd_packed_rd:
 	return 1;
 
  cmd_abort:
-	spin_lock_irq(&md->lock);
-	if (mmc_card_removed(card))
-		req->cmd_flags |= REQ_QUIET;
-	spin_unlock_irq(&md->lock);
 	if (mq_rq->packed_cmd == MMC_PACKED_NONE) {
 		spin_lock_irq(&md->lock);
 		while (ret)
