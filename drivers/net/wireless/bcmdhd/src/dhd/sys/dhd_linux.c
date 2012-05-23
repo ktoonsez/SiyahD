@@ -4513,10 +4513,13 @@ dhd_os_ioctl_resp_wait(dhd_pub_t *pub, uint *condition, bool *pending)
 	 * Can be changed by another processor.
 	 */
 	smp_mb();
-	while (!(*condition) && timeout) {
+	while (!(*condition) && (!signal_pending(current) && timeout)) {
 		timeout = schedule_timeout(timeout);
 		smp_mb();
 	}
+
+	if (signal_pending(current))
+		*pending = TRUE;
 
 	set_current_state(TASK_RUNNING);
 	remove_wait_queue(&dhd->ioctl_resp_wait, &wait);
@@ -5005,7 +5008,8 @@ int net_os_set_packet_filter(struct net_device *dev, int val)
 	return ret;
 }
 
-int
+
+void
 dhd_dev_init_ioctl(struct net_device *dev)
 {
 	dhd_info_t *dhd = *(dhd_info_t **)netdev_priv(dev);
@@ -5013,7 +5017,7 @@ dhd_dev_init_ioctl(struct net_device *dev)
 	 if (_dhd_set_mac_address(dhd, 0, &dhd->pub.mac) == 0)
 		 DHD_INFO(("dhd_bus_start: MAC ID is overwritten\n"));
 
-	return dhd_preinit_ioctls(&dhd->pub);
+	dhd_preinit_ioctls(&dhd->pub);
 }
 
 #ifdef PNO_SUPPORT
