@@ -35,10 +35,10 @@
  * It helps to keep variable names smaller, simpler
  */
 
-#define DEF_FREQUENCY_DOWN_DIFFERENTIAL         (10)
+#define DEF_FREQUENCY_DOWN_DIFFERENTIAL         (20)
 #define DEF_FREQUENCY_UP_THRESHOLD              (80)
 #define DEF_SAMPLING_DOWN_FACTOR                (3)
-#define MAX_SAMPLING_DOWN_FACTOR                (10000)
+#define MAX_SAMPLING_DOWN_FACTOR                (100000)
 #define MICRO_FREQUENCY_DOWN_DIFFERENTIAL       (3)
 #define MICRO_FREQUENCY_UP_THRESHOLD            (60)
 #define MICRO_FREQUENCY_MIN_SAMPLE_RATE         (10000)
@@ -46,7 +46,7 @@
 #define MAX_FREQUENCY_UP_THRESHOLD              (100)
 #define FREQ_STEP                               (100)
 #define FREQ_STEP_SUSPEND                       (20)
-#define UP_THRESHOLD_AT_MIN_FREQ                (40)
+#define UP_THRESHOLD_AT_MIN_FREQ                (30)
 #define FREQ_FOR_RESPONSIVENESS                 (1000000)
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
