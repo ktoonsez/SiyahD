@@ -31,7 +31,8 @@
 #include <asm/cacheflush.h>
 #include <asm/cpu.h>
 #include <asm/cputype.h>
-#include <asm/topology.h>
+//#include <asm/topology.h>
+#include <linux/topology.h>
 #include <asm/mmu_context.h>
 #include <asm/pgtable.h>
 #include <asm/pgalloc.h>

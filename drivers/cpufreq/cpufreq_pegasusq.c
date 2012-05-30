@@ -926,7 +926,8 @@ static int check_up(void)
 
 	if (num_hist % up_rate)
 		return 0;
-    if(num_hist == 0) num_hist = MAX_HOTPLUG_RATE;
+
+	if (num_hist == 0) num_hist = MAX_HOTPLUG_RATE;
 
 	for (i = num_hist - 1; i >= num_hist - up_rate; --i) {
 		usage = &hotplug_history->usage[i];
@@ -984,7 +985,8 @@ static int check_down(void)
 
 	if (num_hist == 0 || num_hist % down_rate)
 		return 0;
-    if(num_hist == 0) num_hist = MAX_HOTPLUG_RATE; //make it circular -gm
+
+	if (num_hist == 0) num_hist = MAX_HOTPLUG_RATE; //make it circular -gm
 
 	for (i = num_hist - 1; i >= num_hist - down_rate; --i) {
 		usage = &hotplug_history->usage[i];

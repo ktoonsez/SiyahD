@@ -128,12 +128,12 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 	}
 
 #ifdef CONFIG_SWAP
-	if(fudgeswap != 0){
+	if (fudgeswap != 0) {
 		struct sysinfo si;
 		si_swapinfo(&si);
 
-		if(si.freeswap > 0){
-			if(fudgeswap > si.freeswap)
+		if (si.freeswap > 0) {
+			if (fudgeswap > si.freeswap)
 				other_file += si.freeswap;
 			else
 				other_file += fudgeswap;

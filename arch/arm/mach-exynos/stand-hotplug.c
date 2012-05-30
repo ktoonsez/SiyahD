@@ -81,7 +81,7 @@
 #define CPULOAD_TABLE (NR_CPUS + 1)
 
 #define DBG_PRINT(fmt, ...)\
-	if(PM_HOTPLUG_DEBUG)			\
+	if (PM_HOTPLUG_DEBUG)			\
 		printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
 
 static struct workqueue_struct *hotplug_wq;
@@ -204,7 +204,7 @@ static void hotplug_timer(struct work_struct *work)
 
 	mutex_lock(&hotplug_lock);
 
-	if(!standhotplug_enabled) {
+	if (!standhotplug_enabled) {
 		printk(KERN_INFO "pm-hotplug: disable cpu auto-hotplug\n");
 		goto off_hotplug;
 	}
@@ -264,7 +264,7 @@ static void hotplug_timer(struct work_struct *work)
 	flag_hotplug = standalone_hotplug(load, nr_rq_min, cpu_rq_min);
 
 	/*do not ever hotplug out CPU 0*/
-	if((cpu_rq_min == 0) && (flag_hotplug == HOTPLUG_OUT))
+	if ((cpu_rq_min == 0) && (flag_hotplug == HOTPLUG_OUT))
 		goto no_hotplug;
 
 	/*cpu hotplug*/
@@ -521,25 +521,21 @@ static int standhotplug_cpufreq_policy_notifier_call(struct notifier_block *this
 
 	switch (code) {
 	case CPUFREQ_ADJUST:
-		if (
+		if 	(
 			(!strnicmp(policy->governor->name, "pegasusq", CPUFREQ_NAME_LEN)) ||
 			(!strnicmp(policy->governor->name, "hotplug", CPUFREQ_NAME_LEN)) ||
 			(!strnicmp(policy->governor->name, "assplug", CPUFREQ_NAME_LEN))
 			) 
-		{
-			if(standhotplug_enabled)
-			{
+		{ 
+			if (standhotplug_enabled) {
 				DBG_PRINT("Stand-hotplug is disabled: governor=%s\n",
 								policy->governor->name);
 				mutex_lock(&hotplug_lock);
 				standhotplug_enabled = false;
 				mutex_unlock(&hotplug_lock);
 			}
-		} 
-		else
-		{
-			if(!standhotplug_enabled)
-			{
+		} else {
+			if (!standhotplug_enabled) {
 				DBG_PRINT("Stand-hotplug is enabled: governor=%s\n",
 								policy->governor->name);
 				mutex_lock(&hotplug_lock);

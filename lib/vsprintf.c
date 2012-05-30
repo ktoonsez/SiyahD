@@ -175,27 +175,34 @@ char *put_dec_trunc8(char *buf, unsigned r)
 	/* Copy of previous function's body with added early returns */
 	q      = (r * (uint64_t)0x1999999a) >> 32;
 	*buf++ = (r - 10 * q) + '0'; /* 2 */
-	if (q == 0) return buf;
+	if (q == 0) 
+		return buf;
 	r      = (q * (uint64_t)0x1999999a) >> 32;
 	*buf++ = (q - 10 * r) + '0'; /* 3 */
-	if (r == 0) return buf;
+	if (r == 0) 
+		return buf;
 	q      = (r * (uint64_t)0x1999999a) >> 32;
 	*buf++ = (r - 10 * q) + '0'; /* 4 */
-	if (q == 0) return buf;
+	if (q == 0) 
+		return buf;
 	r      = (q * (uint64_t)0x1999999a) >> 32;
 	*buf++ = (q - 10 * r) + '0'; /* 5 */
-	if (r == 0) return buf;
+	if (r == 0) 
+		return buf;
 	q      = (r * 0x199a) >> 16;
 	*buf++ = (r - 10 * q)  + '0'; /* 6 */
-	if (q == 0) return buf;
+	if (q == 0) 
+		return buf;
 	r      = (q * 0xcd) >> 11;
 	*buf++ = (q - 10 * r)  + '0'; /* 7 */
-	if (r == 0) return buf;
+	if (r == 0) 
+		return buf;
 	q      = (r * 0xcd) >> 11;
 	*buf++ = (r - 10 * q) + '0'; /* 8 */
-	if (q == 0) return buf;
+	if (q == 0) 
+		return buf;
 	*buf++ = q + '0'; /* 9 */
-	return buf;
+		return buf;
 }
 /* There are two algorithms to print larger numbers.
  * One is generic: divide by 1000000000 and repeatedly print
@@ -221,10 +228,10 @@ char *put_dec_trunc8(char *buf, unsigned r)
 static
 char *put_dec(char *buf, unsigned long long n)
 {
-	if (n >= 100*1000*1000) {
-		while (n >= 1000*1000*1000)
-			buf = put_dec_full9(buf, do_div(n, 1000*1000*1000));
-		if (n >= 100*1000*1000)
+	if (n >= 100 * 1000 * 1000) {
+		while (n >= 1000 * 1000 * 1000)
+			buf = put_dec_full9(buf, do_div(n, 1000 * 1000 * 1000));
+		if (n >= 100 * 1000 * 1000)
 			return put_dec_full9(buf, n);
 	}
 	return put_dec_trunc8(buf, n);
@@ -263,10 +270,10 @@ char *put_dec(char *buf, unsigned long long n)
 
 	d1  = ((uint32_t)n >> 16); /* implicit "& 0xffff" */
 	h   = (n >> 32);
-	d2  = (h      ) & 0xffff;
+	d2  = (h      ) &0xffff;
 	d3  = (h >> 16); /* implicit "& 0xffff" */
 
-	q   = 656 * d3 + 7296 * d2 + 5536 * d1 + ((uint32_t)n & 0xffff);
+	q   = 656 * d3 + 7296 * d2 + 5536 * d1 + ((uint32_t)n &0xffff);
 
 	buf = put_dec_full4(buf, q % 10000);
 	q   = q / 10000;

@@ -2534,7 +2534,7 @@ int vfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
 SYSCALL_DEFINE3(mkdirat, int, dfd, const char __user *, pathname, int, mode)
 {
 	int error = 0;
-	char * tmp = 0;
+	char *tmp = 0;
 	struct dentry *dentry;
 	struct nameidata nd;
 
@@ -2637,7 +2637,7 @@ out:
 static long do_rmdir(int dfd, const char __user *pathname)
 {
 	int error = 0;
-	char * name = 0;
+	char *name = 0;
 	struct dentry *dentry;
 	struct nameidata nd;
 

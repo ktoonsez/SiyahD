@@ -570,7 +570,7 @@ static ssize_t show_inc_cpu_load(struct kobject *kobj,
 static ssize_t store_inc_cpu_load(struct kobject *kobj,
 			struct attribute *attr, const char *buf, size_t count)
 {
-	if(strict_strtoul(buf, 0, &inc_cpu_load)==-EINVAL) return -EINVAL;
+	if (strict_strtoul(buf, 0, &inc_cpu_load)==-EINVAL) return -EINVAL;
 	
 	if (inc_cpu_load > 100) {
 		inc_cpu_load = 100;
@@ -594,7 +594,7 @@ static ssize_t show_down_sample_time(struct kobject *kobj,
 static ssize_t store_down_sample_time(struct kobject *kobj,
 			struct attribute *attr, const char *buf, size_t count)
 {
-	if(strict_strtoul(buf, 0, &down_sample_time)==-EINVAL) return -EINVAL;
+	if (strict_strtoul(buf, 0, &down_sample_time)==-EINVAL) return -EINVAL;
 	return count;
 }
 
@@ -611,7 +611,7 @@ static ssize_t show_up_sample_time(struct kobject *kobj,
 static ssize_t store_up_sample_time(struct kobject *kobj,
 			struct attribute *attr, const char *buf, size_t count)
 {
-	if(strict_strtoul(buf, 0, &up_sample_time)==-EINVAL) return -EINVAL;
+	if (strict_strtoul(buf, 0, &up_sample_time)==-EINVAL) return -EINVAL;
 	return count;
 }
 
@@ -644,7 +644,7 @@ static ssize_t show_pump_up_step(struct kobject *kobj,
 static ssize_t store_pump_up_step(struct kobject *kobj,
 			struct attribute *attr, const char *buf, size_t count)
 {
-	if(strict_strtoul(buf, 0, &pump_up_step)==-EINVAL) return -EINVAL;
+	if (strict_strtoul(buf, 0, &pump_up_step)==-EINVAL) return -EINVAL;
 	return count;
 }
 
@@ -663,7 +663,7 @@ static ssize_t store_pump_down_step(struct kobject *kobj,
 {
 	struct cpufreq_lulzactive_cpuinfo *pcpu;
 	
-	if(strict_strtoul(buf, 0, &pump_down_step)==-EINVAL) return -EINVAL;
+	if (strict_strtoul(buf, 0, &pump_down_step)==-EINVAL) return -EINVAL;
 	
 	pcpu = &per_cpu(cpuinfo, 0);
 	// fix out of bound
@@ -693,7 +693,7 @@ static ssize_t store_screen_off_min_step(struct kobject *kobj,
 {
 	struct cpufreq_lulzactive_cpuinfo *pcpu;
 	
-	if(strict_strtoul(buf, 0, &screen_off_min_step)==-EINVAL) return -EINVAL;
+	if (strict_strtoul(buf, 0, &screen_off_min_step)==-EINVAL) return -EINVAL;
 	
 	pcpu = &per_cpu(cpuinfo, 0);
 	fix_screen_off_min_step(pcpu);
@@ -903,8 +903,7 @@ void start_lulzactive(void)
 	struct cpufreq_lulzactive_cpuinfo *pcpu;
 	struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
 
-	if( pump_up_step == 0 )
-	{
+	if (pump_up_step == 0) {
 		pcpu = &per_cpu(cpuinfo, 0);
 		cpufreq_frequency_table_target(
 				pcpu->policy, pcpu->lulzfreq_table,
@@ -914,14 +913,11 @@ void start_lulzactive(void)
 				pcpu->policy, pcpu->lulzfreq_table,
 				800000, CPUFREQ_RELATION_H,
 				&index800);
-		for(i=index800;i<index500;i++)
-		{
-		  if(pcpu->lulzfreq_table[i].frequency==CPUFREQ_ENTRY_INVALID) continue;
-		  pump_up_step++;
+		for (i = index800; i < index500; i++) {
+			if (pcpu->lulzfreq_table[i].frequency == CPUFREQ_ENTRY_INVALID) continue;
+				pump_up_step++;
 		}
-	}
-	if( pump_down_step == 0 )
-	{
+	} if (pump_down_step == 0) {
 		pump_down_step = pump_up_step;
 	}	
 

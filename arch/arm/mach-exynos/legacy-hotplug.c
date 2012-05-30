@@ -419,8 +419,8 @@ static int legacyhotplug_cpufreq_policy_notifier_call(struct notifier_block *thi
 	struct cpufreq_policy *policy = data;
 
 	switch (code) {
-	case CPUFREQ_ADJUST: (
-		if
+	case CPUFREQ_ADJUST:
+		if 	(
 			(!strnicmp(policy->governor->name, "pegasusq", CPUFREQ_NAME_LEN)) ||
 			(!strnicmp(policy->governor->name, "hotplug", CPUFREQ_NAME_LEN))
 			) 
