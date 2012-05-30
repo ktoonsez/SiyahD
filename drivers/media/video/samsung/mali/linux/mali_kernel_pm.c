@@ -594,7 +594,7 @@ int mali_pd_enable(void)
 static void mali_pm_shutdown(struct platform_device *pdev)
 {
 	MALI_PRINT(("Mali shutdown!!\n"));
-	mali_dvfs_device_state =_MALI_DEVICE_SHUTDOWN;
+	mali_dvfs_device_state = _MALI_DEVICE_SHUTDOWN;
 	exynos_pd_enable(&exynos4_device_pd[PD_G3D].dev);
 	return;
 }

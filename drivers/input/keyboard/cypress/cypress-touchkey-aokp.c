@@ -661,30 +661,30 @@ static void handle_polling_timeout(unsigned long data)
 	schedule_work(&polling_off_work);
 }
 
-static ssize_t led_status_read( struct device *dev, struct device_attribute *attr, char *buf )
+static ssize_t led_status_read(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf,"%u\n", led_on);
+	return sprintf(buf, "%u\n", led_on);
 }
 
-static ssize_t notification_enabled_read( struct device *dev, struct device_attribute *attr, char *buf )
+static ssize_t notification_enabled_read(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf,"%d\n", notification_enabled);
+	return sprintf(buf, "%d\n", notification_enabled);
 }
 
-static ssize_t notification_enabled_write( struct device *dev, struct device_attribute *attr, const char *buf, size_t size )
+static ssize_t notification_enabled_write(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
 {
-	sscanf(buf,"%d\n", &notification_enabled);
+	sscanf(buf, "%d\n", &notification_enabled);
 	return size;
 }
 
-static ssize_t notification_enabled_charging_read( struct device *dev, struct device_attribute *attr,
-										char *buf )
+static ssize_t notification_enabled_charging_read(struct device *dev, struct device_attribute *attr,
+										char *buf)
 {
-	return sprintf(buf,"%d\n", (notification_enabled_charging ? 1 : 0));
+	return sprintf(buf, "%d\n", (notification_enabled_charging ? 1 : 0));
 }
 
-static ssize_t notification_enabled_charging_write( struct device *dev, struct device_attribute *attr,
-								const char *buf, size_t size )
+static ssize_t notification_enabled_charging_write(struct device *dev, struct device_attribute *attr,
+								const char *buf, size_t size)
 {
 	unsigned int data;
 	int ret;
@@ -704,12 +704,12 @@ static ssize_t notification_enabled_charging_write( struct device *dev, struct d
 	return size;
 }
 
-static ssize_t led_status_write( struct device *dev, struct device_attribute *attr, const char *buf, size_t size )
+static ssize_t led_status_write(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
 {
 	unsigned int data;
 	int status;
 
-	if(sscanf(buf,"%u\n", &data ) == 1) {
+	if (sscanf(buf,"%u\n", &data ) == 1) {
 
 		switch (data) {
 		case ENABLE_BL:
@@ -1026,25 +1026,25 @@ static ssize_t blink_control_write( struct device *dev, struct device_attribute 
         return size;
 }
 
-static ssize_t version_read( struct device *dev, struct device_attribute *attr, char *buf )
+static ssize_t version_read(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf,"%d\n", BLN_VERSION);
 }
 
-static DEVICE_ATTR(blink_control, S_IRUGO | S_IWUGO, blink_control_read, blink_control_write );
-static DEVICE_ATTR(enabled, S_IRUGO | S_IWUGO, notification_enabled_read, notification_enabled_write );
-static DEVICE_ATTR(notification_led, S_IRUGO | S_IWUGO, led_status_read, led_status_write );
-static DEVICE_ATTR(led_timeout, S_IRUGO | S_IWUGO, led_timeout_read, led_timeout_write );
-static DEVICE_ATTR(version, S_IRUGO | S_IWUGO, version_read, NULL );
+static DEVICE_ATTR(blink_control, S_IRUGO | S_IWUGO, blink_control_read, blink_control_write);
+static DEVICE_ATTR(enabled, S_IRUGO | S_IWUGO, notification_enabled_read, notification_enabled_write);
+static DEVICE_ATTR(notification_led, S_IRUGO | S_IWUGO, led_status_read, led_status_write);
+static DEVICE_ATTR(led_timeout, S_IRUGO | S_IWUGO, led_timeout_read, led_timeout_write);
+static DEVICE_ATTR(version, S_IRUGO | S_IWUGO, version_read, NULL);
 #endif
-static DEVICE_ATTR(enabled_charging, S_IRUGO | S_IWUGO, notification_enabled_charging_read, notification_enabled_charging_write );
-static DEVICE_ATTR(notification_timeout, S_IRUGO | S_IWUGO, notification_timeout_read, notification_timeout_write );
-static DEVICE_ATTR(breathing_enabled, S_IRUGO | S_IWUGO, enable_breathing_read, enable_breathing_write );
-static DEVICE_ATTR(breathing_config, S_IRUGO | S_IWUGO, breathing_config_read, breathing_config_write );
-static DEVICE_ATTR(blinking_enabled, S_IRUGO | S_IWUGO, enable_blinking_read, enable_blinking_write );
-static DEVICE_ATTR(blinking_config, S_IRUGO | S_IWUGO, blinking_config_read, blinking_config_write );
-static DEVICE_ATTR(led_fadeout, S_IRUGO | S_IWUGO, led_fadeout_read, led_fadeout_write );
-static DEVICE_ATTR(check_battery, S_IRUGO | S_IWUGO, check_battery_read, check_battery_write );
+static DEVICE_ATTR(enabled_charging, S_IRUGO | S_IWUGO, notification_enabled_charging_read, notification_enabled_charging_write);
+static DEVICE_ATTR(notification_timeout, S_IRUGO | S_IWUGO, notification_timeout_read, notification_timeout_write);
+static DEVICE_ATTR(breathing_enabled, S_IRUGO | S_IWUGO, enable_breathing_read, enable_breathing_write);
+static DEVICE_ATTR(breathing_config, S_IRUGO | S_IWUGO, breathing_config_read, breathing_config_write);
+static DEVICE_ATTR(blinking_enabled, S_IRUGO | S_IWUGO, enable_blinking_read, enable_blinking_write);
+static DEVICE_ATTR(blinking_config, S_IRUGO | S_IWUGO, blinking_config_read, blinking_config_write);
+static DEVICE_ATTR(led_fadeout, S_IRUGO | S_IWUGO, led_fadeout_read, led_fadeout_write);
+static DEVICE_ATTR(check_battery, S_IRUGO | S_IWUGO, check_battery_read, check_battery_write);
 
 static struct attribute *bl_led_attributes[] = {
 #ifdef CONFIG_TARGET_CM_KERNEL

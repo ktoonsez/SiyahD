@@ -36,7 +36,7 @@
 
 #define	EPI_BUILD_NUMBER	0
 
-#define	EPI_VERSION		1, 15, 8, 0
+#define	EPI_VERSION		(1, 15, 8, 0)
 
 #define	EPI_VERSION_NUM		0x010f0800
 

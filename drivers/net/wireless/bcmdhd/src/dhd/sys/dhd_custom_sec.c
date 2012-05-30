@@ -264,17 +264,17 @@ int dhd_check_rdwr_macaddr(struct dhd_info *dhd, dhd_pub_t *dhdp,
 					(unsigned int *)&(mac->octet[4]),
 					(unsigned int *)&(mac->octet[5]));
 			/* current MAC address is same as previous one */
-				if(memcmp(cur_mac,mac->octet,ETHER_ADDR_LEN) == 0) {
+				if (memcmp(cur_mac, mac->octet, ETHER_ADDR_LEN) == 0) {
 					g_imac_flag = MACADDR_NONE;
 				} else { /* change MAC address */
 					if (0 == _dhd_set_mac_address(dhd, 0, mac)) {
 						DHD_INFO(("%s: MACID is"
-						" overwritten\n", __FUNCTION__));
+						" overwritten\n", __func__));
 						g_imac_flag = MACADDR_MOD;
 					} else {
 						DHD_ERROR(("%s: "
 						"_dhd_set_mac_address()"
-						" failed\n", __FUNCTION__));
+						" failed\n", __func__));
 						g_imac_flag = MACADDR_NONE;
 					}
 				}
@@ -318,12 +318,12 @@ int dhd_check_rdwr_macaddr(struct dhd_info *dhd, dhd_pub_t *dhdp,
 				} else { /* change MAC address */
 					if (0 == _dhd_set_mac_address(dhd, 0, mac)) {
 						DHD_INFO(("%s: MACID is"
-						" overwritten\n", __FUNCTION__));
+						" overwritten\n", __func__));
 						g_imac_flag = MACADDR_MOD;
 					} else {
 						DHD_ERROR(("%s: "
 						"_dhd_set_mac_address()"
-						" failed\n", __FUNCTION__));
+						" failed\n", __func__));
 						g_imac_flag = MACADDR_NONE;
 					}
 				}
@@ -356,11 +356,11 @@ int dhd_check_rdwr_macaddr(struct dhd_info *dhd, dhd_pub_t *dhdp,
 			/* Writing Newly generated MAC ID to the Dongle */
 			if (0 == _dhd_set_mac_address(dhd, 0, mac)) {
 				DHD_INFO(("%s: MACID is overwritten\n",
-					__FUNCTION__));
+					__func__));
 				g_imac_flag = MACADDR_COB;
 			} else {
 				DHD_ERROR(("%s: _dhd_set_mac_address()"
-					" failed\n", __FUNCTION__));
+					" failed\n", __func__));
 			}
 		}
 		filp_close(fp_nvm, NULL);
@@ -382,11 +382,11 @@ int dhd_check_rdwr_macaddr(struct dhd_info *dhd, dhd_pub_t *dhdp,
 			(unsigned int *)&(mac->octet[4]),
 			(unsigned int *)&(mac->octet[5]));
 		if (0 == _dhd_set_mac_address(dhd, 0, mac)) {
-			DHD_INFO(("%s: MACID is overwritten\n", __FUNCTION__));
+			DHD_INFO(("%s: MACID is overwritten\n", __func__));
 			g_imac_flag = MACADDR_COB;
 		} else {
 			DHD_ERROR(("%s: _dhd_set_mac_address() failed\n",
-				__FUNCTION__));
+				__func__));
 		}
 	}
 
@@ -551,14 +551,14 @@ int dhd_check_module_cid(dhd_pub_t *dhd)
 				sizeof(cis_buf), 0, 0);
 	if (ret < 0) {
 		DHD_ERROR(("%s: CIS reading failed, err=%d\n",
-			__FUNCTION__, ret));
+			__func__, ret));
 		return ret;
 	} else {
 #ifdef BCM4334_CHIP
 		unsigned char semco_id[4] = {0x00, 0x00, 0x33, 0x33};
 		unsigned char semco_id_sh[4] = {0x00, 0x00, 0xFB, 0x50};	//for SHARP FEM(new)
 		DHD_ERROR(("%s: CIS reading success, err=%d\n",
-			__FUNCTION__, ret));
+			__func__, ret));
 #ifdef DUMP_CIS
 		dump_cis(cis_buf, 48);
 #endif
@@ -595,14 +595,14 @@ int dhd_check_module_cid(dhd_pub_t *dhd)
 					sizeof(cis_buf), 0, 0);
 		if (ret < 0) {
 			DHD_ERROR(("%s: OTP reading failed, err=%d\n",
-				__FUNCTION__, ret));
+				__func__, ret));
 			return ret;
 		}
 
 		/* otp 33th character is identifier for 4334B3 */
 		cis_buf[34] = '\0';
 		flag_b3 = bcm_atoi(&cis_buf[33]);
-		if(flag_b3 & 0x1){
+		if (flag_b3 & 0x1) {
 			DHD_ERROR(("REV MATCH FOUND : 4334B3, %c\n", cis_buf[33]));
 			dhd_write_cid_file(revfilepath, "4334B3", 6);
 		}
@@ -631,7 +631,7 @@ int dhd_check_module_cid(dhd_pub_t *dhd)
 		}
 #endif /* BCM4334_CHIP */
 		DHD_ERROR(("%s: CIS write success, err=%d\n",
-			__FUNCTION__, ret));
+			__func__, ret));
 	}
 
 	return ret;
@@ -726,12 +726,12 @@ int dhd_check_module_mac(dhd_pub_t *dhd)
 #ifdef WRITE_MACADDR
 int dhd_write_macaddr(struct ether_addr *mac)
 {
-    char *filepath_old      = "/data/.mac.info";
-    char *filepath      = "/efs/wifi/.mac.info";
+    char *filepath_old	= "/data/.mac.info";
+    char *filepath	= "/efs/wifi/.mac.info";
 
 	struct file *fp_mac = NULL;
-	char buf[18]      = {0};
-	mm_segment_t oldfs    = {0};
+	char buf[18]	= {0};
+	mm_segment_t oldfs	= {0};
 	int ret = -1;
 	int retry_count = 0;
 
@@ -836,7 +836,7 @@ void sec_control_pm(dhd_pub_t *dhd, uint *power_mode)
 		fp = filp_open(filepath, O_RDWR | O_CREAT, 0666);
 		if (IS_ERR(fp) || (fp == NULL)) {
 			DHD_ERROR(("[%s, %d] /data/.psm.info open failed\n",
-				__FUNCTION__, __LINE__));
+				__func__, __LINE__));
 			return;
 		} else {
 			oldfs = get_fs();
@@ -901,7 +901,7 @@ int dhd_customer_set_country(dhd_pub_t *dhd)
 	char country_rev_buf[WLC_CNTRY_BUF_SZ];
 	fp = filp_open(filepath, O_RDONLY, 0);
 	if (IS_ERR(fp)) {
-		DHD_ERROR(("%s: %s open failed\n", __FUNCTION__, filepath));
+		DHD_ERROR(("%s: %s open failed\n", __func__, filepath));
 		return -1;
 	} else {
 		if (kernel_read(fp, 0, buffer, sizeof(buffer))) {
@@ -918,22 +918,22 @@ int dhd_customer_set_country(dhd_pub_t *dhd)
 				ret = dhd_wl_ioctl_cmd(dhd, WLC_GET_VAR, iovbuf, buf_len, FALSE, 0);
 				memcpy((void *)&cspec, iovbuf, sizeof(cspec));
 				if (!ret) {
-					DHD_ERROR(("%s: get country ccode:%s country_abrev:%s rev:%d  \n", __FUNCTION__, cspec.ccode, cspec.country_abbrev, cspec.rev));
+					DHD_ERROR(("%s: get country ccode:%s country_abrev:%s rev:%d  \n", __func__, cspec.ccode, cspec.country_abbrev, cspec.rev));
 					if ((strncmp(country_code, cspec.ccode, WLC_CNTRY_BUF_SZ) != 0) || (cspec.rev != country_rev)) {
 						strncpy(cspec.country_abbrev, country_code, country_code_size);
 						strncpy(cspec.ccode, country_code, country_code_size);
 						cspec.rev = country_rev;
-						DHD_ERROR(("%s: set country ccode:%s country_abrev:%s rev:%d  \n", __FUNCTION__, cspec.ccode, cspec.country_abbrev, cspec.rev));
+						DHD_ERROR(("%s: set country ccode:%s country_abrev:%s rev:%d  \n", __func__, cspec.ccode, cspec.country_abbrev, cspec.rev));
 						buf_len = bcm_mkiovar("country", (char *)&cspec, sizeof(cspec), iovbuf, sizeof(iovbuf));
 						ret = dhd_wl_ioctl_cmd(dhd, WLC_SET_VAR, iovbuf, buf_len, TRUE, 0);
 					}
 				}
 			} else {
-				DHD_ERROR(("%s: set country %s failed code \n", __FUNCTION__, country_code));
+				DHD_ERROR(("%s: set country %s failed code \n", __func__, country_code));
 				ret = -1;
 			}
 		} else {
-			DHD_ERROR(("%s: Reading from the '%s' returns 0 bytes \n", __FUNCTION__, filepath));
+			DHD_ERROR(("%s: Reading from the '%s' returns 0 bytes \n", __func__, filepath));
 			ret = -1;
 		}
 	}

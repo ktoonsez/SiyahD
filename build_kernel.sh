@@ -98,4 +98,3 @@ zip -r Kernel_Dorimanx-SGII-ICS-$GETVER-`date +"Date-%d-%m-Time-%H-%M"`.zip .
 else
 echo "Kernel STUCK in BUILD! no zImage exist"
 fi
-
