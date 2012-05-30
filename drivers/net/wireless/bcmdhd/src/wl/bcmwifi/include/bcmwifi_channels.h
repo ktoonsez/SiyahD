@@ -299,7 +299,7 @@ typedef uint16 chanspec_t;
 #define WLC_2G_25MHZ_OFFSET		5
 
 
-extern char * wf_chspec_ntoa(chanspec_t chspec, char *buf);
+extern char *wf_chspec_ntoa(chanspec_t chspec, char *buf);
 
 
 extern chanspec_t wf_chspec_aton(const char *a);

@@ -36,12 +36,14 @@ extern unsigned int mali_asv_group;
 
 unsigned int gv[3];
 
-static ssize_t gpu_voltage_show(struct device *dev, struct device_attribute *attr, char *buf) {
+static ssize_t gpu_voltage_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
 	return sprintf(buf, "Step1: %d\nStep2: %d\nStep3: %d\n", mali_dvfs[0].vol, mali_dvfs[1].vol,mali_dvfs[2].vol);
 }
 
 static ssize_t gpu_voltage_store(struct device *dev, struct device_attribute *attr, const char *buf,
-									size_t count) {
+									size_t count)
+{
 	unsigned int ret = -EINVAL;
 	int i = 0;
 
@@ -65,17 +67,19 @@ static ssize_t gpu_voltage_store(struct device *dev, struct device_attribute *at
 	return count;	
 }
 
-static ssize_t gpu_asv_group_show(struct device *dev, struct device_attribute *attr, char *buf) {
+static ssize_t gpu_asv_group_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
 
 	return sprintf(buf, "%d\n", mali_asv_group);
 }
 
 static ssize_t gpu_asv_group_store(struct device *dev, struct device_attribute *attr, const char *buf,
-									size_t count) {
+									size_t count)
+{
 	unsigned int ret, data;
 
 	ret = sscanf(buf, "%d", &data);
-	if (ret!= 1 || data < 0 || data > 7)
+	if (ret != 1 || data < 0 || data > 7)
 		return -EINVAL;
 
 	update_mali_dvfs_table(data);

@@ -2464,7 +2464,7 @@ int mmc_suspend_host(struct mmc_host *host)
 	mmc_flush_scheduled_work();
 	if (mmc_try_claim_host(host)) {
 		u32 status;
-		u32 count=300000; /* up to 300ms */
+		u32 count = 300000; /* up to 300ms */
 
 		/* if a sdmmc card exists and the card is mmc */
 		if (((host->card) && mmc_card_mmc(host->card))) {
@@ -2474,7 +2474,7 @@ int mmc_suspend_host(struct mmc_host *host)
 			if (ret)
 				pr_err("%s: there is error %d while "
 				       "flushing emmc's cache\n",
-					mmc_hostname(host),ret);
+					mmc_hostname(host), ret);
 		}
 		err = mmc_cache_ctrl(host, 0);
 

@@ -1047,7 +1047,7 @@ static void mshci_check_sbc_status(struct mshci_host *host, int intmask)
 
 	/* should not be here */
 	printk(KERN_ERR "%s: an error that has not to be occured was"
-			" occured 0x%x\n",mmc_hostname(host->mmc),int_status);
+			"occured 0x%x\n" ,mmc_hostname(host->mmc), int_status);
 }
 
 static void mshci_send_sbc(struct mshci_host *host, struct mmc_command *cmd)
@@ -1105,7 +1105,7 @@ static void mshci_send_sbc(struct mshci_host *host, struct mmc_command *cmd)
 					MSHCI_CTRL);
 
 	/* check the interrupt by polling */
-	mshci_check_sbc_status(host,intmask);
+	mshci_check_sbc_status(host, intmask);
 }
 #endif
 

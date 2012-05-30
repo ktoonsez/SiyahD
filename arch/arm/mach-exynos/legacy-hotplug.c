@@ -105,7 +105,7 @@ static void hotplug_timer(struct work_struct *work)
 
 	mutex_lock(&hotplug_lock);
 
-	if(!legacyhotplug_enabled) {
+	if (!legacyhotplug_enabled) {
 		printk(KERN_INFO "pm-hotplug: disable cpu auto-hotplug\n");
 		goto off_hotplug;
 	}
@@ -419,26 +419,24 @@ static int legacyhotplug_cpufreq_policy_notifier_call(struct notifier_block *thi
 	struct cpufreq_policy *policy = data;
 
 	switch (code) {
-	case CPUFREQ_ADJUST:
-		if (
+	case CPUFREQ_ADJUST: (
+		if
 			(!strnicmp(policy->governor->name, "pegasusq", CPUFREQ_NAME_LEN)) ||
 			(!strnicmp(policy->governor->name, "hotplug", CPUFREQ_NAME_LEN))
 			) 
 		{
-			if(legacyhotplug_enabled)
-			{
-				printk("Legacy-hotplug is disabled: governor=%s\n",
+			if (legacyhotplug_enabled) {
+
+				printk(KERN_INFO "Legacy-hotplug is disabled: governor=%s\n",  
 								policy->governor->name);
 				mutex_lock(&hotplug_lock);
 				legacyhotplug_enabled = false;
 				mutex_unlock(&hotplug_lock);
 			}
-		} 
-		else
-		{
-			if(!legacyhotplug_enabled)
-			{
-				printk("Legacy-hotplug is enabled: governor=%s\n",
+		} else {
+			if (!legacyhotplug_enabled) {
+
+				printk(KERN_INFO "Legacy-hotplug is enabled: governor=%s\n",
 								policy->governor->name);
 				mutex_lock(&hotplug_lock);
 				legacyhotplug_enabled = true;

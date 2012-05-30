@@ -127,25 +127,24 @@ static struct snd_soc_codec *mc1n2_codec;
 static unsigned int update_vol_mask = MC1N2_MASK_NULL;
 
 #define VOL_ATTR_DEF(var)\
-	static int mc1n2_carib_##var = 0;\
+	static int mc1n2_carib_##var;\
 	static ssize_t mc1n2_##var##_read(struct device *dev, struct device_attribute *attr, char *buf)\
 	{\
-		printk(KERN_NOTICE "[MCDRV] mc1n2_carib_"#var"=%d\n", mc1n2_carib_##var );\
-		return sprintf(buf,"%d\n", mc1n2_carib_##var );\
-	}\
+		printk(KERN_NOTICE "[MCDRV] mc1n2_carib_"#var"=%d\n", mc1n2_carib_##var);\
+		return sprintf(buf, "%d\n", mc1n2_carib_##var);\
+	} \
 	static ssize_t mc1n2_##var##_write(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)\
 	{\
 		int data;\
-		if (sscanf(buf, "%d\n", &data) > 0)\
-		{\
+		if (sscanf(buf, "%d\n", &data) > 0) {\
 			printk(KERN_NOTICE "[MCDRV] mc1n2_carib_"#var" data=%d\n", data);\
 			if (mc1n2_carib_##var != data) {\
 				mc1n2_carib_##var = data;\
 				update_vol_mask |= MC1N2_MASK_##var;\
-			}\
-		}\
+			} \
+		} \
 		return size;\
-	}\
+	} \
 	static DEVICE_ATTR(var, S_IWUGO | S_IRUGO, mc1n2_##var##_read, mc1n2_##var##_write);
 
 VOL_ATTR_DEF(DVOL_AD0)
@@ -180,7 +179,7 @@ VOL_ATTR_DEF(AVOL_MIC2_GAIN)
 VOL_ATTR_DEF(AVOL_MIC3_GAIN)
 VOL_ATTR_DEF(AVOL_HP_GAIN)
 
-char* vol_name_tbl[] = {
+char *vol_name_tbl[] = {
 	"DVOL_AD0",
 	"DVOL_AENG6",
 	"DVOL_PDM",
@@ -213,7 +212,6 @@ char* vol_name_tbl[] = {
 	"AVOL_MIC3_GAIN",
 	"AVOL_HP_GAIN",
 };
-
 
 /*
  * Driver private data structure
@@ -1483,13 +1481,12 @@ static inline int caribrate_vol(unsigned int reg, int vol, int carib_vol)
 {
 	//printk(KERN_NOTICE "[MCDRV] caribrate_vol reg=%d, vol=%d, carib_vol=%d", reg, vol, carib_vol);
 	if (vol != 0 && carib_vol != 0) {
-		if ((vol + carib_vol) >  mc1n2_vreg_map[reg].size) {
+		if ((vol + carib_vol) >  mc1n2_vreg_map[reg].size)
 			vol = mc1n2_vreg_map[reg].size - 1;
-		} else if ((vol + carib_vol) < 0) {
+		else if ((vol + carib_vol) < 0)
 			vol = 0;
-		} else {
+		else
 			vol = vol + carib_vol;
-		}
 	}
 	return vol;
 }
@@ -1514,8 +1511,7 @@ static int write_reg_vol(struct snd_soc_codec *codec,
 			sw = (reg < MC1N2_AVOL_MIC1_GAIN) ? (v & 0x80) : 1;
 			vol = sw ? (v & 0x7f) : 0;
 			
-			switch (reg)
-			{
+			switch (reg) {
 			case MC1N2_DVOL_AD0:
 				vol = caribrate_vol(reg, vol, mc1n2_carib_DVOL_AD0);
 				break;
@@ -4784,7 +4780,7 @@ static struct i2c_driver mc1n2_i2c_driver = {
 
 static ssize_t update_reg_vol(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
 {
-	struct snd_soc_codec* codec = mc1n2_codec;
+	struct snd_soc_codec *codec = mc1n2_codec;
 	MCDRV_VOL_INFO update;
 	SINT16 *vp;
 	u16 *cp;
@@ -4803,8 +4799,7 @@ static ssize_t update_reg_vol(struct device *dev, struct device_attribute *attr,
 			SINT16 db;
 			sw = (reg < MC1N2_AVOL_MIC1_GAIN) ? (c & 0x80) : 1;
 			vol = sw ? (c & 0x7f) : 0;
-			switch (reg)
-			{
+			switch (reg) {
 			case MC1N2_DVOL_AD0:
 				if (!(update_vol_mask & MC1N2_MASK_DVOL_AD0)) continue;
 				vol = caribrate_vol(reg, vol, mc1n2_carib_DVOL_AD0);
@@ -4936,7 +4931,7 @@ static ssize_t update_reg_vol(struct device *dev, struct device_attribute *attr,
 		}
 	}
 
-    update_vol_mask = MC1N2_MASK_NULL;
+	update_vol_mask = MC1N2_MASK_NULL;
 
 	err = _McDrv_Ctrl(MCDRV_SET_VOLUME, &update, 0);
 	if (err != MCDRV_SUCCESS) {
@@ -4958,100 +4953,100 @@ static int __init mc1n2_init(void)
 	if (IS_ERR(sound_mc1n2)) {
 		printk(KERN_ERR "Failed to create device(sound_mc1n2)!\n");
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_AD0)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_AD0) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_AD0.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_AENG6)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_AENG6) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_AENG6.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_PDM)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_PDM) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_PDM.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIR0)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIR0) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_DIR0.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIR1)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIR1) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_DIR1.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIR2)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIR2) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_DIR2.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_AD0_ATT)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_AD0_ATT) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_AD0_ATT.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIR0_ATT)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIR0_ATT) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_DIR0_ATT.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIR1_ATT)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIR1_ATT) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_DIR1_ATT.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIR2_ATT)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIR2_ATT) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_DIR2_ATT.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_SIDETONE)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_SIDETONE) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_SIDETONE.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DAC_MASTER)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DAC_MASTER) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_DAC_MASTER.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DAC_VOICE)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DAC_VOICE) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_DAC_VOICE.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DAC_ATT)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DAC_ATT) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_DAC_ATT.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIT0)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIT0) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_DIT0.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIT1)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIT1) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_DIT1.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIT2)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_DVOL_DIT2) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_DVOL_DIT2.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_AD0)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_AD0) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_AVOL_AD0.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_LIN1)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_LIN1) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_AVOL_LIN1.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_MIC1)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_MIC1) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_AVOL_MIC1.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_MIC2)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_MIC2) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_AVOL_MIC2.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_MIC3)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_MIC3) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_AVOL_MIC3.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_HP)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_HP) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_AVOL_HP.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_SP)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_SP) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_AVOL_SP.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_RC)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_RC) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_AVOL_RC.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_LOUT1)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_LOUT1) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_AVOL_LOUT1.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_LOUT2)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_LOUT2) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_AVOL_LOUT2.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_MIC1_GAIN)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_MIC1_GAIN) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_AVOL_MIC1_GAIN.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_MIC2_GAIN)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_MIC2_GAIN) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_AVOL_MIC2_GAIN.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_MIC3_GAIN)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_MIC3_GAIN) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_AVOL_MIC3_GAIN.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_HP_GAIN)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_AVOL_HP_GAIN) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_AVOL_HP_GAIN.attr.name);
 	}
-	if (device_create_file(sound_mc1n2, &dev_attr_update_volume)< 0) {
+	if (device_create_file(sound_mc1n2, &dev_attr_update_volume) < 0) {
 		printk(KERN_ERR "Failed to create device file(%s)!\n", dev_attr_update_volume.attr.name);
 	}
 
