@@ -3509,17 +3509,17 @@ static int mc1n2_add_widgets(struct snd_soc_codec *codec)
 
 	err = snd_soc_dapm_new_controls(&codec->dapm, mc1n2_widgets,
 				  ARRAY_SIZE(mc1n2_widgets));
-	if(err < 0) {
+	if (err < 0) {
 		return err;
 	}
 
 	err = snd_soc_dapm_add_routes(&codec->dapm, intercon, ARRAY_SIZE(intercon));
-	if(err < 0) {
+	if (err < 0) {
 		return err;
 	}
 
 	err = snd_soc_dapm_new_widgets(&codec->dapm);
-	if(err < 0) {
+	if (err < 0) {
 		return err;
 	}
 
@@ -3532,17 +3532,17 @@ static int mc1n2_add_widgets(struct snd_soc_codec *codec)
 
 	err = snd_soc_dapm_new_controls(codec, mc1n2_widgets,
 				  ARRAY_SIZE(mc1n2_widgets));
-	if(err < 0) {
+	if (err < 0) {
 		return err;
 	}
 
 	err = snd_soc_dapm_add_routes(codec, intercon, ARRAY_SIZE(intercon));
-	if(err < 0) {
+	if (err < 0) {
 		return err;
 	}
 
 	err = snd_soc_dapm_new_widgets(codec);
-	if(err < 0) {
+	if (err < 0) {
 		return err;
 	}
 
@@ -3711,7 +3711,7 @@ static int mc1n2_hwdep_ioctl_set_path(struct snd_soc_codec *codec,
 		audio_ctrl_mic_bias_gpio(mc1n2->pdata, MAIN_MIC, 0);
 	} else {
 		audio_ctrl_mic_bias_gpio(mc1n2->pdata, MAIN_MIC, 1);
-		if(mc1n2->delay_mic1in > 0) {
+		if (mc1n2->delay_mic1in > 0) {
 			mdelay(mc1n2->delay_mic1in);
 		}
 	}
@@ -4414,7 +4414,7 @@ static int mc1n2_suspend(struct platform_device *pdev, pm_message_t state)
 	}
 
 	/* Do not enter suspend mode for voice call */
-	if(mc1n2_current_mode != MC1N2_MODE_IDLE) {
+	if (mc1n2_current_mode != MC1N2_MODE_IDLE) {
 		err = 0;
 		goto error;
 	}

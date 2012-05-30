@@ -26,11 +26,14 @@
 #include <linux/input.h>
 #include <mach/regs-gpio.h>
 #include <plat/gpio-cfg.h>
-#include <asm/gpio.h>
+//#include <asm/gpio.h>
+#include <linux/gpio.h>
 #include <linux/miscdevice.h>
-#include <asm/uaccess.h>
+//#include <asm/uaccess.h>
+#include <linux/uaccess.h>
 #include <linux/earlysuspend.h>
-#include <asm/io.h>
+//#include <asm/io.h>
+#include <linux/io.h>
 #include <linux/regulator/consumer.h>
 #include <linux/regulator/driver.h>
 #include <linux/regulator/machine.h>
@@ -89,17 +92,17 @@ touchkey register
 #define BATT_LIMIT		20	/* 20 % capacity suggested */
 
 int screen_on = 1;
-bool bln_blinking_enabled = 0;
+bool bln_blinking_enabled;
 int notification_enabled = -1;		/* disabled by default */
 int prev_notification_enabled;
-bool notification_enabled_charging = false;
-int notification_timeout = -1;  	/* never time out */
-int led_on = 0;
+bool notification_enabled_charging;
+int notification_timeout = -1;		/* never time out */
+int led_on;
 int led_timeout = BL_STANDARD;		/* leds on for 3 secs standard */
 int led_brightness;
 bool fade_out = true;
 
-bool breathing_enabled = false;
+bool breathing_enabled;
 bool breathe_in = true;
 unsigned int breathe_volt;
 
@@ -117,7 +120,7 @@ static struct breathing {
 	.pause = BREATHING_PAUSE,
 };
 
-bool blinking_enabled = false;
+bool blinking_enabled;
 bool blink_on = true;
 
 static struct blinking {
@@ -131,9 +134,9 @@ static struct blinking {
 extern unsigned int batt_status;
 extern unsigned int charging_status;
 unsigned int batt_limit = BATT_LIMIT;
-unsigned int polling_interval = 0;	/* disabled by default */
-unsigned int notification_count = 0;
-bool notification_persistent = false;
+unsigned int polling_interval;	/* disabled by default */
+unsigned int notification_count;
+bool notification_persistent;
 bool notification_renew = true;
 
 static void enable_touchkey_backlights(void);
@@ -254,9 +257,9 @@ int touchkey_ldo_on(bool on)
 	return 1;
 }
 
-static ssize_t brightness_read( struct device *dev, struct device_attribute *attr, char *buf )
+static ssize_t brightness_read(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf,"%d\n", led_brightness);
+	return sprintf(buf, "%d\n", led_brightness);
 }
 
 static void change_touch_key_led_voltage(int vol_mv)
@@ -653,30 +656,30 @@ static void handle_polling_timeout(unsigned long data)
 	schedule_work(&polling_off_work);
 }
 
-static ssize_t led_status_read( struct device *dev, struct device_attribute *attr, char *buf )
+static ssize_t led_status_read(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf,"%u\n", led_on);
+	return sprintf(buf, "%u\n", led_on);
 }
 
-static ssize_t notification_enabled_read( struct device *dev, struct device_attribute *attr, char *buf )
+static ssize_t notification_enabled_read(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf,"%d\n", notification_enabled);
+	return sprintf(buf, "%d\n", notification_enabled);
 }
 
-static ssize_t notification_enabled_write( struct device *dev, struct device_attribute *attr, const char *buf, size_t size )
+static ssize_t notification_enabled_write(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
 {
-	sscanf(buf,"%d\n", &notification_enabled);
+	sscanf(buf, "%d\n", &notification_enabled);
 	return size;
 }
 
-static ssize_t notification_enabled_charging_read( struct device *dev, struct device_attribute *attr,
-										char *buf )
+static ssize_t notification_enabled_charging_read(struct device *dev, struct device_attribute *attr,
+										char *buf)
 {
-	return sprintf(buf,"%d\n", (notification_enabled_charging ? 1 : 0));
+	return sprintf(buf, "%d\n", (notification_enabled_charging ? 1 : 0));
 }
 
-static ssize_t notification_enabled_charging_write( struct device *dev, struct device_attribute *attr,
-								const char *buf, size_t size )
+static ssize_t notification_enabled_charging_write(struct device *dev, struct device_attribute *attr,
+								const char *buf, size_t size)
 {
 	unsigned int data;
 	int ret;
@@ -696,11 +699,11 @@ static ssize_t notification_enabled_charging_write( struct device *dev, struct d
 	return size;
 }
 
-static ssize_t led_status_write( struct device *dev, struct device_attribute *attr, const char *buf, size_t size )
+static ssize_t led_status_write(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
 {
 	unsigned int data;
 
-	if(sscanf(buf,"%u\n", &data ) == 1) {
+	if (sscanf(buf, "%u\n", &data) == 1) {
 
 		switch (data) {
 		case ENABLE_BL:
@@ -755,7 +758,7 @@ static ssize_t led_status_write( struct device *dev, struct device_attribute *at
 			printk(KERN_DEBUG "[LED] DISABLE_BL\n");
 
 		        /* prevent race with late resume*/
-            		down(&enable_sem);
+			down(&enable_sem);
 
 			/* only do this if a notification is on already, do nothing if not */
 			if (led_on) {
@@ -787,8 +790,8 @@ static ssize_t led_status_write( struct device *dev, struct device_attribute *at
 				}
 			}
 
-            		/* prevent race */
-            		up(&enable_sem);
+			/* prevent race */
+			up(&enable_sem);
 
 			break;
 		}
@@ -797,23 +800,23 @@ static ssize_t led_status_write( struct device *dev, struct device_attribute *at
 	return size;
 }
 
-static ssize_t led_timeout_read( struct device *dev, struct device_attribute *attr, char *buf )
+static ssize_t led_timeout_read(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf,"%d\n", led_timeout);
+	return sprintf(buf, "%d\n", led_timeout);
 }
 
-static ssize_t led_timeout_write( struct device *dev, struct device_attribute *attr, const char *buf, size_t size )
+static ssize_t led_timeout_write(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
 {
-	sscanf(buf,"%d\n", &led_timeout);
+	sscanf(buf, "%d\n", &led_timeout);
 	return size;
 }
 
-static ssize_t enable_breathing_read( struct device *dev, struct device_attribute *attr, char *buf )
+static ssize_t enable_breathing_read(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%u\n", (breathing_enabled ? 1 : 0));
 }
 
-static ssize_t enable_breathing_write( struct device *dev, struct device_attribute *attr, const char *buf, size_t size )
+static ssize_t enable_breathing_write(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
 {
 	unsigned int data;
 	int ret;
@@ -830,9 +833,9 @@ static ssize_t enable_breathing_write( struct device *dev, struct device_attribu
 	return size;
 }
 
-static ssize_t breathing_config_read( struct device *dev, struct device_attribute *attr, char *buf )
+static ssize_t breathing_config_read(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf,"%d %d %d %d %d\n",
+	return sprintf(buf, "%d %d %d %d %d\n",
 			breathe.min,
 			breathe.max,
 			breathe.step_incr,
@@ -840,7 +843,7 @@ static ssize_t breathing_config_read( struct device *dev, struct device_attribut
 			breathe.pause);
 }
 
-static ssize_t breathing_config_write( struct device *dev, struct device_attribute *attr, const char *buf, size_t size )
+static ssize_t breathing_config_write(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
 {
 	unsigned int data[5];
 	int ret;
@@ -863,12 +866,12 @@ static ssize_t breathing_config_write( struct device *dev, struct device_attribu
 	return size;
 }
 
-static ssize_t enable_blinking_read( struct device *dev, struct device_attribute *attr, char *buf )
+static ssize_t enable_blinking_read(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%u\n", (blinking_enabled ? 1 : 0));
 }
 
-static ssize_t enable_blinking_write( struct device *dev, struct device_attribute *attr, const char *buf, size_t size )
+static ssize_t enable_blinking_write(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
 {
 	unsigned int data;
 	int ret;
@@ -885,12 +888,12 @@ static ssize_t enable_blinking_write( struct device *dev, struct device_attribut
 	return size;
 }
 
-static ssize_t blinking_config_read( struct device *dev, struct device_attribute *attr, char *buf )
+static ssize_t blinking_config_read(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf,"%d %d\n", blink.int_on, blink.int_off);
+	return sprintf(buf, "%d %d\n", blink.int_on, blink.int_off);
 }
 
-static ssize_t blinking_config_write( struct device *dev, struct device_attribute *attr, const char *buf, size_t size )
+static ssize_t blinking_config_write(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
 {
 	unsigned int data[2];
 	int ret;
@@ -905,15 +908,15 @@ static ssize_t blinking_config_write( struct device *dev, struct device_attribut
 	return size;
 }
 
-static ssize_t notification_timeout_read( struct device *dev, struct device_attribute *attr, char *buf )
+static ssize_t notification_timeout_read(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf,"%d %d %d\n",
+	return sprintf(buf, "%d %d %d\n",
 			notification_timeout,
 			(notification_persistent ? 1 : 0),
 			(notification_renew ? 1 : 0));
 }
 
-static ssize_t notification_timeout_write( struct device *dev, struct device_attribute *attr, const char *buf, size_t size )
+static ssize_t notification_timeout_write(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
 {
 	unsigned int data[3];
 	int ret;
@@ -924,21 +927,21 @@ static ssize_t notification_timeout_write( struct device *dev, struct device_att
 
 	notification_timeout = data[0];
 
-	if (data[1] == 0 || data[1] == 1 )
+	if (data[1] == 0 || data[1] == 1)
 		notification_persistent = (data[1] ? true : false);
 
-	if (data[2] == 0 || data[2] == 1 )
+	if (data[2] == 0 || data[2] == 1)
 		notification_renew = (data[2] ? true : false);
 
 	return size;
 }
 
-static ssize_t led_fadeout_read( struct device *dev, struct device_attribute *attr, char *buf )
+static ssize_t led_fadeout_read(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	return sprintf(buf, "%u\n", (fade_out ? 1 : 0));
 }
 
-static ssize_t led_fadeout_write( struct device *dev, struct device_attribute *attr, const char *buf, size_t size )
+static ssize_t led_fadeout_write(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
 {
 	unsigned int data;
 	int ret;
@@ -951,12 +954,12 @@ static ssize_t led_fadeout_write( struct device *dev, struct device_attribute *a
 
 	return size;
 }
-static ssize_t check_battery_read( struct device *dev, struct device_attribute *attr, char *buf )
+static ssize_t check_battery_read(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf,"%d%% %dms\n", batt_limit, polling_interval);
+	return sprintf(buf, "%d%% %dms\n", batt_limit, polling_interval);
 }
 
-static ssize_t check_battery_write( struct device *dev, struct device_attribute *attr, const char *buf, size_t size )
+static ssize_t check_battery_write(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
 {
 	unsigned int data[2];
 	int ret;
@@ -972,33 +975,33 @@ static ssize_t check_battery_write( struct device *dev, struct device_attribute 
 }
 
 #ifdef CONFIG_TARGET_CM_KERNEL
-static DEVICE_ATTR(led, S_IRUGO | S_IWUGO, led_status_read, led_status_write );
-static DEVICE_ATTR(led_timeout, S_IRUGO | S_IWUGO, led_timeout_read, led_timeout_write );
-static DEVICE_ATTR(notification_enabled, S_IRUGO | S_IWUGO, notification_enabled_read, notification_enabled_write );
+static DEVICE_ATTR(led, S_IRUGO | S_IWUGO, led_status_read, led_status_write);
+static DEVICE_ATTR(led_timeout, S_IRUGO | S_IWUGO, led_timeout_read, led_timeout_write);
+static DEVICE_ATTR(notification_enabled, S_IRUGO | S_IWUGO, notification_enabled_read, notification_enabled_write);
 #else
 static void enable_touchkey_backlights(void)
 {
-        int status = 1;
-        i2c_touchkey_write((u8 *)&status, 1);
+	int status = 1;
+	i2c_touchkey_write((u8 *)&status, 1);
 }
 
 static void disable_touchkey_backlights(void)
 {
-        int status = 2;
-        i2c_touchkey_write((u8 *)&status, 1);
+	int status = 2;
+	i2c_touchkey_write((u8 *)&status, 1);
 }
 
-static ssize_t blink_control_read( struct device *dev, struct device_attribute *attr, char *buf )
+static ssize_t blink_control_read(struct device *dev, struct device_attribute *attr, char *buf)
 {
-        return sprintf( buf, "%u\n", (bln_blinking_enabled ? 1 : 0 ) );
+	return sprintf(buf, "%u\n", (bln_blinking_enabled ? 1 : 0));
 }
 
-static ssize_t blink_control_write( struct device *dev, struct device_attribute *attr, const char *buf, size_t size )
+static ssize_t blink_control_write(struct device *dev, struct device_attribute *attr, const char *buf, size_t size)
 {
-        unsigned int data;
+	unsigned int data;
 	int ret;
 
-        ret = sscanf(buf, "%u\n", &data);
+	ret = sscanf(buf, "%u\n", &data);
 	if (ret != 1)
 		return -EINVAL;
 
@@ -1013,25 +1016,25 @@ static ssize_t blink_control_write( struct device *dev, struct device_attribute 
         return size;
 }
 
-static ssize_t version_read( struct device *dev, struct device_attribute *attr, char *buf )
+static ssize_t version_read(struct device *dev, struct device_attribute *attr, char *buf)
 {
-	return sprintf(buf,"%d\n", BLN_VERSION);
+	return sprintf(buf, "%d\n", BLN_VERSION);
 }
 
-static DEVICE_ATTR(blink_control, S_IRUGO | S_IWUGO, blink_control_read, blink_control_write );
-static DEVICE_ATTR(enabled, S_IRUGO | S_IWUGO, notification_enabled_read, notification_enabled_write );
-static DEVICE_ATTR(notification_led, S_IRUGO | S_IWUGO, led_status_read, led_status_write );
-static DEVICE_ATTR(led_timeout, S_IRUGO | S_IWUGO, led_timeout_read, led_timeout_write );
-static DEVICE_ATTR(version, S_IRUGO | S_IWUGO, version_read, NULL );
+static DEVICE_ATTR(blink_control, S_IRUGO | S_IWUGO, blink_control_read, blink_control_write);
+static DEVICE_ATTR(enabled, S_IRUGO | S_IWUGO, notification_enabled_read, notification_enabled_write);
+static DEVICE_ATTR(notification_led, S_IRUGO | S_IWUGO, led_status_read, led_status_write);
+static DEVICE_ATTR(led_timeout, S_IRUGO | S_IWUGO, led_timeout_read, led_timeout_write);
+static DEVICE_ATTR(version, S_IRUGO | S_IWUGO, version_read, NULL);
 #endif
-static DEVICE_ATTR(enabled_charging, S_IRUGO | S_IWUGO, notification_enabled_charging_read, notification_enabled_charging_write );
-static DEVICE_ATTR(notification_timeout, S_IRUGO | S_IWUGO, notification_timeout_read, notification_timeout_write );
-static DEVICE_ATTR(breathing_enabled, S_IRUGO | S_IWUGO, enable_breathing_read, enable_breathing_write );
-static DEVICE_ATTR(breathing_config, S_IRUGO | S_IWUGO, breathing_config_read, breathing_config_write );
-static DEVICE_ATTR(blinking_enabled, S_IRUGO | S_IWUGO, enable_blinking_read, enable_blinking_write );
-static DEVICE_ATTR(blinking_config, S_IRUGO | S_IWUGO, blinking_config_read, blinking_config_write );
-static DEVICE_ATTR(led_fadeout, S_IRUGO | S_IWUGO, led_fadeout_read, led_fadeout_write );
-static DEVICE_ATTR(check_battery, S_IRUGO | S_IWUGO, check_battery_read, check_battery_write );
+static DEVICE_ATTR(enabled_charging, S_IRUGO | S_IWUGO, notification_enabled_charging_read, notification_enabled_charging_write);
+static DEVICE_ATTR(notification_timeout, S_IRUGO | S_IWUGO, notification_timeout_read, notification_timeout_write);
+static DEVICE_ATTR(breathing_enabled, S_IRUGO | S_IWUGO, enable_breathing_read, enable_breathing_write);
+static DEVICE_ATTR(breathing_config, S_IRUGO | S_IWUGO, breathing_config_read, breathing_config_write);
+static DEVICE_ATTR(blinking_enabled, S_IRUGO | S_IWUGO, enable_blinking_read, enable_blinking_write);
+static DEVICE_ATTR(blinking_config, S_IRUGO | S_IWUGO, blinking_config_read, blinking_config_write);
+static DEVICE_ATTR(led_fadeout, S_IRUGO | S_IWUGO, led_fadeout_read, led_fadeout_write);
+static DEVICE_ATTR(check_battery, S_IRUGO | S_IWUGO, check_battery_read, check_battery_write);
 
 static struct attribute *bl_led_attributes[] = {
 #ifdef CONFIG_TARGET_CM_KERNEL
@@ -1263,10 +1266,10 @@ static int i2c_touchkey_probe(struct i2c_client *client,
 	set_touchkey_debug('K');
 
 	err = misc_register(&led_device);
-	if( err ){
+	if (err) {
 		printk(KERN_ERR "[LED Notify] sysfs misc_register failed.\n");
 	} else {
-		if( sysfs_create_group( &led_device.this_device->kobj, &bln_notification_group) < 0){
+		if (sysfs_create_group(&led_device.this_device->kobj, &bln_notification_group) < 0) {
 			printk(KERN_ERR "[LED Notify] sysfs create group failed.\n");
 		}
 	}
