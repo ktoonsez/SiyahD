@@ -92,6 +92,7 @@
 #define MAX_USING_FINGER_NUM 10
 
 #define MXT224_AUTOCAL_WAIT_TIME		2000
+#define TOUCH_LOCK_FREQ			500000
 
 #if defined(U1_EUR_TARGET)
 static bool gbfilter;
@@ -200,6 +201,7 @@ struct mxt224_data {
 };
 
 static u8 mov_hysti = 255;
+unsigned int lock_freq = TOUCH_LOCK_FREQ;
 
 #define CLEAR_MEDIAN_FILTER_ERROR
 struct mxt224_data *copy_data;
@@ -1236,7 +1238,7 @@ static void report_input_data(struct mxt224_data *data)
 	touch_is_pressed = 0;
 
 	if (level == ~0)
-		exynos_cpufreq_get_level(500000, &level);
+		exynos_cpufreq_get_level(lock_freq, &level);
 
 	for (i = 0; i < data->num_fingers; i++) {
 		if (TSP_STATE_INACTIVE == data->fingers[i].z)
@@ -1347,6 +1349,7 @@ static void report_input_data(struct mxt224_data *data)
 				DVFS_LOCK_ID_TSP,
 				level);
 			copy_data->lock_status = 1;
+			level = ~0;
 		}
 		if(mxt224_touch_cb!=NULL) (*mxt224_touch_cb)();
 	}
@@ -3175,6 +3178,29 @@ static ssize_t tsp_touchtype_show(struct device *dev,
 	return strlen(buf);
 }
 
+static ssize_t touch_lock_freq_show(struct device *dev,
+				  struct device_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%u\n", lock_freq);
+}
+
+static ssize_t touch_lock_freq_store(struct device *dev,
+				   struct device_attribute *attr,
+				   const char *buf, size_t size)
+{
+	int ret;
+	unsigned int value;
+
+	ret = sscanf(buf, "%d", &value);
+
+	if (ret != 1)
+		return -EINVAL;
+	else
+		lock_freq = value;
+
+	return size;
+}
+
 static DEVICE_ATTR(set_refer0, S_IRUGO | S_IWUSR | S_IWGRP,
 		   set_refer0_mode_show, NULL);
 static DEVICE_ATTR(set_delta0, S_IRUGO | S_IWUSR | S_IWGRP,
@@ -3245,6 +3271,8 @@ static DEVICE_ATTR(dbg_switch, S_IRUGO | S_IWUSR | S_IWGRP, NULL,
 		   mxt224_debug_setting);
 static DEVICE_ATTR(mov_hysti, S_IRUGO | S_IWUSR | S_IWGRP, 
 		mov_hysti_show, mov_hysti_store);
+static DEVICE_ATTR(tsp_touch_freq, S_IRUGO | S_IWUSR | S_IWGRP,
+	touch_lock_freq_show, touch_lock_freq_store);
 
 static int sec_touchscreen_enable(struct mxt224_data *data)
 {
@@ -3644,6 +3672,10 @@ static int __devinit mxt224_probe(struct i2c_client *client,
 	if (device_create_file(sec_touchscreen, &dev_attr_tsp_threshold) < 0)
 		printk(KERN_ERR "Failed to create device file(%s)!\n",
 		       dev_attr_tsp_threshold.attr.name);
+
+	if (device_create_file(sec_touchscreen, &dev_attr_tsp_touch_freq) < 0)
+		printk(KERN_ERR "Failed to create device file(%s)!\n",
+		       dev_attr_tsp_touch_freq.attr.name);
 
 	if (device_create_file
 	    (sec_touchscreen, &dev_attr_tsp_firm_version_phone) < 0)
