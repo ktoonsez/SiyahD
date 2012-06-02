@@ -26,7 +26,7 @@ INITRAMFS_TMP="/tmp/initramfs-source"
 
 if [ "${1}" != "" ];
 then
-  export KERNELDIR=`readlink -f ${1}`
+	export KERNELDIR=`readlink -f ${1}`
 fi
 
 if [ ! -f $KERNELDIR/.config ];
