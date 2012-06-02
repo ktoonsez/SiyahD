@@ -25,4 +25,3 @@ for i in $JUNK4
 do
 rm -f $i
 done
-

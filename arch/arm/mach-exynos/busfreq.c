@@ -45,8 +45,8 @@
 
 #define MAX_LOAD		100
 #define DIVIDING_FACTOR		10000
-#define UP_THRESHOLD_DEFAULT	30
-#define DOWN_THRESHOLD_DEFAULT	30
+#define UP_THRESHOLD_DEFAULT	23
+#define DOWN_THRESHOLD_DEFAULT	23
 
 static unsigned up_threshold;
 static unsigned down_threshold;
@@ -77,7 +77,6 @@ enum busfreq_level_idx {
 	LV_0,
 	LV_1,
 	LV_2,
-	LV_3,
 	LV_END
 };
 
@@ -94,14 +93,13 @@ struct busfreq_table {
 };
 
 static struct busfreq_table exynos4_busfreq_table[] = {
-	{LV_0, 400200, 1100000, 0, 0},
+	{LV_0, 400000, 1100000, 0, 0},
 	{LV_1, 267000, 1000000, 0, 0},
-	{LV_2, 133133,  950000, 0, 0},
-	{LV_3, 100100,  900000, 0, 0},
+	{LV_2, 133000,  950000, 0, 0},
 	{0, 0, 0, 0, 0},
 };
 
-#define ASV_GROUP	8
+#define ASV_GROUP	7
 static unsigned int exynos4_asv_volt[ASV_GROUP][LV_END] = {
 	{1150000, 1050000, 1050000},
 	{1125000, 1025000, 1025000},
@@ -110,7 +108,6 @@ static unsigned int exynos4_asv_volt[ASV_GROUP][LV_END] = {
 	{1050000, 950000,   950000},
 	{1025000, 950000,   925000},
 	{1000000, 925000,   900000},
-	{ 975000, 900000,   875000},
 };
 
 static unsigned int clkdiv_dmc0[LV_END][8] = {
@@ -128,9 +125,6 @@ static unsigned int clkdiv_dmc0[LV_END][8] = {
 
 	/* DMC L2: 133MHz */
 	{ 5, 2, 1, 5, 1, 1, 3, 1 },
-
-	/* DMC L3: 100MHz */
-	{ 5, 2, 1, 5, 1, 1, 3, 1 },
 };
 
 static unsigned int clkdiv_top[LV_END][5] = {
@@ -146,9 +140,6 @@ static unsigned int clkdiv_top[LV_END][5] = {
 	{ 4, 7, 5, 6, 1 },
 
 	/* ACLK200 L2: 133MHz */
-	{ 5, 7, 7, 7, 1 },
-
-	/* ACLK200 L3: 100MHz */
 	{ 5, 7, 7, 7, 1 },
 };
 
@@ -166,9 +157,6 @@ static unsigned int clkdiv_lr_bus[LV_END][2] = {
 
 	/* ACLK_GDL/R L3: 133MHz */
 	{ 5, 1 },
-
-	/* ACLK_GDL/R L5: 100MHz */
-	{ 5, 1 },
 };
 
 static unsigned int clkdiv_ip_bus[LV_END][3] = {
@@ -177,16 +165,15 @@ static unsigned int clkdiv_ip_bus[LV_END][3] = {
 	 * { DIV_MFC, DIV_G2D, DIV_FIMC }
 	 */
 
-	/* SCLK_MFC: 200MHz */
+	/* L0: MFC 200MHz G2D 266MHz FIMC 160MHz */
 	{ 3, 2, 4 },
 
-	/* SCLK_MFC: 160MHz */
-	{ 3, 4, 5 }, 
+	/* L1: MFC 200MHz G2D 160MHz FIMC 133MHz */
+	/* { 4, 4, 5 }, */
+	{ 3, 4, 5 },
 
-	/* SCLK_MFC: 133MHz */
-	{ 3, 5, 7 },
-
-	/* SCLK_MFC: 100MHz */
+	/* L2: MFC 200MHz G2D 133MHz FIMC 100MHz */
+	/* { 5, 5, 7 }, */
 	{ 3, 5, 7 },
 };
 
@@ -648,7 +635,7 @@ static ssize_t store_busfreq_asv_group(struct kobject *kobj,
 		struct attribute *attr, const char *buf, size_t count)
 {
 	sscanf(buf, "%d", &asv_group);
-	if (asv_group < 0 || asv_group > 7)
+	if (asv_group < 0 || asv_group > 6)
 		return -EINVAL;
 	else
 		exynos4_update_bus_volt(asv_group);

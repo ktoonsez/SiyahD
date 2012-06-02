@@ -35,23 +35,23 @@
  * It helps to keep variable names smaller, simpler
  */
 
-#define DEF_FREQUENCY_DOWN_DIFFERENTIAL		(10)
-#define DEF_FREQUENCY_UP_THRESHOLD		(80)
-#define DEF_SAMPLING_DOWN_FACTOR		(5)
-#define MAX_SAMPLING_DOWN_FACTOR		(100000)
-#define MICRO_FREQUENCY_DOWN_DIFFERENTIAL	(3)
-#define MICRO_FREQUENCY_UP_THRESHOLD		(60)
-#define MICRO_FREQUENCY_MIN_SAMPLE_RATE		(10000)
-#define MIN_FREQUENCY_UP_THRESHOLD		(11)
-#define MAX_FREQUENCY_UP_THRESHOLD		(100)
-#define FREQ_STEP				(100)
-#define FREQ_STEP_SUSPEND			(20)
-#define UP_THRESHOLD_AT_MIN_FREQ		(30)
-#define FREQ_FOR_RESPONSIVENESS			(1000000)
+#define DEF_FREQUENCY_DOWN_DIFFERENTIAL         (20)
+#define DEF_FREQUENCY_UP_THRESHOLD              (80)
+#define DEF_SAMPLING_DOWN_FACTOR                (3)
+#define MAX_SAMPLING_DOWN_FACTOR                (100000)
+#define MICRO_FREQUENCY_DOWN_DIFFERENTIAL       (3)
+#define MICRO_FREQUENCY_UP_THRESHOLD            (60)
+#define MICRO_FREQUENCY_MIN_SAMPLE_RATE         (10000)
+#define MIN_FREQUENCY_UP_THRESHOLD              (10)
+#define MAX_FREQUENCY_UP_THRESHOLD              (100)
+#define FREQ_STEP                               (100)
+#define FREQ_STEP_SUSPEND                       (50)
+#define UP_THRESHOLD_AT_MIN_FREQ                (40)
+#define FREQ_FOR_RESPONSIVENESS                 (1000000)
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
-#define SAMPLING_FACTOR_SUSPEND			(3)
-#define DEF_FREQUENCY_UP_THRESHOLD_SUSPEND	(60)
+#define SAMPLING_FACTOR_SUSPEND                 (1)
+#define DEF_FREQUENCY_UP_THRESHOLD_SUSPEND      (60)
 #endif
 
 /*
@@ -67,6 +67,9 @@
 #define MIN_SAMPLING_RATE_RATIO			(1)
 
 static unsigned int min_sampling_rate;
+
+static DEFINE_PER_CPU(unsigned int, idle_start);
+static DEFINE_PER_CPU(unsigned int, idle_end);
 
 #define MIN_LATENCY_MULTIPLIER			(100)
 #define TRANSITION_LATENCY_LIMIT		(10 * 1000 * 1000)
@@ -134,6 +137,8 @@ static struct dbs_tuners {
 	unsigned int powersave_bias;
 	unsigned int io_is_busy;
 	unsigned int freq_step;
+	unsigned int fast_start;
+	unsigned int deep_sleep;
 	unsigned int freq_responsiveness;
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	unsigned int sampling_factor_suspend;
@@ -152,6 +157,8 @@ static struct dbs_tuners {
 	.down_differential = DEF_FREQUENCY_DOWN_DIFFERENTIAL,
 	.ignore_nice = 0,
 	.powersave_bias = 0,
+	.deep_sleep = 0,
+	.fast_start = 1,
 	.freq_step = FREQ_STEP,
 	.freq_responsiveness = FREQ_FOR_RESPONSIVENESS,
 #ifdef CONFIG_HAS_EARLYSUSPEND
@@ -296,6 +303,8 @@ static ssize_t show_##file_name						\
 }
 show_one(sampling_rate, sampling_rate);
 show_one(io_is_busy, io_is_busy);
+show_one(deep_sleep, deep_sleep);
+show_one(fast_start, fast_start);
 show_one(up_threshold, up_threshold);
 show_one(up_threshold_min_freq, up_threshold_min_freq);
 show_one(sampling_down_factor, sampling_down_factor);
@@ -393,6 +402,35 @@ static ssize_t store_io_is_busy(struct kobject *a, struct attribute *b,
 	return count;
 }
 
+static ssize_t store_fast_start(struct kobject *a, struct attribute *b,
+				 const char *buf, size_t count)
+{
+	unsigned int input;
+	int ret;
+
+	ret = sscanf(buf, "%u", &input);
+	if (ret != 1)
+		return -EINVAL;
+
+	dbs_tuners_ins.fast_start = !!input;
+
+	return count;
+}
+
+static ssize_t store_deep_sleep(struct kobject *a, struct attribute *b,
+				  const char *buf, size_t count)
+{
+	unsigned int input;
+	int ret;
+
+	ret = sscanf(buf, "%u", &input);
+	if (ret != 1)
+		return -EINVAL;
+
+	dbs_tuners_ins.deep_sleep = !!input;
+
+	return count;
+}
 static ssize_t store_up_threshold(struct kobject *a, struct attribute *b,
 				  const char *buf, size_t count)
 {
@@ -584,6 +622,8 @@ static ssize_t store_freq_step_suspend(struct kobject *a, struct attribute *b,
 
 define_one_global_rw(sampling_rate);
 define_one_global_rw(io_is_busy);
+define_one_global_rw(deep_sleep);
+define_one_global_rw(fast_start);
 define_one_global_rw(up_threshold);
 define_one_global_rw(up_threshold_min_freq);
 define_one_global_rw(sampling_down_factor);
@@ -614,6 +654,8 @@ static struct attribute *dbs_attributes[] = {
 	&ignore_nice_load.attr,
 	&powersave_bias.attr,
 	&io_is_busy.attr,
+	&deep_sleep.attr,
+	&fast_start.attr,
 	&down_differential.attr,
 	&freq_step.attr,
 	&freq_responsiveness.attr,
@@ -684,8 +726,47 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 		unsigned int idle_time, wall_time, iowait_time;
 		unsigned int load, load_freq;
 		int freq_avg;
+		unsigned long start, end, delta, sampling_delta;
 
 		j_dbs_info = &per_cpu(od_cpu_dbs_info, j);
+
+		start = per_cpu(idle_start, j);
+		end = per_cpu(idle_end, j);
+		if (time_after(end, start))
+			delta = (long)end - (long)start;
+		else
+			delta = 0;
+		sampling_delta = usecs_to_jiffies(dbs_tuners_ins.sampling_rate);
+
+		/*
+		 * Deep sleep detection.
+		 *
+		 * If the previous low-power idle interval was 4x the sampling
+		 * rate or more, we're probably exiting or entering from a deep
+		 * sleep state.
+		 *
+		 * In both cases ignore the cpu activity, because probably
+		 * there's a big chance to get back to the deep sleep again.
+		 */
+		if (dbs_tuners_ins.deep_sleep) {
+			if (delta > 4 * sampling_delta)
+				continue;
+		}
+
+		/*
+		 * Fast start detection.
+		 *
+		 * If in the last 4 samples the cpu did not enter in low-power
+		 * idle state, probably the cpu is busy; try to jump to the
+		 * maximum speed.
+		 */
+		if (dbs_tuners_ins.fast_start) {
+			if (delta && time_is_before_jiffies(end +
+							4 * sampling_delta)) {
+				max_load_freq = UINT_MAX;
+				break;
+			}
+		}
 
 		cur_idle_time = get_cpu_idle_time(j, &cur_wall_time);
 		cur_iowait_time = get_cpu_iowait_time(j, &cur_wall_time);

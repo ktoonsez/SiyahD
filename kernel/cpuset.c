@@ -2210,18 +2210,18 @@ int cpuset_cpus_allowed_fallback(struct task_struct *tsk)
 
 	cpu = cpumask_any_and(&tsk->cpus_allowed, cpu_active_mask);
 	if (cpu >= nr_cpu_ids) {
-	/*
-	 * Either tsk->cpus_allowed is wrong (see above) or it
-	 * is actually empty. The latter case is only possible
-	 * if we are racing with remove_tasks_in_empty_cpuset().
-	 * Like above we can temporary set any mask and rely on
-	 * set_cpus_allowed_ptr() as synchronization point.
-	 */
-	do_set_cpus_allowed(tsk, cpu_possible_mask);
-	cpu = cpumask_any(cpu_active_mask);
-}
+		/*
+		 * Either tsk->cpus_allowed is wrong (see above) or it
+		 * is actually empty. The latter case is only possible
+		 * if we are racing with remove_tasks_in_empty_cpuset().
+		 * Like above we can temporary set any mask and rely on
+		 * set_cpus_allowed_ptr() as synchronization point.
+		 */
+		do_set_cpus_allowed(tsk, cpu_possible_mask);
+		cpu = cpumask_any(cpu_active_mask);
+	}
 
-return cpu;
+	return cpu;
 }
 
 void cpuset_init_current_mems_allowed(void)

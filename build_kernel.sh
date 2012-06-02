@@ -1,17 +1,26 @@
 #!/bin/sh
 
+# location
 export KERNELDIR=`readlink -f .`
-export INITRAMFS_SOURCE=`readlink -f $KERNELDIR/../initramfs3`
 export PARENT_DIR=`readlink -f ..`
-export USE_SEC_FIPS_MODE=true
+export INITRAMFS_SOURCE=`readlink -f $KERNELDIR/../initramfs3`
+
+# kernel
 export ARCH=arm
 export EXTRA_AFLAGS=-mfpu=neon
-# building with latest toolchain with gcc 4.5.2
+export USE_SEC_FIPS_MODE=true
+
+# compiler
+# gcc 4.5.2
 #export CROSS_COMPILE=$PARENT_DIR/toolchain/bin/arm-none-eabi-
-# building with latest CM9 toolchain with gcc 4.4.3
+# gcc 4.4.3 (CM9)
 #export CROSS_COMPILE=/media/Source-Code/android/system/prebuilt/linux-x86/toolchain/arm-eabi-4.4.3/bin/arm-eabi-
-# build with Linearo 4.7
+# gcc 4.7 (Linearo 4.7
 export CROSS_COMPILE=$PARENT_DIR/linaro/bin/arm-eabi-
+
+# build script
+export USER=`whoami`
+
 NAMBEROFCPUS=`grep 'processor' /proc/cpuinfo | wc -l`
 INITRAMFS_TMP="/tmp/initramfs-source"
 
@@ -22,17 +31,17 @@ fi
 
 if [ ! -f $KERNELDIR/.config ];
 then
-	make voku_defconfig
+	make dorimanx_defconfig
 fi
 
 . $KERNELDIR/.config
 
 # remove previous zImage files
-if [ -e $KERNELDIR/zImage ];
+if [ -e $KERNELDIR/zImage ]; 
 then
 	rm $KERNELDIR/zImage
 fi
-if [ -e $KERNELDIR/arch/arm/boot/zImage ];
+if [ -e $KERNELDIR/arch/arm/boot/zImage ]; 
 then
 	rm $KERNELDIR/arch/arm/boot/zImage
 fi
@@ -62,7 +71,12 @@ rm -f usr/initramfs_data.cpio
 rm -f usr/initramfs_data.o
 
 cd $KERNELDIR/
-make -j$NAMBEROFCPUS modules || exit 1
+if [ $USER != "root" ];
+then
+	make -j$NAMBEROFCPUS modules || exit 1
+else
+	nice -n 10 make -j$NAMBEROFCPUS modules || exit 1
+fi
 
 # copy initramfs files to tmp directory
 cp -ax $INITRAMFS_SOURCE $INITRAMFS_TMP
@@ -79,27 +93,32 @@ then
 	rm -rf $INITRAMFS_TMP/.hg
 fi
 
-#Copy modules into initramfs
+# copy modules into initramfs
 mkdir -p $INITRAMFS/lib/modules
-find -name *.ko -exec cp -av {} $INITRAMFS_TMP/lib/modules/ \;
+find -name '*.ko' -exec cp -av {} $INITRAMFS_TMP/lib/modules/ \;
 ${CROSS_COMPILE}strip --strip-debug $INITRAMFS_TMP/lib/modules/*.ko
 chmod 755 $INITRAMFS_TMP/lib/modules/*
-make -j$NAMBEROFCPUS zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
+if [ $USER != "root" ];
+then
+	make -j$NAMBEROFCPUS zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
+else
+	nice -n 10 make -j$NAMBEROFCPUS zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
+fi
 
 if [ -e $KERNELDIR/arch/arm/boot/zImage ];
 then
 	$KERNELDIR/mkshbootimg.py $KERNELDIR/zImage $KERNELDIR/arch/arm/boot/zImage $KERNELDIR/payload.tar $KERNELDIR/recovery.tar.xz
 
-	# copy all needed to ready kernel folder
-	cp $KERNELDIR/.config $KERNELDIR/arch/arm/configs/voku_defconfig
+	# copy all needed to ready kernel folder.
+	cp $KERNELDIR/.config $KERNELDIR/arch/arm/configs/dorimanx_defconfig
 	cp $KERNELDIR/.config $KERNELDIR/READY/
 	rm $KERNELDIR/READY/boot/zImage
-	rm $KERNELDIR/READY/Kernel_Voku-SGII-ICS*
+	rm $KERNELDIR/READY/Kernel_Dorimanx-SGII-ICS*
 	stat $KERNELDIR/zImage
-	GETVER=`grep 'Siyah-Voku-V' arch/arm/configs/voku_defconfig | cut -c 38-41`
+	GETVER=`grep 'Siyah-Dorimanx-V' arch/arm/configs/dorimanx_defconfig | cut -c 38-41`
 	cp $KERNELDIR/zImage /$KERNELDIR/READY/boot/
 	cd $KERNELDIR/READY/
-	zip -r Kernel_Voku-SGII-ICS-$GETVER-`date +"Date-%d-%m-Time-%H-%M"`.zip .
+	zip -r Kernel_Dorimanx-SGII-ICS-$GETVER-`date +"Date-%d-%m-Time-%H-%M"`.zip .
 else
 	echo "Kernel STUCK in BUILD! no zImage exist"
 fi

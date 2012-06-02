@@ -28,7 +28,6 @@
 #include <linux/reboot.h>
 #include <linux/gpio.h>
 #include <linux/cpufreq.h>
-#include <linux/earlysuspend.h>
 #include <linux/device.h>       //for second_core by tegrak
 #include <linux/miscdevice.h>   //for second_core by tegrak
 #include <linux/earlysuspend.h>
@@ -82,7 +81,7 @@
 #define CPULOAD_TABLE (NR_CPUS + 1)
 
 #define DBG_PRINT(fmt, ...)\
-	if(PM_HOTPLUG_DEBUG)			\
+	if (PM_HOTPLUG_DEBUG)			\
 		printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
 
 static struct workqueue_struct *hotplug_wq;
@@ -136,7 +135,6 @@ struct cpu_hotplug_info {
 
 static DEFINE_PER_CPU(struct cpu_time_info, hotplug_cpu_time);
 
-static bool screen_off;
 static bool standhotplug_enabled = true;
 
 /* mutex can be used since hotplug_timer does not run in
@@ -206,12 +204,8 @@ static void hotplug_timer(struct work_struct *work)
 
 	mutex_lock(&hotplug_lock);
 
-	if(!standhotplug_enabled) {
+	if (!standhotplug_enabled) {
 		printk(KERN_INFO "pm-hotplug: disable cpu auto-hotplug\n");
-		goto off_hotplug;
-	}
-	if (screen_off && !cpu_online(1)) {
-		printk(KERN_INFO "pm-hotplug: disable cpu auto-hotplug with screen-off\n");
 		goto off_hotplug;
 	}
 
@@ -270,7 +264,7 @@ static void hotplug_timer(struct work_struct *work)
 	flag_hotplug = standalone_hotplug(load, nr_rq_min, cpu_rq_min);
 
 	/*do not ever hotplug out CPU 0*/
-	if((cpu_rq_min == 0) && (flag_hotplug == HOTPLUG_OUT))
+	if ((cpu_rq_min == 0) && (flag_hotplug == HOTPLUG_OUT))
 		goto no_hotplug;
 
 	/*cpu hotplug*/
@@ -338,29 +332,6 @@ static int hotplug_reboot_notifier_call(struct notifier_block *this,
 
 static struct notifier_block hotplug_reboot_notifier = {
 	.notifier_call = hotplug_reboot_notifier_call,
-};
-
-static void hotplug_early_suspend(struct early_suspend *handler)
-{
-	mutex_lock(&hotplug_lock);
-	screen_off = true;
-	mutex_unlock(&hotplug_lock);
-}
-
-static void hotplug_late_resume(struct early_suspend *handler)
-{
-	printk(KERN_INFO "pm-hotplug: enable cpu auto-hotplug\n");
-
-	mutex_lock(&hotplug_lock);
-	screen_off = false;
-	if(standhotplug_enabled) queue_delayed_work_on(0, hotplug_wq, &hotplug_work, hotpluging_rate);
-	mutex_unlock(&hotplug_lock);
-}
-
-static struct early_suspend hotplug_early_suspend_notifier = {
-	.suspend = hotplug_early_suspend,
-	.resume = hotplug_late_resume,
-	.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN,
 };
 
 /****************************************
@@ -518,7 +489,7 @@ static int __init exynos4_pm_hotplug_init(void)
 #endif
 	register_pm_notifier(&exynos4_pm_hotplug_notifier);
 	register_reboot_notifier(&hotplug_reboot_notifier);
-	register_early_suspend(&hotplug_early_suspend_notifier);
+	
 	// register second_core device by tegrak
 	ret = misc_register(&second_core_device);
 	if (ret) {
@@ -550,25 +521,21 @@ static int standhotplug_cpufreq_policy_notifier_call(struct notifier_block *this
 
 	switch (code) {
 	case CPUFREQ_ADJUST:
-		if (
+		if 	(
 			(!strnicmp(policy->governor->name, "pegasusq", CPUFREQ_NAME_LEN)) ||
 			(!strnicmp(policy->governor->name, "hotplug", CPUFREQ_NAME_LEN)) ||
 			(!strnicmp(policy->governor->name, "assplug", CPUFREQ_NAME_LEN))
 			) 
-		{
-			if(standhotplug_enabled)
-			{
+		{ 
+			if (standhotplug_enabled) {
 				DBG_PRINT("Stand-hotplug is disabled: governor=%s\n",
 								policy->governor->name);
 				mutex_lock(&hotplug_lock);
 				standhotplug_enabled = false;
 				mutex_unlock(&hotplug_lock);
 			}
-		} 
-		else
-		{
-			if(!standhotplug_enabled)
-			{
+		} else {
+			if (!standhotplug_enabled) {
 				DBG_PRINT("Stand-hotplug is enabled: governor=%s\n",
 								policy->governor->name);
 				mutex_lock(&hotplug_lock);

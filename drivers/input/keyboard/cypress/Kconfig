@@ -2,15 +2,23 @@
 # Cypress touchkey configuration
 #
 
-config KEYBOARD_CYPRESS_TOUCH
-	tristate "Cypress touchkey support"
-	help
+config KEYBOARD_CYPRESS_SAMMY_CM9
+	tristate "Cypress touchkey support fo Sammy and CM9"
+	default y
+	select TOUCHKEY_BLN
+	---help---
 	  Say Y here to enable the cypress touchkey.
 
-	  To compile this driver as a module, choose M here.
+config KEYBOARD_CYPRESS_AOKP
+        tristate "Cypress touchkey support for AOKP"
+	select TOUCHKEY_BLN
+	depends on !KEYBOARD_CYPRESS_SAMMY_CM9
+        ---help---
+          Say Y here to enable the cypress touchkey.
 
 config TOUCHKEY_BLN
 	bool "BLN Support"
-	depends on KEYBOARD_CYPRESS_TOUCH
-	help
+	depends on KEYBOARD_CYPRESS_SAMMY_CM9 || KEYBOARD_CYPRESS_AOKP
+	---help---
 	  BLN support.
+

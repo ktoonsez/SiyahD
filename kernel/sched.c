@@ -3196,10 +3196,10 @@ context_switch(struct rq *rq, struct task_struct *prev,
 
 unsigned long get_cpu_nr_running(unsigned int cpu)
 {
-    if(cpu <=NR_CPUS)
-        return cpu_rq(cpu)->nr_running;
-    else
-        return 0;
+	if (cpu < num_possible_cpus())
+		return cpu_rq(cpu)->nr_running;
+	else
+		return 0;
 }
 /*
  * nr_running, nr_uninterruptible and nr_context_switches:
@@ -3217,6 +3217,7 @@ unsigned long nr_running(void)
 
 	return sum;
 }
+EXPORT_SYMBOL_GPL(nr_running);
 
 unsigned long nr_uninterruptible(void)
 {
@@ -9441,3 +9442,4 @@ struct cgroup_subsys cpuacct_subsys = {
 	.subsys_id = cpuacct_subsys_id,
 };
 #endif	/* CONFIG_CGROUP_CPUACCT */
+

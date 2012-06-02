@@ -80,6 +80,8 @@ struct sec_bat_platform_data {
 #endif
 };
 
-extern void tsp_touch_config_update(int status);
+#ifdef CONFIG_KEYBOARD_CYPRESS_AOKP
+extern void enable_bln_charging(int status);
+#endif
 
 #endif /* __MACH_SEC_BATTERY_H */

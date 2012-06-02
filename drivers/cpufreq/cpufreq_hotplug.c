@@ -56,9 +56,9 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 static
 #endif
 struct cpufreq_governor cpufreq_gov_hotplug = {
-       .name                   = "hotplug",
-       .governor               = cpufreq_governor_dbs,
-       .owner                  = THIS_MODULE,
+	.name 			= "hotplug",
+	.governor 		= cpufreq_governor_dbs,
+	.owner 			= THIS_MODULE,
 };
 
 struct cpu_dbs_info_s {
@@ -67,6 +67,8 @@ struct cpu_dbs_info_s {
 	cputime64_t prev_cpu_nice;
 	struct cpufreq_policy *cur_policy;
 	struct delayed_work work;
+	struct work_struct cpu_up_work;
+	struct work_struct cpu_down_work;
 	struct cpufreq_frequency_table *freq_table;
 	int cpu;
 	/*
@@ -120,21 +122,21 @@ static struct dbs_tuners {
  */
 static inline cputime64_t get_cpu_idle_time(unsigned int cpu, cputime64_t *wall)
 {
-        u64 idle_time;
-        u64 iowait_time;
+	u64 idle_time;
+	u64 iowait_time;
 
         /* cpufreq-hotplug always assumes CONFIG_NO_HZ */
-        idle_time = get_cpu_idle_time_us(cpu, wall);
+	idle_time = get_cpu_idle_time_us(cpu, wall);
 
 	/* add time spent doing I/O to idle time */
-        if (dbs_tuners_ins.io_is_busy) {
-                iowait_time = get_cpu_iowait_time_us(cpu, wall);
-                /* cpufreq-hotplug always assumes CONFIG_NO_HZ */
-                if (iowait_time != -1ULL && idle_time >= iowait_time)
-                        idle_time -= iowait_time;
-        }
+	if (dbs_tuners_ins.io_is_busy) {
+		iowait_time = get_cpu_iowait_time_us(cpu, wall);
+		/* cpufreq-hotplug always assumes CONFIG_NO_HZ */
+		if (iowait_time != -1ULL && idle_time >= iowait_time)
+			idle_time -= iowait_time;
+	}
 
-        return idle_time;
+	return idle_time;
 }
 
 /************************** sysfs interface ************************/
@@ -472,6 +474,7 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 	/* calculate the average load across all related CPUs */
 	avg_load = total_load / num_online_cpus();
 
+	mutex_lock(&dbs_mutex);
 
 	/*
 	 * hotplug load accounting
@@ -515,13 +518,8 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 		/* should we enable auxillary CPUs? */
 		if (num_online_cpus() < 2 && hotplug_in_avg_load >
 				dbs_tuners_ins.up_threshold) {
-			/* hotplug with cpufreq is nasty
-			 * a call to cpufreq_governor_dbs may cause a lockup.
-			 * wq is not running here so its safe.
-			 */
-			mutex_unlock(&this_dbs_info->timer_mutex);
-			cpu_up(1);
-			mutex_lock(&this_dbs_info->timer_mutex);
+			queue_work_on(this_dbs_info->cpu, khotplug_wq,
+					&this_dbs_info->cpu_up_work);
 			goto out;
 		}
 	}
@@ -543,9 +541,8 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 			/* should we disable auxillary CPUs? */
 			if (num_online_cpus() > 1 && hotplug_out_avg_load <
 					dbs_tuners_ins.down_threshold) {
-				mutex_unlock(&this_dbs_info->timer_mutex);
-				cpu_down(1);
-				mutex_lock(&this_dbs_info->timer_mutex);
+				queue_work_on(this_dbs_info->cpu, khotplug_wq,
+					&this_dbs_info->cpu_down_work);
 			}
 			goto out;
 		}
@@ -570,7 +567,18 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 					 CPUFREQ_RELATION_L);
 	}
 out:
+	mutex_unlock(&dbs_mutex);
 	return;
+}
+
+static void do_cpu_up(struct work_struct *work)
+{
+	cpu_up(1);
+}
+
+static void do_cpu_down(struct work_struct *work)
+{
+	cpu_down(1);
 }
 
 static void do_dbs_timer(struct work_struct *work)
@@ -595,6 +603,8 @@ static inline void dbs_timer_init(struct cpu_dbs_info_s *dbs_info)
 	delay -= jiffies % delay;
 
 	INIT_DELAYED_WORK_DEFERRABLE(&dbs_info->work, do_dbs_timer);
+	INIT_WORK(&dbs_info->cpu_up_work, do_cpu_up);
+	INIT_WORK(&dbs_info->cpu_down_work, do_cpu_down);
 	queue_delayed_work_on(dbs_info->cpu, khotplug_wq, &dbs_info->work,
 		delay);
 }

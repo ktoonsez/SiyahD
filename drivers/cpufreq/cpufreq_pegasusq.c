@@ -39,7 +39,7 @@
  * runqueue average
  */
 
-#define RQ_AVG_TIMER_RATE	20
+#define RQ_AVG_TIMER_RATE	10
 
 struct runqueue_data {
 	unsigned int nr_run_avg;
@@ -142,26 +142,26 @@ static unsigned int get_nr_run_avg(void)
  * It helps to keep variable names smaller, simpler
  */
 
-#define DEF_SAMPLING_DOWN_FACTOR		(2)
+#define DEF_SAMPLING_DOWN_FACTOR		(3)
 #define MAX_SAMPLING_DOWN_FACTOR		(100000)
-#define DEF_FREQUENCY_DOWN_DIFFERENTIAL		(5)
-#define DEF_FREQUENCY_UP_THRESHOLD		(85)
+#define DEF_FREQUENCY_DOWN_DIFFERENTIAL		(3)
+#define DEF_FREQUENCY_UP_THRESHOLD		(80)
 #define DEF_FREQUENCY_MIN_SAMPLE_RATE		(10000)
-#define MIN_FREQUENCY_UP_THRESHOLD		(11)
+#define MIN_FREQUENCY_UP_THRESHOLD		(10)
 #define MAX_FREQUENCY_UP_THRESHOLD		(100)
-#define DEF_SAMPLING_RATE			(50000)
+#define DEF_SAMPLING_RATE			(100000)
 #define MIN_SAMPLING_RATE			(10000)
 #define MAX_HOTPLUG_RATE			(40u)
 
 #define DEF_MAX_CPU_LOCK			(0)
 #define DEF_UP_NR_CPUS				(1)
-#define DEF_CPU_UP_RATE				(10)
+#define DEF_CPU_UP_RATE				(20)
 #define DEF_CPU_DOWN_RATE			(20)
 #define DEF_FREQ_STEP				(40)
 #define DEF_START_DELAY				(0)
 
-#define UP_THRESHOLD_AT_MIN_FREQ		(85)
-#define FREQ_FOR_RESPONSIVENESS			(100000)
+#define UP_THRESHOLD_AT_MIN_FREQ		(40)
+#define FREQ_FOR_RESPONSIVENESS			(1000000)
 
 #define HOTPLUG_DOWN_INDEX			(0)
 #define HOTPLUG_UP_INDEX			(1)
@@ -926,7 +926,8 @@ static int check_up(void)
 
 	if (num_hist % up_rate)
 		return 0;
-    if(num_hist == 0) num_hist = MAX_HOTPLUG_RATE;
+
+	if (num_hist == 0) num_hist = MAX_HOTPLUG_RATE;
 
 	for (i = num_hist - 1; i >= num_hist - up_rate; --i) {
 		usage = &hotplug_history->usage[i];
@@ -984,7 +985,8 @@ static int check_down(void)
 
 	if (num_hist == 0 || num_hist % down_rate)
 		return 0;
-    if(num_hist == 0) num_hist = MAX_HOTPLUG_RATE; //make it circular -gm
+
+	if (num_hist == 0) num_hist = MAX_HOTPLUG_RATE; //make it circular -gm
 
 	for (i = num_hist - 1; i >= num_hist - down_rate; --i) {
 		usage = &hotplug_history->usage[i];
@@ -1209,6 +1211,8 @@ static inline void dbs_timer_init(struct cpu_dbs_info_s *dbs_info)
 static inline void dbs_timer_exit(struct cpu_dbs_info_s *dbs_info)
 {
 	cancel_delayed_work_sync(&dbs_info->work);
+	cancel_work_sync(&dbs_info->up_work);
+	cancel_work_sync(&dbs_info->down_work);
 }
 
 static int pm_notifier_call(struct notifier_block *this,
@@ -1331,7 +1335,6 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 		}
 		mutex_unlock(&dbs_mutex);
 
-		register_pm_notifier(&pm_notifier);
 		register_reboot_notifier(&reboot_notifier);
 #ifdef CONFIG_HAS_EARLYSUSPEND
 		register_early_suspend(&early_suspend);
@@ -1351,7 +1354,6 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 		unregister_early_suspend(&early_suspend);
 #endif
 		unregister_reboot_notifier(&reboot_notifier);
-		unregister_pm_notifier(&pm_notifier);
 
 		dbs_enable--;
 		mutex_unlock(&dbs_mutex);

@@ -47,6 +47,14 @@ void (*exynos4_sleep_gpio_table_set)(void);
 #endif
 
 static struct sleep_save exynos4210_set_clksrc[] = {
+	{ .reg = EXYNOS4_CLKSRC_DMC					, .val = 0x00010000, },
+	{ .reg = EXYNOS4_CLKSRC_CAM					, .val = 0x11111111, },
+	{ .reg = EXYNOS4_CLKSRC_LCD0				, .val = 0x00001111, },
+	{ .reg = EXYNOS4_CLKSRC_LCD1				, .val = 0x00001111, },
+	{ .reg = EXYNOS4_CLKSRC_FSYS				, .val = 0x00011111, },
+	{ .reg = EXYNOS4_CLKSRC_PERIL0				, .val = 0x01111111, },
+	{ .reg = EXYNOS4_CLKSRC_PERIL1				, .val = 0x01110055, },
+	{ .reg = EXYNOS4_CLKSRC_MAUDIO				, .val = 0x00000006, },
 	{ .reg = EXYNOS4_CLKSRC_MASK_TOP			, .val = 0x00000001, },
 	{ .reg = EXYNOS4_CLKSRC_MASK_CAM			, .val = 0x11111111, },
 	{ .reg = EXYNOS4_CLKSRC_MASK_TV				, .val = 0x00000111, },
@@ -60,72 +68,6 @@ static struct sleep_save exynos4210_set_clksrc[] = {
 };
 
 static struct sleep_save exynos4_core_save[] = {
-    SAVE_ITEM(EXYNOS4_CLKDIV_LEFTBUS),
-    SAVE_ITEM(EXYNOS4_CLKGATE_IP_LEFTBUS),
-    SAVE_ITEM(EXYNOS4_CLKDIV_RIGHTBUS),
-    SAVE_ITEM(EXYNOS4_CLKGATE_IP_RIGHTBUS),
-    SAVE_ITEM(EXYNOS4_VPLL_CON0),
-    SAVE_ITEM(EXYNOS4_VPLL_CON1),
-    SAVE_ITEM(EXYNOS4_CLKSRC_TOP0),
-    SAVE_ITEM(EXYNOS4_CLKSRC_TOP1),
-    SAVE_ITEM(EXYNOS4_CLKSRC_CAM),
-    SAVE_ITEM(EXYNOS4_CLKSRC_MFC),
-    SAVE_ITEM(EXYNOS4_CLKSRC_IMAGE),
-    SAVE_ITEM(EXYNOS4_CLKSRC_LCD0),
-    SAVE_ITEM(EXYNOS4_CLKSRC_LCD1),
-    SAVE_ITEM(EXYNOS4_CLKSRC_MAUDIO),
-    SAVE_ITEM(EXYNOS4_CLKSRC_FSYS),
-    SAVE_ITEM(EXYNOS4_CLKSRC_PERIL0),
-    SAVE_ITEM(EXYNOS4_CLKSRC_PERIL1),
-    SAVE_ITEM(EXYNOS4_CLKDIV_CAM),
-    SAVE_ITEM(EXYNOS4_CLKDIV_TV),
-    SAVE_ITEM(EXYNOS4_CLKDIV_MFC),
-    SAVE_ITEM(EXYNOS4_CLKDIV_G3D),
-    SAVE_ITEM(EXYNOS4_CLKDIV_IMAGE),
-    SAVE_ITEM(EXYNOS4_CLKDIV_LCD0),
-    SAVE_ITEM(EXYNOS4_CLKDIV_LCD1),
-    SAVE_ITEM(EXYNOS4_CLKDIV_MAUDIO),
-    SAVE_ITEM(EXYNOS4_CLKDIV_FSYS0),
-    SAVE_ITEM(EXYNOS4_CLKDIV_FSYS1),
-    SAVE_ITEM(EXYNOS4_CLKDIV_FSYS2),
-    SAVE_ITEM(EXYNOS4_CLKDIV_FSYS3),
-    SAVE_ITEM(EXYNOS4_CLKDIV_PERIL0),
-    SAVE_ITEM(EXYNOS4_CLKDIV_PERIL1),
-    SAVE_ITEM(EXYNOS4_CLKDIV_PERIL2),
-    SAVE_ITEM(EXYNOS4_CLKDIV_PERIL3),
-    SAVE_ITEM(EXYNOS4_CLKDIV_PERIL4),
-    SAVE_ITEM(EXYNOS4_CLKDIV_PERIL5),
-    SAVE_ITEM(EXYNOS4_CLKDIV_TOP),
-    SAVE_ITEM(EXYNOS4_CLKSRC_MASK_CAM),
-    SAVE_ITEM(EXYNOS4_CLKSRC_MASK_TV),
-    SAVE_ITEM(EXYNOS4_CLKSRC_MASK_LCD0),
-    SAVE_ITEM(EXYNOS4_CLKSRC_MASK_LCD1),
-    SAVE_ITEM(EXYNOS4_CLKSRC_MASK_MAUDIO),
-    SAVE_ITEM(EXYNOS4_CLKSRC_MASK_FSYS),
-    SAVE_ITEM(EXYNOS4_CLKSRC_MASK_PERIL0),
-    SAVE_ITEM(EXYNOS4_CLKSRC_MASK_PERIL1),
-    SAVE_ITEM(EXYNOS4_CLKGATE_SCLKCAM),
-    SAVE_ITEM(EXYNOS4_CLKGATE_IP_CAM),
-    SAVE_ITEM(EXYNOS4_CLKGATE_IP_TV),
-    SAVE_ITEM(EXYNOS4_CLKGATE_IP_MFC),
-    SAVE_ITEM(EXYNOS4_CLKGATE_IP_G3D),
-    SAVE_ITEM(EXYNOS4_CLKGATE_IP_IMAGE_4210),
-    SAVE_ITEM(EXYNOS4_CLKGATE_IP_LCD0),
-    SAVE_ITEM(EXYNOS4_CLKGATE_IP_LCD1),
-    SAVE_ITEM(EXYNOS4_CLKGATE_IP_FSYS),
-    SAVE_ITEM(EXYNOS4_CLKGATE_IP_GPS),
-    SAVE_ITEM(EXYNOS4_CLKGATE_IP_PERIL),
-    SAVE_ITEM(EXYNOS4_CLKGATE_IP_PERIR_4210),
-    SAVE_ITEM(EXYNOS4_CLKGATE_BLOCK),
-    SAVE_ITEM(EXYNOS4_CLKSRC_MASK_DMC),
-    SAVE_ITEM(EXYNOS4_CLKSRC_DMC),
-    SAVE_ITEM(EXYNOS4_CLKDIV_DMC0),
-    SAVE_ITEM(EXYNOS4_CLKDIV_DMC1),
-    SAVE_ITEM(EXYNOS4_CLKGATE_IP_DMC),
-    SAVE_ITEM(EXYNOS4_CLKSRC_CPU),
-    SAVE_ITEM(EXYNOS4_CLKDIV_CPU),
-    SAVE_ITEM(EXYNOS4_CLKGATE_SCLKCPU),
-    SAVE_ITEM(EXYNOS4_CLKGATE_IP_CPU),
 	/* GIC side */
 	SAVE_ITEM(S5P_VA_GIC_CPU + 0x000),
 	SAVE_ITEM(S5P_VA_GIC_CPU + 0x004),
@@ -286,64 +228,63 @@ static struct sleep_save exynos4_regs_save[] = {
 
 static struct sleep_save exynos4210_regs_save[] = {
     /* SROM side */
-    SAVE_ITEM(S5P_SROM_BW),
-    SAVE_ITEM(S5P_SROM_BC0),
-    SAVE_ITEM(S5P_SROM_BC1),
-    SAVE_ITEM(S5P_SROM_BC2),
-    SAVE_ITEM(S5P_SROM_BC3),
-    SAVE_ITEM(S5P_VA_GPIO + 0x700),
-    SAVE_ITEM(S5P_VA_GPIO + 0x704),
-    SAVE_ITEM(S5P_VA_GPIO + 0x708),
-    SAVE_ITEM(S5P_VA_GPIO + 0x70C),
-    SAVE_ITEM(S5P_VA_GPIO + 0x710),
-    SAVE_ITEM(S5P_VA_GPIO + 0x714),
-    SAVE_ITEM(S5P_VA_GPIO + 0x718),
-    SAVE_ITEM(S5P_VA_GPIO + 0x71C),
-    SAVE_ITEM(S5P_VA_GPIO + 0x720),
-    SAVE_ITEM(S5P_VA_GPIO + 0x724),
-    SAVE_ITEM(S5P_VA_GPIO + 0x728),
-    SAVE_ITEM(S5P_VA_GPIO + 0x72C),
-    SAVE_ITEM(S5P_VA_GPIO + 0x730),
-    SAVE_ITEM(S5P_VA_GPIO + 0x734),
-    SAVE_ITEM(S5P_VA_GPIO + 0x738),
-    SAVE_ITEM(S5P_VA_GPIO + 0x73C),
-    SAVE_ITEM(S5P_VA_GPIO + 0x900),
-    SAVE_ITEM(S5P_VA_GPIO + 0x904),
-    SAVE_ITEM(S5P_VA_GPIO + 0x908),
-    SAVE_ITEM(S5P_VA_GPIO + 0x90C),
-    SAVE_ITEM(S5P_VA_GPIO + 0x910),
-    SAVE_ITEM(S5P_VA_GPIO + 0x914),
-    SAVE_ITEM(S5P_VA_GPIO + 0x918),
-    SAVE_ITEM(S5P_VA_GPIO + 0x91C),
-    SAVE_ITEM(S5P_VA_GPIO + 0x920),
-    SAVE_ITEM(S5P_VA_GPIO + 0x924),
-    SAVE_ITEM(S5P_VA_GPIO + 0x928),
-    SAVE_ITEM(S5P_VA_GPIO + 0x92C),
-    SAVE_ITEM(S5P_VA_GPIO + 0x930),
-    SAVE_ITEM(S5P_VA_GPIO + 0x934),
-    SAVE_ITEM(S5P_VA_GPIO + 0x938),
-    SAVE_ITEM(S5P_VA_GPIO + 0x93C),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x700),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x704),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x708),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x70C),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x710),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x714),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x718),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x71C),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x720),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x900),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x904),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x908),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x90C),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x910),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x914),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x918),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x91C),
-    SAVE_ITEM(S5P_VA_GPIO2 + 0x920),
+	SAVE_ITEM(S5P_SROM_BW),
+	SAVE_ITEM(S5P_SROM_BC0),
+	SAVE_ITEM(S5P_SROM_BC1),
+	SAVE_ITEM(S5P_SROM_BC2),
+	SAVE_ITEM(S5P_SROM_BC3),
+	SAVE_ITEM(S5P_VA_GPIO + 0x700),
+	SAVE_ITEM(S5P_VA_GPIO + 0x704),
+	SAVE_ITEM(S5P_VA_GPIO + 0x708),
+	SAVE_ITEM(S5P_VA_GPIO + 0x70C),
+	SAVE_ITEM(S5P_VA_GPIO + 0x710),
+	SAVE_ITEM(S5P_VA_GPIO + 0x714),
+	SAVE_ITEM(S5P_VA_GPIO + 0x718),
+	SAVE_ITEM(S5P_VA_GPIO + 0x71C),
+	SAVE_ITEM(S5P_VA_GPIO + 0x720),
+	SAVE_ITEM(S5P_VA_GPIO + 0x724),
+	SAVE_ITEM(S5P_VA_GPIO + 0x728),
+	SAVE_ITEM(S5P_VA_GPIO + 0x72C),
+	SAVE_ITEM(S5P_VA_GPIO + 0x730),
+	SAVE_ITEM(S5P_VA_GPIO + 0x734),
+	SAVE_ITEM(S5P_VA_GPIO + 0x738),
+	SAVE_ITEM(S5P_VA_GPIO + 0x73C),
+	SAVE_ITEM(S5P_VA_GPIO + 0x900),
+	SAVE_ITEM(S5P_VA_GPIO + 0x904),
+	SAVE_ITEM(S5P_VA_GPIO + 0x908),
+	SAVE_ITEM(S5P_VA_GPIO + 0x90C),
+	SAVE_ITEM(S5P_VA_GPIO + 0x910),
+	SAVE_ITEM(S5P_VA_GPIO + 0x914),
+	SAVE_ITEM(S5P_VA_GPIO + 0x918),
+	SAVE_ITEM(S5P_VA_GPIO + 0x91C),
+	SAVE_ITEM(S5P_VA_GPIO + 0x920),
+	SAVE_ITEM(S5P_VA_GPIO + 0x924),
+	SAVE_ITEM(S5P_VA_GPIO + 0x928),
+	SAVE_ITEM(S5P_VA_GPIO + 0x92C),
+	SAVE_ITEM(S5P_VA_GPIO + 0x930),
+	SAVE_ITEM(S5P_VA_GPIO + 0x934),
+	SAVE_ITEM(S5P_VA_GPIO + 0x938),
+	SAVE_ITEM(S5P_VA_GPIO + 0x93C),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x700),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x704),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x708),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x70C),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x710),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x714),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x718),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x71C),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x720),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x900),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x904),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x908),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x90C),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x910),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x914),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x918),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x91C),
+	SAVE_ITEM(S5P_VA_GPIO2 + 0x920),
 };
 
-#ifdef CONFIG_CACHE_L2X0
 static struct sleep_save exynos4_l2cc_save[] = {
 	SAVE_ITEM(S5P_VA_L2CC + L2X0_TAG_LATENCY_CTRL),
 	SAVE_ITEM(S5P_VA_L2CC + L2X0_DATA_LATENCY_CTRL),
@@ -351,11 +292,10 @@ static struct sleep_save exynos4_l2cc_save[] = {
 	SAVE_ITEM(S5P_VA_L2CC + L2X0_POWER_CTRL),
 	SAVE_ITEM(S5P_VA_L2CC + L2X0_AUX_CTRL),
 };
-#endif
 
 void exynos4_cpu_suspend(void)
 {
-	unsigned long tmp;
+	unsigned int tmp;
 
 	/* eMMC power off delay (hidden register)
 	 * 0x10020988 => 0: 300msec, 1: 6msec
@@ -364,51 +304,43 @@ void exynos4_cpu_suspend(void)
 
 	outer_flush_all();
 
-    s3c_pm_do_save(exynos4_core_save, ARRAY_SIZE(exynos4_core_save));
+	s3c_pm_do_save(exynos4_core_save, 
+		ARRAY_SIZE(exynos4_core_save));
 
-    s3c_pm_do_save(exynos4210_regs_save, ARRAY_SIZE(exynos4210_regs_save));
+	s3c_pm_do_save(exynos4210_regs_save, 
+		ARRAY_SIZE(exynos4210_regs_save));
 
     /* Setting Central Sequence Register for power down mode */
-    tmp = __raw_readl(S5P_CENTRAL_SEQ_CONFIGURATION);
-    tmp &= ~(S5P_CENTRAL_LOWPWR_CFG);
-    __raw_writel(tmp, S5P_CENTRAL_SEQ_CONFIGURATION);
 
-#ifdef CONFIG_ARM_TRUSTZONE
-	exynos_smc(SMC_CMD_SLEEP, 0, 0, 0);
-#else
+	tmp = __raw_readl(S5P_CENTRAL_SEQ_CONFIGURATION);
+	tmp &= ~(S5P_CENTRAL_LOWPWR_CFG);
+	__raw_writel(tmp, S5P_CENTRAL_SEQ_CONFIGURATION);
+
     /* issue the standby signal into the pm unit. */
 	if (arm_pm_idle)
 		arm_pm_idle();
 	else
 		cpu_do_idle();
-#endif
 
-    tmp = __raw_readl(S5P_CENTRAL_SEQ_CONFIGURATION);
-    tmp |= (S5P_CENTRAL_LOWPWR_CFG);
-    __raw_writel(tmp, S5P_CENTRAL_SEQ_CONFIGURATION);
+	tmp = __raw_readl(S5P_CENTRAL_SEQ_CONFIGURATION);
+	tmp |= (S5P_CENTRAL_LOWPWR_CFG);
+	__raw_writel(tmp, S5P_CENTRAL_SEQ_CONFIGURATION);
 }
-EXPORT_SYMBOL(exynos4_cpu_suspend);
 
 static int exynos4_pm_prepare(void)
 {
 	int ret = 0;
 
-#ifdef CONFIG_REGULATOR
-    ret = regulator_suspend_prepare(PM_SUSPEND_MEM);
-#endif
+	ret = regulator_suspend_prepare(PM_SUSPEND_MEM);
 
 	return ret;
 }
 
-static int __maybe_unused exynos4_pm_finish(void)
+static void __maybe_unused exynos4_pm_finish(void)
 {
-	int ret = 0;
-
-#ifdef CONFIG_REGULATOR
-	ret = regulator_suspend_finish();
+#if defined(CONFIG_REGULATOR)
+	regulator_suspend_finish();
 #endif
-	
-	return ret;
 }
 
 static void exynos4_cpu_prepare(void)
@@ -417,13 +349,16 @@ static void exynos4_cpu_prepare(void)
 		exynos4_sleep_gpio_table_set();
 
 	/* Set value of power down register for sleep mode */
+
 	exynos4_sys_powerdown_conf(SYS_SLEEP);
 	__raw_writel(S5P_CHECK_SLEEP, REG_INFORM1);
 
 	/* ensure at least INFORM0 has the resume address */
+
 	__raw_writel(virt_to_phys(s3c_cpu_resume), REG_INFORM0);
 
 	/* Before enter central sequence mode, clock src register have to set */
+
 	s3c_pm_do_restore_core(exynos4210_set_clksrc, ARRAY_SIZE(exynos4210_set_clksrc));
 }
 
@@ -433,9 +368,7 @@ static int exynos4_pm_add(struct sys_device *sysdev)
 	pm_cpu_sleep = exynos4_cpu_suspend;
 
 	pm_prepare = exynos4_pm_prepare;
-#ifdef CONFIG_SLP
 	pm_finish = exynos4_pm_finish;
-#endif
 
 	return 0;
 }
@@ -452,7 +385,6 @@ void exynos4_scu_enable(void __iomem *scu_base)
 		return;
 
 	scu_ctrl |= 1;
-	//scu_ctrl |= ((0x1 << 5)|(0x1 << 0));
 	__raw_writel(scu_ctrl, scu_base);
 
 	/*
@@ -488,15 +420,16 @@ static int exynos4_pm_suspend(void)
 {
 	unsigned long tmp;
 
-	s3c_pm_do_save(exynos4_core_save, ARRAY_SIZE(exynos4_core_save));
+	s3c_pm_do_save(exynos4_core_save, 
+				ARRAY_SIZE(exynos4_core_save));
 
-	s3c_pm_do_save(exynos4_regs_save, ARRAY_SIZE(exynos4_regs_save));
+	s3c_pm_do_save(exynos4_regs_save, 
+				ARRAY_SIZE(exynos4_regs_save));
 
-	s3c_pm_do_save(exynos4210_regs_save, ARRAY_SIZE(exynos4210_regs_save));
+	s3c_pm_do_save(exynos4210_regs_save,
+				ARRAY_SIZE(exynos4210_regs_save));
 
-#ifdef CONFIG_CACHE_L2X0
-    s3c_pm_do_save(exynos4_l2cc_save, ARRAY_SIZE(exynos4_l2cc_save));
-#endif
+	s3c_pm_do_save(exynos4_l2cc_save, ARRAY_SIZE(exynos4_l2cc_save));
 
 	/* Setting Central Sequence Register for power down mode */
 
@@ -525,6 +458,7 @@ static void exynos4_pm_resume(void)
 	}
 
 	/* For release retention */
+
 	__raw_writel((1 << 28), S5P_PAD_RET_MAUDIO_OPTION);
 	__raw_writel((1 << 28), S5P_PAD_RET_GPIO_OPTION);
 	__raw_writel((1 << 28), S5P_PAD_RET_UART_OPTION);
@@ -535,7 +469,8 @@ static void exynos4_pm_resume(void)
 
 	s3c_pm_do_restore(exynos4_regs_save, ARRAY_SIZE(exynos4_regs_save));
 
-	s3c_pm_do_restore(exynos4210_regs_save, ARRAY_SIZE(exynos4210_regs_save));
+	s3c_pm_do_restore(exynos4210_regs_save,
+				ARRAY_SIZE(exynos4210_regs_save));
 
 	s3c_pm_do_restore_core(exynos4_core_save, ARRAY_SIZE(exynos4_core_save));
 
@@ -544,28 +479,10 @@ static void exynos4_pm_resume(void)
 
 	exynos4_scu_enable(S5P_VA_SCU);
 
-#ifdef CONFIG_CACHE_L2X0
-#ifdef CONFIG_ARM_TRUSTZONE
-	/*
-	 * Restore for Outer cache
-	 */
-	exynos_smc(SMC_CMD_L2X0SETUP1, exynos4_l2cc_save[0].val,
-			exynos4_l2cc_save[1].val,
-			exynos4_l2cc_save[2].val);
-
-	exynos_smc(SMC_CMD_L2X0SETUP2,
-			L2X0_DYNAMIC_CLK_GATING_EN | L2X0_STNDBY_MODE_EN,
-			0x7C470001, 0xC200FFFF);
-
-	exynos_smc(SMC_CMD_L2X0INVALL, 0, 0, 0);
-	exynos_smc(SMC_CMD_L2X0CTRL, 1, 0, 0);
-#else
 	s3c_pm_do_restore_core(exynos4_l2cc_save, ARRAY_SIZE(exynos4_l2cc_save));
 	outer_inv_all();
 	/* enable L2X0*/
 	writel_relaxed(1, S5P_VA_L2CC + L2X0_CTRL);
-#endif
-#endif
 
 early_wakeup:
 
