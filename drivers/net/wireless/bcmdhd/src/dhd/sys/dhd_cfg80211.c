@@ -199,10 +199,10 @@ static bool btcoex_is_sco_active(struct net_device *dev)
 		ioc_res = dev_wlc_intvar_get_reg(dev, "btc_params", 27, &param27);
 
 		WL_TRACE(("%s, sample[%d], btc params: 27:%x\n",
-			__FUNCTION__, i, param27));
+			__func__, i, param27));
 
 		if (ioc_res < 0) {
-			WL_ERR(("%s ioc read btc params error\n", __FUNCTION__));
+			WL_ERR(("%s ioc read btc params error\n", __func__));
 			break;
 		}
 
@@ -212,7 +212,7 @@ static bool btcoex_is_sco_active(struct net_device *dev)
 
 		if (sco_id_cnt > 2) {
 			WL_TRACE(("%s, sco/esco detected, pkt id_cnt:%d  samples:%d\n",
-				__FUNCTION__, sco_id_cnt, i));
+				__func__, sco_id_cnt, i));
 			res = TRUE;
 			break;
 		}
@@ -262,11 +262,11 @@ static int set_btc_esco_params(struct net_device *dev, bool trump_sco)
 			saved_status = TRUE;
 			WL_TRACE(("%s saved bt_params[50,51,64,65,71]:"
 				  "0x%x 0x%x 0x%x 0x%x 0x%x\n",
-				  __FUNCTION__, saved_reg50, saved_reg51,
+				  __func__, saved_reg50, saved_reg51,
 				  saved_reg64, saved_reg65, saved_reg71));
 		} else {
 			WL_ERR((":%s: save btc_params failed\n",
-				__FUNCTION__));
+				__func__));
 			saved_status = FALSE;
 			return -1;
 		}
@@ -320,7 +320,7 @@ static int set_btc_esco_params(struct net_device *dev, bool trump_sco)
 		saved_status = FALSE;
 	} else {
 		WL_ERR((":%s att to restore not saved BTCOEX params\n",
-			__FUNCTION__));
+			__func__));
 		return -1;
 	}
 	return 0;
@@ -359,7 +359,7 @@ wl_cfg80211_bt_setflag(struct net_device *dev, bool set)
 static void wl_cfg80211_bt_timerfunc(ulong data)
 {
 	struct btcoex_info *bt_local = (struct btcoex_info *)data;
-	WL_TRACE(("%s\n", __FUNCTION__));
+	WL_TRACE(("%s\n", __func__));
 	bt_local->timer_on = 0;
 	schedule_work(&bt_local->work);
 }
@@ -381,7 +381,7 @@ static void wl_cfg80211_bt_handler(struct work_struct *work)
 			 * provide OPPORTUNITY window to get DHCP address
 			 */
 			WL_TRACE(("%s bt_dhcp stm: started \n",
-				__FUNCTION__));
+				__func__));
 			btcx_inf->bt_state = BT_DHCP_OPPR_WIN;
 			mod_timer(&btcx_inf->timer,
 				jiffies + BT_DHCP_OPPR_WIN_TIME*HZ/1000);
@@ -391,14 +391,14 @@ static void wl_cfg80211_bt_handler(struct work_struct *work)
 		case BT_DHCP_OPPR_WIN:
 			if (btcx_inf->dhcp_done) {
 				WL_TRACE(("%s DHCP Done before T1 expiration\n",
-					__FUNCTION__));
+					__func__));
 				goto btc_coex_idle;
 			}
 
 			/* DHCP is not over yet, start lowering BT priority
 			 * enforce btc_params + flags if necessary
 			 */
-			WL_TRACE(("%s DHCP T1:%d expired\n", __FUNCTION__,
+			WL_TRACE(("%s DHCP T1:%d expired\n", __func__,
 				BT_DHCP_OPPR_WIN_TIME));
 			if (btcx_inf->dev)
 				wl_cfg80211_bt_setflag(btcx_inf->dev, TRUE);
@@ -411,11 +411,11 @@ static void wl_cfg80211_bt_handler(struct work_struct *work)
 		case BT_DHCP_FLAG_FORCE_TIMEOUT:
 			if (btcx_inf->dhcp_done) {
 				WL_TRACE(("%s DHCP Done before T2 expiration\n",
-					__FUNCTION__));
+					__func__));
 			} else {
 				/* Noo dhcp during T1+T2, restore BT priority */
 				WL_TRACE(("%s DHCP wait interval T2:%d"
-					  "msec expired\n", __FUNCTION__,
+					  "msec expired\n", __func__,
 					  BT_DHCP_FLAG_FORCE_TIME));
 			}
 
@@ -428,7 +428,7 @@ btc_coex_idle:
 			break;
 
 		default:
-			WL_ERR(("%s error g_status=%d !!!\n", __FUNCTION__,
+			WL_ERR(("%s error g_status=%d !!!\n", __func__,
 				btcx_inf->bt_state));
 			if (btcx_inf->dev)
 				wl_cfg80211_bt_setflag(btcx_inf->dev, FALSE);
@@ -507,23 +507,36 @@ int wl_cfg80211_set_btcoex_dhcp(struct net_device *dev, char *command)
 	int i;
 #endif
 
+#ifdef PASS_ALL_MCAST_PKTS
+		char iovbuf[20];
+		uint32 allmultivar = 0;
+#endif
+
 	/* Figure out powermode 1 or o command */
 	strncpy((char *)&powermode_val, command + strlen("BTCOEXMODE") +1, 1);
+	WL_ERR(("%s: DHCP session Enter\n", __func__));
 
 	if (strnicmp((char *)&powermode_val, "1", strlen("1")) == 0) {
 
-		WL_TRACE(("%s: DHCP session starts\n", __FUNCTION__));
+		WL_ERR(("%s: DHCP session starts\n", __func__));
 
 #ifdef PKT_FILTER_SUPPORT
 		dhd->dhcp_in_progress = 1;
 
 		/* Disable packet filtering */
 		if (dhd_pkt_filter_enable && dhd->early_suspended) {
-			WL_TRACE(("DHCP in progressing , disable packet filter!!!\n"));
+			WL_ERR(("DHCP in progressing , disable packet filter!!!\n"));
 			for (i = 0; i < dhd->pktfilter_count; i++) {
 				dhd_pktfilter_offload_enable(dhd, dhd->pktfilter[i],
 					0, dhd_master_mode);
 			}
+			
+#ifdef PASS_ALL_MCAST_PKTS
+						allmultivar = 1;
+						bcm_mkiovar("allmulti", (char *)&allmultivar, 4, iovbuf, sizeof(iovbuf));
+						dhd_wl_ioctl_cmd(dhd, WLC_SET_VAR, iovbuf, sizeof(iovbuf), TRUE, 0);
+						WL_ERR(("DHCP is progressing , allmulti value = %d\n", allmultivar));
+#endif /* PASS_ALL_MCAST_PKTS */
 		}
 #endif
 
@@ -560,26 +573,34 @@ int wl_cfg80211_set_btcoex_dhcp(struct net_device *dev, char *command)
 					btco_inf->timer_on = 1;
 					mod_timer(&btco_inf->timer, btco_inf->timer.expires);
 					WL_TRACE(("%s enable BT DHCP Timer\n",
-					__FUNCTION__));
+					__func__));
 				}
 #endif /* COEX_DHCP */
 		}
 		else if (saved_status == TRUE) {
-			WL_ERR(("%s was called w/o DHCP OFF. Continue\n", __FUNCTION__));
+			WL_ERR(("%s was called w/o DHCP OFF. Continue\n", __func__));
 		}
 	}
 	else if (strnicmp((char *)&powermode_val, "2", strlen("2")) == 0) {
 
 #ifdef PKT_FILTER_SUPPORT
         dhd->dhcp_in_progress = 0;
+	WL_ERR(("%s: DHCP is complete\n", __func__));
 
 		/* Enable packet filtering */
 		if (dhd_pkt_filter_enable && dhd->early_suspended) {
-			WL_TRACE(("DHCP is complete , enable packet filter!!!\n"));
+			WL_ERR(("DHCP is complete , enable packet filter!!!\n"));
 			for (i = 0; i < dhd->pktfilter_count; i++) {
 				dhd_pktfilter_offload_enable(dhd, dhd->pktfilter[i],
 					1, dhd_master_mode);
 			}
+
+#ifdef PASS_ALL_MCAST_PKTS
+			allmultivar = 0;
+			bcm_mkiovar("allmulti", (char *)&allmultivar, 4, iovbuf, sizeof(iovbuf));
+			dhd_wl_ioctl_cmd(dhd, WLC_SET_VAR, iovbuf, sizeof(iovbuf), TRUE, 0);
+			WL_ERR(("DHCP is complete , allmulti value = %d\n", allmultivar));
+#endif /* PASS_ALL_MCAST_PKTS */
 		}
 #endif
 
@@ -587,7 +608,7 @@ int wl_cfg80211_set_btcoex_dhcp(struct net_device *dev, char *command)
 
 #ifdef COEX_DHCP
 		/* Stop any bt timer because DHCP session is done */
-		WL_TRACE(("%s disable BT DHCP Timer\n", __FUNCTION__));
+		WL_TRACE(("%s disable BT DHCP Timer\n", __func__));
 		if (btco_inf->timer_on) {
 			btco_inf->timer_on = 0;
 			del_timer_sync(&btco_inf->timer);
@@ -595,7 +616,7 @@ int wl_cfg80211_set_btcoex_dhcp(struct net_device *dev, char *command)
 			if (btco_inf->bt_state != BT_DHCP_IDLE) {
 			/* need to restore original btc flags & extra btc params */
 				WL_TRACE(("%s bt->bt_state:%d\n",
-					__FUNCTION__, btco_inf->bt_state));
+					__func__, btco_inf->bt_state));
 				/* wake up btcoex thread to restore btlags+params  */
 				schedule_work(&btco_inf->work);
 			}
@@ -627,7 +648,7 @@ int wl_cfg80211_set_btcoex_dhcp(struct net_device *dev, char *command)
 	}
 	else {
 		WL_ERR(("%s Unkwown yet power setting, ignored\n",
-			__FUNCTION__));
+			__func__));
 	}
 
 	snprintf(command, 3, "OK");
