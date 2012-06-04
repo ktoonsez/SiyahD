@@ -5602,7 +5602,7 @@ static s32 wl_inform_single_bss(struct wl_priv *wl, struct wl_bss_info *bi)
 		return EINVAL;
 	}
 
-	WL_DBG(("SSID : \"%s\", rssi %d, channel %d, capability : 0x04%x, bssid %pM"
+	WL_DBG(("SSID : \"%s\", rssi %d, channel %d, capability : 0x04%x, bssid %pM "
 			"mgmt_type %d frame_len %d\n", bi->SSID,
 			notif_bss_info->rssi, notif_bss_info->channel,
 			mgmt->u.beacon.capab_info, &bi->BSSID, mgmt_type,
