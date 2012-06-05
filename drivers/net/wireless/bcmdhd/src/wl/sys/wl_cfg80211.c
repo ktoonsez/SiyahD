@@ -969,7 +969,7 @@ static chanspec_t wl_cfg80211_get_shared_freq(struct wiphy *wiphy)
 
 	*(u32 *) wl->extra_buf = htod32(WL_EXTRA_BUF_MAX);
 	if ((err = wldev_ioctl(dev, WLC_GET_BSS_INFO, wl->extra_buf,
-		sizeof(WL_EXTRA_BUF_MAX), false))) {
+		WL_EXTRA_BUF_MAX, false))) {
 			WL_ERR(("Failed to get associated bss info, use temp channel \n"));
 			chspec = wf_chspec_aton(WL_P2P_TEMP_CHAN);
 	}
@@ -1010,7 +1010,16 @@ wl_cfg80211_add_virtual_iface(struct wiphy *wiphy, char *name,
 	bool rollback_lock = false;
 #ifdef PROP_TXSTATUS
 	s32 up = 1;
+<<<<<<< HEAD
 	dhd_pub_t *dhd = (dhd_pub_t *)(wl->pub);
+=======
+	dhd_pub_t *dhd;
+#endif /* PROP_TXSTATUS */
+	if (!wl)
+		return ERR_PTR(-EINVAL);
+#ifdef PROP_TXSTATUS
+	dhd = (dhd_pub_t *)(wl->pub);
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 #endif /* PROP_TXSTATUS */
 
 	/* Use primary I/F for to send commands down */
@@ -1077,7 +1086,17 @@ wl_cfg80211_add_virtual_iface(struct wiphy *wiphy, char *name,
 				return ERR_PTR(-EAGAIN);
 			}
 		}
+<<<<<<< HEAD
 		if (wl->p2p && !wl->p2p->on && strstr(name, WL_P2P_INTERFACE_PREFIX)) {
+=======
+#ifdef PROP_TXSTATUS
+		if (!dhd)
+			return ERR_PTR(-ENODEV);
+#endif
+		if (!wl->p2p || !wl->p2p->vir_ifname)
+			return ERR_PTR(-ENODEV);
+		if (!wl->p2p->on && strstr(name, WL_P2P_INTERFACE_PREFIX)) {
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 			p2p_on(wl) = true;
 			wl_cfgp2p_set_firm_p2p(wl);
 			wl_cfgp2p_init_discovery(wl);
@@ -1569,6 +1588,7 @@ static void wl_scan_prep(struct wl_scan_params *params,
 	if (n_channels > 0) {
 		for (i = 0; i < n_channels; i++) {
 			chanspec = 0;
+<<<<<<< HEAD
 			if (!request->channels[i] || !request->channels[i]->center_freq) {
 				break;
 			} else {
@@ -1593,6 +1613,28 @@ static void wl_scan_prep(struct wl_scan_params *params,
 				channel, params->channel_list[i]));
 				params->channel_list[i] = htod16(params->channel_list[i]);
 			}
+=======
+			channel = ieee80211_frequency_to_channel(request->channels[i]->center_freq);
+			/* SKIP DFS channels for Secondary interface */
+			if ((wl->escan_info.ndev != wl_to_prmry_ndev(wl)) &&
+				(request->channels[i]->flags & (IEEE80211_CHAN_RADAR | IEEE80211_CHAN_PASSIVE_SCAN)))
+				continue;
+
+			if (request->channels[i]->band == IEEE80211_BAND_2GHZ)
+				chanspec |= WL_CHANSPEC_BAND_2G;
+			else
+				chanspec |= WL_CHANSPEC_BAND_5G;
+
+			chanspec |= WL_CHANSPEC_BW_20;
+			chanspec |= WL_CHANSPEC_CTL_SB_NONE;
+
+			params->channel_list[i] = channel;
+			params->channel_list[i] &= WL_CHANSPEC_CHAN_MASK;
+			params->channel_list[i] |= chanspec;
+			WL_SCAN(("Chan : %d, Channel spec: %x\n",
+				channel, params->channel_list[i]));
+			params->channel_list[i] = htod16(params->channel_list[i]);
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 		}
 	} else {
 		WL_SCAN(("Scanning all channels\n"));
@@ -1644,7 +1686,10 @@ wl_run_iscan(struct wl_iscan_ctrl *iscan, struct cfg80211_scan_request *request,
 	struct wl_iscan_params *params = NULL;
 	s32 err = 0;
 
-	if (request != NULL) {
+	if (!request) {
+		err = -EINVAL;
+		goto done;
+	} else {
 		n_channels = request->n_channels;
 		n_ssids = request->n_ssids;
 		/* Allocate space for populating ssids in wl_iscan_params struct */
@@ -1663,8 +1708,12 @@ wl_run_iscan(struct wl_iscan_ctrl *iscan, struct cfg80211_scan_request *request,
 		goto done;
 	}
 
+<<<<<<< HEAD
 	if (request != NULL)
 		wl_scan_prep(&params->params, request, -1);
+=======
+	wl_scan_prep(&params->params, request, -1);
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 
 	params->version = htod32(ISCAN_REQ_VERSION);
 	params->action = htod16(action);
@@ -1746,7 +1795,7 @@ wl_run_escan(struct wl_priv *wl, struct net_device *ndev,
 	u32 n_ssids;
 	s32 params_size = (WL_SCAN_PARAMS_FIXED_SIZE + OFFSETOF(wl_escan_params_t, params));
 	wl_escan_params_t *params = NULL;
-	struct cfg80211_scan_request *scan_request = wl->scan_request;
+
 	u8 chan_buf[sizeof(u32)*(WL_NUMCHANNELS + 1)];
 	u32 num_chans = 0;
 	s32 channel;
@@ -1758,6 +1807,13 @@ wl_run_escan(struct wl_priv *wl, struct net_device *ndev,
 	struct net_device *dev = NULL;
 	WL_DBG(("Enter \n"));
 
+<<<<<<< HEAD
+=======
+	if (!request || !wl) {
+		err = -EINVAL;
+		goto exit;
+	}
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 	if (!wl->p2p_supported)
 		WL_SCAN2(("P2P is not supported\n"));
 	else
@@ -1773,6 +1829,7 @@ wl_run_escan(struct wl_priv *wl, struct net_device *ndev,
 		/* LEGACY SCAN TRIGGER */
 		WL_SCAN((" LEGACY E-SCAN START\n"));
 
+<<<<<<< HEAD
 		if (request != NULL) {
 #ifdef USE_INITIAL_2G_SCAN_ORG
 			if (ndev == wl_to_prmry_ndev(wl) && g_first_broadcast_scan == true) {
@@ -1805,18 +1862,55 @@ wl_run_escan(struct wl_priv *wl, struct net_device *ndev,
 				params_size += sizeof(u16) * (n_channels + 1);
 			else
 				params_size += sizeof(u16) * n_channels;
+=======
+#ifdef USE_INITIAL_2G_SCAN_ORG
+		if (ndev == wl_to_prmry_ndev(wl) && g_first_broadcast_scan == true) {
+			j = 0;
+			if (!wl_get_valid_channels(ndev, chan_buf, sizeof(chan_buf))) {
+				list = (wl_uint32_list_t *) chan_buf;
+				n_valid_chan = dtoh32(list->count);
+				for (i = 0; i < n_valid_chan; i++) {
 
-			/* Allocate space for populating ssids in wl_iscan_params struct */
-			params_size += sizeof(struct wlc_ssid) * n_ssids;
+					WL_SCAN(("list->element[%d]=%d\n",
+						i, list->element[i]));
+					if (list->element[i] > CH_MAX_2G_CHANNEL)
+						break;
+					j++;
+				}
+				request->n_channels = j;
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
+
+				active_time = FIRST_SCAN_ACTIVE_DWELL_TIME_MS;
+				WL_SCAN(("request->n_channels=%d\n", request->n_channels));
+				g_first_broadcast_scan = false;
+			}
 		}
+#endif /* USE_INITIAL_2G_SCAN_ORG */
+
+		n_channels = request->n_channels;
+		n_ssids = request->n_ssids;
+		/* Allocate space for populating ssids in wl_iscan_params struct */
+		if (n_channels % 2)
+			/* If n_channels is odd, add a padd of u16 */
+			params_size += sizeof(u16) * (n_channels + 1);
+		else
+			params_size += sizeof(u16) * n_channels;
+
+		/* Allocate space for populating ssids in wl_iscan_params struct */
+		params_size += sizeof(struct wlc_ssid) * n_ssids;
+
 		params = (wl_escan_params_t *) kzalloc(params_size, GFP_KERNEL);
 		if (params == NULL) {
 			err = -ENOMEM;
 			goto exit;
 		}
 
+<<<<<<< HEAD
 		if (request != NULL)
 			wl_scan_prep(&params->params, request, active_time);
+=======
+		wl_scan_prep(&params->params, request, active_time);
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 		params->version = htod32(ESCAN_REQ_VERSION);
 		params->action =  htod16(action);
 		params->sync_id = wl->escan_info.cur_sync_id;
@@ -1841,8 +1935,13 @@ wl_run_escan(struct wl_priv *wl, struct net_device *ndev,
 
 		WL_DBG((" P2P E-SCAN START\n"));
 
+<<<<<<< HEAD
 		if (scan_request && scan_request->n_channels) {
 			num_chans = scan_request->n_channels;
+=======
+		if (request->n_channels) {
+			num_chans = request->n_channels;
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 			WL_SCAN((" chann number : %d\n", num_chans));
 			default_chan_list = kzalloc(num_chans * sizeof(*default_chan_list),
 				GFP_KERNEL);
@@ -1856,10 +1955,14 @@ wl_run_escan(struct wl_priv *wl, struct net_device *ndev,
 				n_valid_chan = dtoh32(list->count);
 				for (i = 0; i < num_chans; i++)
 				{
-					_freq = scan_request->channels[i]->center_freq;
+					_freq = request->channels[i]->center_freq;
 					channel = ieee80211_frequency_to_channel(_freq);
 					/* remove DFS channels */
+<<<<<<< HEAD
 					if (!(scan_request->channels[i]->flags &
+=======
+					if (!(request->channels[i]->flags &
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 						(IEEE80211_CHAN_RADAR | IEEE80211_CHAN_PASSIVE_SCAN))) {
 						for (j = 0; j < n_valid_chan; j++) {
 							/* allows only supported channel on
@@ -2549,7 +2652,10 @@ wl_set_set_cipher(struct net_device *dev, struct cfg80211_connect_params *sme)
 	WL_DBG(("pval (%d) gval (%d)\n", pval, gval));
 
 	if (is_wps_conn(sme)) {
-		err = wldev_iovar_setint_bsscfg(dev, "wsec", 4, bssidx);
+		if (sme->privacy)
+			err = wldev_iovar_setint_bsscfg(dev, "wsec", 4, bssidx);
+		else
+			err = wldev_iovar_setint_bsscfg(dev, "wsec", 0, bssidx);
 	} else {
 #ifdef BCMWAPI_WPI
 		if (sme->crypto.cipher_group == WLAN_CIPHER_SUITE_SMS4) {
@@ -3586,8 +3692,15 @@ wl_cfg80211_get_station(struct wiphy *wiphy, struct net_device *dev,
 	} else if (wl_get_mode_by_netdev(wl, dev) == WL_MODE_BSS) {
 		u8 *curmacp = wl_read_prof(wl, dev, WL_PROF_BSSID);
 		if (!wl_get_drv_status(wl, CONNECTED, dev) ||
+<<<<<<< HEAD
 		    (dhd_is_associated(dhd, NULL) == FALSE)) {
 			WL_ERR(("NOT assoc\n"));
+=======
+		    (dhd_is_associated(dhd, NULL, &err) == FALSE)) {
+			WL_ERR(("NOT assoc\n"));
+			if(err == -ERESTARTSYS)
+				return err;
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 #ifdef ESCAN_RESULT_PATCH
 			return -ENODEV;
 #else
@@ -3625,7 +3738,11 @@ wl_cfg80211_get_station(struct wiphy *wiphy, struct net_device *dev,
 		WL_DBG(("RSSI %d dBm\n", rssi));
 
 get_station_err:
+<<<<<<< HEAD
 		if (err) {
+=======
+		if (err && (err != -ERESTARTSYS)) {
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 			/* Disconnect due to zero BSSID or error to get RSSI */
 			WL_ERR(("force cfg80211_disconnected\n"));
 			wl_clr_drv_status(wl, CONNECTED, dev);
@@ -4702,6 +4819,66 @@ wl_cfg80211_set_channel(struct wiphy *wiphy, struct net_device *dev,
 	_chan = ieee80211_frequency_to_channel(chan->center_freq);
 	WL_ERR(("netdev_ifidx(%d), chan_type(%d) target channel(%d) \n",
 		dev->ifindex, channel_type, _chan));
+<<<<<<< HEAD
+
+#ifdef NOT_YET
+	switch (channel_type) {
+		case NL80211_CHAN_HT40MINUS:
+			/* secondary channel is below the control channel */
+			chspec = CH40MHZ_CHSPEC(channel, WL_CHANSPEC_CTL_SB_UPPER);
+			break;
+		case NL80211_CHAN_HT40PLUS:
+			/* secondary channel is above the control channel */
+			chspec = CH40MHZ_CHSPEC(channel, WL_CHANSPEC_CTL_SB_LOWER);
+			break;
+		default:
+			chspec = CH20MHZ_CHSPEC(channel);
+
+	}
+#endif
+#ifdef HT40_GO
+	switch(_chan) {
+		/* adjust channel to center of 40MHz band */
+		case 40:
+		case 48:
+		case 153:
+		case 161:
+			if (_chan <= (MAXCHANNEL - CH_20MHZ_APART))
+				center_chan = _chan - CH_10MHZ_APART;
+				chspec = CH40MHZ_CHSPEC(center_chan, WL_CHANSPEC_CTL_SB_UPPER);
+			break;
+		case 36:
+		case 44:
+		case 149:
+		case 157:
+			if (_chan <= (MAXCHANNEL - CH_20MHZ_APART))
+				center_chan = _chan + CH_10MHZ_APART;
+				chspec = CH40MHZ_CHSPEC(center_chan, WL_CHANSPEC_CTL_SB_LOWER);
+			break;
+		default:
+			chspec = CH20MHZ_CHSPEC(_chan);
+			break;
+	}
+
+
+	if ((err = wldev_iovar_setint(dev, "chanspec", chspec)) == BCME_BADCHAN) {
+		err = wldev_ioctl(dev, WLC_SET_CHANNEL, &_chan, sizeof(_chan), true);
+		if (err < 0) {
+			WL_ERR(("WLC_SET_CHANNEL error %d"
+				"chip may not be supporting this channel\n", err));
+		}
+	}
+#else
+	err = wldev_ioctl(dev, WLC_SET_CHANNEL, &_chan, sizeof(_chan), true);
+	if (err < 0) {
+		WL_ERR(("WLC_SET_CHANNEL error %d"
+			"chip may not be supporting this channel\n", err));
+	}
+#endif
+	return err;
+}
+=======
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 
 #ifdef NOT_YET
 	switch (channel_type) {
@@ -5439,10 +5616,7 @@ static s32 wl_setup_wiphy(struct wireless_dev *wdev, struct device *sdiofunc_dev
 	    | BIT(NL80211_IFTYPE_AP) | BIT(NL80211_IFTYPE_MONITOR);
 
 	wdev->wiphy->bands[IEEE80211_BAND_2GHZ] = &__wl_band_2ghz;
-#ifndef CUSTOMER_HW_SAMSUNG
-#error 5ghz cause p2p connection error
 	wdev->wiphy->bands[IEEE80211_BAND_5GHZ] = &__wl_band_5ghz_a;
-#endif
 	wdev->wiphy->signal_type = CFG80211_SIGNAL_TYPE_MBM;
 	wdev->wiphy->cipher_suites = __wl_cipher_suites;
 	wdev->wiphy->n_cipher_suites = ARRAY_SIZE(__wl_cipher_suites);
@@ -5534,13 +5708,15 @@ static s32 wl_inform_single_bss(struct wl_priv *wl, struct wl_bss_info *bi)
 	s32 signal;
 	u32 freq;
 	s32 err = 0;
+	gfp_t aflags;
 
 	if (unlikely(dtoh32(bi->length) > WL_BSS_INFO_MAX)) {
 		WL_DBG(("Beacon is larger than buffer. Discarding\n"));
 		return err;
 	}
+	aflags = (in_atomic()) ? GFP_ATOMIC : GFP_KERNEL;
 	notif_bss_info = kzalloc(sizeof(*notif_bss_info) + sizeof(*mgmt)
-		- sizeof(u8) + WL_BSS_INFO_MAX, GFP_KERNEL);
+		- sizeof(u8) + WL_BSS_INFO_MAX, aflags);
 	if (unlikely(!notif_bss_info)) {
 		WL_ERR(("notif_bss_info alloc failed\n"));
 		return -ENOMEM;
@@ -5592,7 +5768,7 @@ static s32 wl_inform_single_bss(struct wl_priv *wl, struct wl_bss_info *bi)
 		return EINVAL;
 	}
 
-	WL_DBG(("SSID : \"%s\", rssi %d, channel %d, capability : 0x04%x, bssid %pM"
+	WL_DBG(("SSID : \"%s\", rssi %d, channel %d, capability : 0x04%x, bssid %pM "
 			"mgmt_type %d frame_len %d\n", bi->SSID,
 			notif_bss_info->rssi, notif_bss_info->channel,
 			mgmt->u.beacon.capab_info, &bi->BSSID, mgmt_type,
@@ -5766,6 +5942,7 @@ wl_notify_connect_status_ap(struct wl_priv *wl, struct net_device *ndev,
 		kfree (body);
 		return err;
 	}
+<<<<<<< HEAD
 
 	channel = dtoh32(ci.hw_channel);
 	if (channel <= CH_MAX_2G_CHANNEL)
@@ -5773,6 +5950,20 @@ wl_notify_connect_status_ap(struct wl_priv *wl, struct net_device *ndev,
 	else
 		band = wiphy->bands[IEEE80211_BAND_5GHZ];
 
+=======
+
+	channel = dtoh32(ci.hw_channel);
+	if (channel <= CH_MAX_2G_CHANNEL)
+		band = wiphy->bands[IEEE80211_BAND_2GHZ];
+	else
+		band = wiphy->bands[IEEE80211_BAND_5GHZ];
+
+	if (band == NULL) {
+		WL_ERR(("band is null(channel=%d)\n", channel));
+		kfree(body);
+		return WL_INVALID;
+	}
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 #if LINUX_VERSION_CODE == KERNEL_VERSION(2, 6, 38) && !defined(WL_COMPAT_WIRELESS)
 	freq = ieee80211_channel_to_frequency(channel);
 	(void)band->band;
@@ -6448,6 +6639,13 @@ wl_notify_rx_mgmt_frame(struct wl_priv *wl, struct net_device *ndev,
 	else
 		band = wiphy->bands[IEEE80211_BAND_5GHZ];
 
+<<<<<<< HEAD
+=======
+	if (band == NULL) {
+		WL_ERR(("band is null(channel=%d)\n", channel));
+		return WL_INVALID;
+	}
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 #if LINUX_VERSION_CODE == KERNEL_VERSION(2, 6, 38) && !defined(WL_COMPAT_WIRELESS)
 	freq = ieee80211_channel_to_frequency(channel);
 	(void)band->band;
@@ -6727,17 +6925,25 @@ static s32 wl_init_priv_mem(struct wl_priv *wl)
 #ifdef CONFIG_DHD_USE_STATIC_BUF
 	wl->escan_info.escan_buf[0] = dhd_os_prealloc(NULL, DHD_PREALLOC_WIPHY_ESCAN0, 0);
 	bzero(wl->escan_info.escan_buf[0], ESCAN_BUF_SIZE);
+<<<<<<< HEAD
+=======
+	wl->escan_info.escan_buf[1] = dhd_os_prealloc(NULL, DHD_PREALLOC_WIPHY_ESCAN1, 0);
+	bzero(wl->escan_info.escan_buf[1], ESCAN_BUF_SIZE);
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 #else
 	wl->escan_info.escan_buf[0] = (void *)kzalloc(ESCAN_BUF_SIZE, GFP_KERNEL);
 	if (unlikely(!wl->escan_info.escan_buf[0])) {
 		WL_ERR(("wl->escan_info.escan_buf[0]  alloc failed\n"));
 		goto init_priv_mem_out;
 	}
+<<<<<<< HEAD
 #endif
 #ifdef CONFIG_DHD_USE_STATIC_BUF
 	wl->escan_info.escan_buf[1] = dhd_os_prealloc(NULL, DHD_PREALLOC_WIPHY_ESCAN1, 0);
 	bzero(wl->escan_info.escan_buf[1], ESCAN_BUF_SIZE);
 #else
+=======
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 	wl->escan_info.escan_buf[1] = (void *)kzalloc(ESCAN_BUF_SIZE, GFP_KERNEL);
 	if (unlikely(!wl->escan_info.escan_buf[1])) {
 		WL_ERR(("wl->escan_info.escan_buf[1]  alloc failed\n"));
@@ -6812,8 +7018,12 @@ static void wl_deinit_priv_mem(struct wl_priv *wl)
 static s32 wl_create_event_handler(struct wl_priv *wl)
 {
 	int ret = 0;
-	WL_DBG(("Enter \n"));
-
+	WL_ERR(("Enter\n"));
+	WL_ERR(("wl = 0x%08x, wl->event_tsk = 0x%08x\n",
+		(unsigned int )wl, (unsigned int)&wl->event_tsk));
+	if (wl->event_tsk.thr_pid > 0)
+		WL_ERR(("wl->event_tsk already created ?\n"));
+		
 	/* Do not use DHD in cfg driver */
 	wl->event_tsk.thr_pid = -1;
 	PROC_START(wl_event_handler, wl, &wl->event_tsk, 0);
@@ -7014,7 +7224,11 @@ static void wl_scan_timeout(unsigned long data)
 			escan_results = kzalloc(sizeof(wl_escan_result_t), GFP_ATOMIC);
 			if (escan_results != NULL) {
 				msg.datalen = hton32(sizeof(wl_escan_result_t));
+<<<<<<< HEAD
 				escan_results->sync_id = htod16(wl->escan_info.cur_sync_id); 
+=======
+				escan_results->sync_id = htod16(wl->escan_info.cur_sync_id);
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 				escan_results->bss_count = htod16(0);
 				escan_results->buflen = htod32(WL_ESCAN_RESULTS_FIXED_SIZE);
 				escan_results->version = htod32(WL_BSS_INFO_VERSION);
@@ -7507,7 +7721,11 @@ static s32 wl_init_priv(struct wl_priv *wl)
 	spin_lock_init(&wl->cfgdrv_lock);
 	mutex_init(&wl->ioctl_buf_sync);
 	init_waitqueue_head(&wl->netif_change_event);
+<<<<<<< HEAD
 	init_waitqueue_head(&wl->send_af_done_event);
+=======
+	init_completion(&wl->send_af_done);
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 	init_completion(&wl->iface_disable);
 	wl_init_eq(wl);
 	err = wl_init_priv_mem(wl);
@@ -7648,6 +7866,8 @@ s32 wl_cfg80211_attach(struct net_device *ndev, void *data)
 	}
 	wdev->iftype = wl_mode_to_nl80211_iftype(WL_MODE_BSS);
 	wl = (struct wl_priv *)wiphy_priv(wdev->wiphy);
+	WL_ERR(("%s: wl = 0x%08x\n", __FUNCTION__, (unsigned int)wl));
+	
 	wl->wdev = wdev;
 	wl->pub = data;
 	INIT_LIST_HEAD(&wl->net_list);
@@ -7713,8 +7933,10 @@ void wl_cfg80211_detach(void *para)
 	wl_cfg80211_detach_p2p();
 #endif
 	wl_setup_rfkill(wl, FALSE);
-	if (wl->p2p_supported)
-		wl_cfgp2p_deinit_priv(wl);
+	if (wl->p2p_supported) {
+		WL_ERR(("wl_cfgp2p_down() is not called yet\n"));
+		wl_cfgp2p_down(wl);
+	}
 	wl_deinit_priv(wl);
 	wlcfg_drv_priv = NULL;
 	wl_cfg80211_clear_parent_dev();
@@ -7777,8 +7999,11 @@ static s32 wl_event_handler(void *data)
 	int ret;
 
 	wl = (struct wl_priv *)tsk->parent;
+	WL_ERR(("tsk Enter, tsk = 0x%08x\n", (unsigned int)tsk));
 	DAEMONIZE("dhd_cfg80211_event");
+	WL_ERR(("DAEMONIZE completed\n"));
 	complete(&tsk->completed);
+	WL_ERR(("tsk completed\n"));
 
 	while ((ret = down_interruptible (&tsk->sema)) == 0) {
 		WL_DBG(("down the event sema\n"));

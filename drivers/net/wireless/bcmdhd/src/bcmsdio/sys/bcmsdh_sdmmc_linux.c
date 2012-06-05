@@ -140,7 +140,7 @@ static int bcmsdh_sdmmc_probe(struct sdio_func *func,
 	} else {
 		ret = -ENODEV;
 	}
-
+	
 	return ret;
 }
 
@@ -194,8 +194,13 @@ static int bcmsdh_sdmmc_suspend(struct device *pdev)
 
 	if (dhd_os_check_wakelock(bcmsdh_get_drvdata()))
 		return -EBUSY;
+<<<<<<< HEAD
+=======
+#if !defined(CUSTOMER_HW_SAMSUNG)
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 #if defined(OOB_INTR_ONLY)
 	bcmsdh_oob_intr_set(0);
+#endif	/* defined(OOB_INTR_ONLY) */
 #endif	/* defined(OOB_INTR_ONLY) */
 	dhd_mmc_suspend = TRUE;
 	smp_mb();
@@ -211,9 +216,11 @@ static int bcmsdh_sdmmc_resume(struct device *pdev)
 	if (func->num == 2)
 		sd_err(("%s Enter\n", __func__));
 	dhd_mmc_suspend = FALSE;
+#if !defined(CUSTOMER_HW_SAMSUNG)
 #if defined(OOB_INTR_ONLY)
 	if ((func->num == 2) && dhd_os_check_if_up(bcmsdh_get_drvdata()))
 		bcmsdh_oob_intr_set(1);
+#endif /* (OOB_INTR_ONLY) */
 #endif /* (OOB_INTR_ONLY) */
 
 	smp_mb();

@@ -79,7 +79,11 @@ DHDCFLAGS += -DCONFIG_DHD_USE_STATIC_BUF
 endif
 
 # For CCX
+<<<<<<< HEAD
 ifeq ($(CONFIG_BRCM_CCX),y)
+=======
+ifneq ($(CONFIG_TARGET_LOCALE_KOR),y)
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 DHDCFLAGS += -DBCMCCX
 endif
 
@@ -118,8 +122,16 @@ endif
 ifeq ($(SEC_MODEL_NAME),U1)
 ifeq ($(X_BUILD_LOCALE),EUR_ORG)
 REGION_CODE=101
+<<<<<<< HEAD
+=======
+endif
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 endif
 endif
+
+DHDCFLAGS += -DWLAN_REGION_CODE=$(REGION_CODE)
+
+##############################################################
 
 DHDCFLAGS += -DWLAN_REGION_CODE=$(REGION_CODE)
 

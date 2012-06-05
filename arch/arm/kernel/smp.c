@@ -119,12 +119,16 @@ int __cpuinit __cpu_up(unsigned int cpu)
 	 */
 	ret = boot_secondary(cpu, idle);
 	if (ret == 0) {
+<<<<<<< HEAD
 		unsigned long timeout;
 
+=======
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 		/*
 		 * CPU was successfully started, wait for it
 		 * to come online or time out.
 		 */
+<<<<<<< HEAD
 		timeout = jiffies + HZ;
 		while (time_before(jiffies, timeout)) {
 			if (cpu_online(cpu))
@@ -133,6 +137,10 @@ int __cpuinit __cpu_up(unsigned int cpu)
 			udelay(10);
 			barrier();
 		}
+=======
+		wait_for_completion_timeout(&cpu_running,
+						 msecs_to_jiffies(1000));
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 
 		if (!cpu_online(cpu)) {
 			pr_crit("CPU%u: failed to come online\n", cpu);
@@ -335,6 +343,10 @@ asmlinkage void __cpuinit secondary_start_kernel(void)
 	 * before we continue.
 	 */
 	set_cpu_online(cpu, true);
+<<<<<<< HEAD
+=======
+	complete(&cpu_running);
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 
 	/*
 	 * Setup the percpu timer for this CPU.

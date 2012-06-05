@@ -519,6 +519,11 @@ static void reset_breathing(void)
 	breathe_volt = breathe.min;
 	if (breathing_enabled)
 		change_touch_key_led_voltage(breathe.min);
+<<<<<<< HEAD
+=======
+	else if (blinking_enabled)
+		change_touch_key_led_voltage(led_brightness);
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 }
 
 static void led_fadeout(void)

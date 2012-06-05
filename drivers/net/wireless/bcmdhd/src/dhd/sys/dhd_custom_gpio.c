@@ -247,6 +247,19 @@ const struct cntry_locales_custom translate_custom_table[] = {
 	{"SK", "SK", 1},
 	{"TR", "TR", 7},
 	{"TW", "TW", 2},
+<<<<<<< HEAD
+=======
+#ifdef CUSTOMER_HW_SAMSUNG
+	{"IR", "XZ", 11},	 /* Universal if Country code is IRAN, (ISLAMIC REPUBLIC OF) */
+	{"SD", "XZ", 11},	 /* Universal if Country code is SUDAN */
+	{"SY", "XZ", 11},	 /* Universal if Country code is SYRIAN ARAB REPUBLIC */
+	{"GL", "XZ", 11},	 /* Universal if Country code is GREENLAND */
+	{"PS", "XZ", 11},	 /* Universal if Country code is PALESTINIAN TERRITORY, OCCUPIED */
+	{"TL", "XZ", 11},	 /* Universal if Country code is TIMOR-LESTE (EAST TIMOR) */
+	{"MH", "XZ", 11},	 /* Universal if Country code is MARSHALL ISLANDS */
+	{"PK", "XZ", 11},	 /* Universal if Country code is PAKISTAN*/
+#endif
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 #ifdef BCM4334_CHIP
 	{"RU", "RU", 5},
 	{"SG", "SG", 4},
@@ -265,7 +278,11 @@ const struct cntry_locales_custom translate_custom_table[] = {
 */
 void get_customized_country_code(char *country_iso_code, wl_country_t *cspec)
 {
+<<<<<<< HEAD
 #ifdef CUSTOMER_HW_SAMSUNG
+=======
+#ifndef CUSTOMER_HW_SAMSUNG
+>>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 	struct cntry_locales_custom *cloc_ptr;
 
 	if (!cspec)

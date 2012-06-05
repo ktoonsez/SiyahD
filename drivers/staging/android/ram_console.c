@@ -335,7 +335,7 @@ static int __init ram_console_early_init(void)
 		ram_console_old_log_init_buffer);
 }
 #else
-static int ram_console_driver_probe(struct platform_device *pdev)
+static int __devinit ram_console_driver_probe(struct platform_device *pdev)
 {
 	struct resource *res = pdev->resource;
 	size_t start;
@@ -391,6 +391,9 @@ static ssize_t ram_console_read_old(struct file *file, char __user *buf,
 {
 	loff_t pos = *offset;
 	ssize_t count;
+
+	if (dmesg_restrict && !capable(CAP_SYSLOG))
+		return -EPERM;
 
 	if (pos >= ram_console_old_log_size)
 		return 0;
