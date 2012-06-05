@@ -574,7 +574,6 @@ wl_get_status_all(struct wl_priv *wl, s32 status)
 			cnt++;
 	}
 	return cnt;
-<<<<<<< HEAD
 }
 
 static inline void
@@ -629,62 +628,6 @@ wl_set_status_all(struct wl_priv *wl, s32 status, u32 op)
 		WL_ERR(("<<<Set Status command with not eixst device %p>>>\n", _ndev));\
 }
 
-=======
-}
-
-static inline void
-wl_set_status_all(struct wl_priv *wl, s32 status, u32 op)
-{
-	struct net_info *_net_info, *next;
-	list_for_each_entry_safe(_net_info, next, &wl->net_list, list) {
-		switch (op) {
-			case 1:
-				return; /* set all status is not allowed */
-			case 2:
-				clear_bit(status, &_net_info->sme_state);
-				if (wl->state_notifier && test_bit(status, &(wl->interrested_state)))
-					wl->state_notifier(wl, _net_info, status, false);
-				break;
-			case 4:
-				return; /* change all status is not allowed */
-			default:
-				return; /*unknown operation */
-			}
-		}
-}
-#define wl_set_status_by_netdev(wl, status, _ndev, op) \
-{ \
-	struct net_info *_net_info, *next;\
-	int found = 0;\
-	list_for_each_entry_safe(_net_info, next, &(wl)->net_list, list) {\
-		if(_ndev && ((_net_info->ndev) == _ndev)) {\
-			found = 1;\
-			switch(op){\
-				case 1:\
-					set_bit(status, &(_net_info->sme_state));\
-					if (wl->state_notifier && test_bit(status, &(wl->interrested_state))) \
-						wl->state_notifier(wl, _net_info, status, true); \
-					if(status == WL_STATUS_SCANNING)\
-						WL_SCAN2(("<<<Set SCANNING bit %p>>>\n", _ndev));\
-					break;\
-				case 2:\
-					 clear_bit(status, &(_net_info->sme_state));\
-					if (wl->state_notifier && test_bit(status, &(wl->interrested_state))) \
-						wl->state_notifier(wl, _net_info, status, false); \
-					if(status == WL_STATUS_SCANNING)\
-						WL_SCAN2(("<<<Clear SCANNING bit %p>>>\n", _ndev));\
-					break;\
-				case 4:\
-					 change_bit(status, &(_net_info->sme_state));\
-					break;\
-			}\
-		}\
-	}\
-	if(found == 0)\
-		WL_ERR(("<<<Set Status command with not eixst device %p>>>\n", _ndev));\
-}
-
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 #if 0
 static inline void
 wl_set_status_by_netdev(struct wl_priv *wl, s32 status,
@@ -776,10 +719,6 @@ static inline struct net_info *
 wl_get_netinfo_by_netdev(struct wl_priv *wl, struct net_device *ndev)
 {
 	struct net_info *_net_info, *next;
-<<<<<<< HEAD
-
-=======
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 	list_for_each_entry_safe(_net_info, next, &wl->net_list, list) {
 				if (ndev && (_net_info->ndev == ndev))
 					return _net_info;

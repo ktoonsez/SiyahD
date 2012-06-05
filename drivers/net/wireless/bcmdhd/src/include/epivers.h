@@ -30,26 +30,12 @@
 
 #define	EPI_MINOR_VERSION	15
 
-<<<<<<< HEAD
-#define	EPI_RC_NUMBER		8
-=======
 #define	EPI_RC_NUMBER		11
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 
 #define	EPI_INCREMENTAL_NUMBER	0
 
 #define	EPI_BUILD_NUMBER	0
 
-<<<<<<< HEAD
-#define	EPI_VERSION		(1, 15, 8, 0)
-
-#define	EPI_VERSION_NUM		0x010f0800
-
-#define EPI_VERSION_DEV		1.15.8
-
-
-#define	EPI_VERSION_STR		"1.15.8 (sdio_patch)" 
-=======
 #define	EPI_VERSION		1, 15, 11, 0
 
 #define	EPI_VERSION_NUM		0x010f0900
@@ -58,6 +44,5 @@
 
 
 #define	EPI_VERSION_STR		"1.15.11"
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 
 #endif /* _epivers_h_ */

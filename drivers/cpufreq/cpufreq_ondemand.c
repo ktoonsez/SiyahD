@@ -35,24 +35,6 @@
  * It helps to keep variable names smaller, simpler
  */
 
-<<<<<<< HEAD
-#define DEF_FREQUENCY_DOWN_DIFFERENTIAL         (20)
-#define DEF_FREQUENCY_UP_THRESHOLD              (80)
-#define DEF_SAMPLING_DOWN_FACTOR                (3)
-#define MAX_SAMPLING_DOWN_FACTOR                (100000)
-#define MICRO_FREQUENCY_DOWN_DIFFERENTIAL       (3)
-#define MICRO_FREQUENCY_UP_THRESHOLD            (60)
-#define MICRO_FREQUENCY_MIN_SAMPLE_RATE         (10000)
-#define MIN_FREQUENCY_UP_THRESHOLD              (10)
-#define MAX_FREQUENCY_UP_THRESHOLD              (100)
-#define FREQ_STEP                               (100)
-#define FREQ_STEP_SUSPEND                       (50)
-#define UP_THRESHOLD_AT_MIN_FREQ                (40)
-#define FREQ_FOR_RESPONSIVENESS                 (1000000)
-
-#ifdef CONFIG_HAS_EARLYSUSPEND
-#define SAMPLING_FACTOR_SUSPEND                 (1)
-=======
 #define DEF_FREQUENCY_DOWN_DIFFERENTIAL         (25)
 #define DEF_FREQUENCY_UP_THRESHOLD              (80)
 #define DEF_SAMPLING_DOWN_FACTOR                (3)
@@ -70,7 +52,6 @@
 /* FIX ME! what is set here, will be on wake state also! */
 #define FREQ_STEP_SUSPEND                       (50)
 #define SAMPLING_FACTOR_SUSPEND                 (3)
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 #define DEF_FREQUENCY_UP_THRESHOLD_SUSPEND      (60)
 #endif
 

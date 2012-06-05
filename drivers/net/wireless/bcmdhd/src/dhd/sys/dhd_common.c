@@ -308,15 +308,11 @@ dhd_wl_ioctl(dhd_pub_t *dhd_pub, int ifindex, wl_ioctl_t *ioc, void *buf, int le
 	dhd_os_proto_block(dhd_pub);
 
 	ret = dhd_prot_ioctl(dhd_pub, ifindex, ioc, buf, len);
-<<<<<<< HEAD
-	if (!ret)
-=======
 #ifdef BCM4334_CHIP
 	if (!ret || ret == -ETIMEDOUT || (dhd_pub->tx_seq_badcnt >= 2))
 #else
 	if (!ret || ret == -ETIMEDOUT)
 #endif
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 		dhd_os_check_hang(dhd_pub, ifindex, ret);
 
 	dhd_os_proto_unblock(dhd_pub);
@@ -1773,7 +1769,7 @@ fail:
 /*
  * returns = TRUE if associated, FALSE if not associated
  */
-bool dhd_is_associated(dhd_pub_t *dhd, void *bss_buf)
+bool dhd_is_associated(dhd_pub_t *dhd, void *bss_buf, int *retval)
 {
 	char bssid[6], zbuf[6];
 	int ret = -1;
@@ -1822,7 +1818,7 @@ dhd_get_dtim_skip(dhd_pub_t *dhd)
 		bcn_li_dtim = dhd->dtim_skip;
 
 	/* Check if associated */
-	if (dhd_is_associated(dhd, NULL) == FALSE) {
+	if (dhd_is_associated(dhd, NULL, NULL) == FALSE) {
 		DHD_TRACE(("%s NOT assoc ret %d\n", __FUNCTION__, ret));
 		goto exit;
 	}
@@ -1865,11 +1861,7 @@ exit:
 bool dhd_check_ap_wfd_mode_set(dhd_pub_t *dhd)
 {
 #ifdef  WL_CFG80211
-<<<<<<< HEAD
-	if (dhd_concurrent_fw(dhd))
-=======
 	if ((dhd->op_mode & CONCURRENT_MASK) == CONCURRENT_MASK)
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 		return FALSE;
 	if (((dhd->op_mode & HOSTAPD_MASK) == HOSTAPD_MASK) ||
 		((dhd->op_mode & WFD_MASK) == WFD_MASK))
@@ -1926,7 +1918,7 @@ dhd_pno_enable(dhd_pub_t *dhd, int pfn_enabled)
 
 	memset(iovbuf, 0, sizeof(iovbuf));
 
-	if ((pfn_enabled) && (dhd_is_associated(dhd, NULL) == TRUE)) {
+	if ((pfn_enabled) && (dhd_is_associated(dhd, NULL, NULL) == TRUE)) {
 		DHD_ERROR(("%s pno is NOT enable : called in assoc mode , ignore\n", __FUNCTION__));
 		return ret;
 	}

@@ -2334,8 +2334,6 @@ static bool dhd_check_hang(struct net_device *net, dhd_pub_t *dhdp, int error)
 {
 	if (!dhdp)
 		return FALSE;
-<<<<<<< HEAD
-=======
 #ifdef BCM4334_CHIP
 	if ((error == -ETIMEDOUT) || (error == -EREMOTEIO) || (dhdp->tx_seq_badcnt >= 2)
 		|| ((dhdp->busstate == DHD_BUS_DOWN) && (!dhdp->dongle_reset))) {
@@ -2346,7 +2344,6 @@ static bool dhd_check_hang(struct net_device *net, dhd_pub_t *dhdp, int error)
 		return TRUE;
 	}
 #else
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 	if ((error == -ETIMEDOUT) || (error == -EREMOTEIO)
 		|| ((dhdp->busstate == DHD_BUS_DOWN) && (!dhdp->dongle_reset))) {
 		DHD_ERROR(("%s: Event HANG send up due to  re=%d te=%d e=%d s=%d\n", __func__,
@@ -2696,12 +2693,6 @@ static int
 dhd_open(struct net_device *net)
 {
 	dhd_info_t *dhd = *(dhd_info_t **)netdev_priv(net);
-<<<<<<< HEAD
-#ifdef PROP_TXSTATUS
-	uint up = 0;
-#endif
-=======
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 #ifdef TOE
 	uint32 toe_ol;
 #endif
@@ -3337,13 +3328,6 @@ dhd_bus_start(dhd_pub_t *dhdp)
 #endif
 #endif /* CUSTOMER_HW_SAMSUNG */
 
-<<<<<<< HEAD
-#ifdef RDWR_KORICS_MACADDR
-dhd_write_rdwr_korics_macaddr(dhd, &dhd->pub.mac);
-#endif /* CUSTOMER_HW_SAMSUNG */
-
-=======
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 #ifdef ARP_OFFLOAD_SUPPORT
 	if (dhd->pend_ipaddr) {
 #ifdef AOE_IP_ALIAS_SUPPORT
@@ -3836,30 +3820,20 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 #endif /* VLAN_MODE_OFF */
 #ifdef GLOBALCONFIG_WLAN_COUNTRY_CODE
 	if (dhd_customer_set_country(dhd) < 0)
-<<<<<<< HEAD
-		DHD_ERROR(("%s: can't set country \n", __func__));
-#endif
-
-
-=======
 		DHD_ERROR(("%s: can't set country\n", __func__));
 #endif
 
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 	/* Force STA UP */
 	if ((ret = dhd_wl_ioctl_cmd(dhd, WLC_UP, (char *)&up, sizeof(up), TRUE, 0)) < 0) {
 		DHD_ERROR(("%s Setting WL UP failed %d\n", __func__, ret));
 		goto done;
 	}
 
-<<<<<<< HEAD
-=======
 #ifdef BCM4334_CHIP
 	bcm_mkiovar("bcn_li_bcn", (char *)&bcn_li_bcn, 4, iovbuf, sizeof(iovbuf));
 	dhd_wl_ioctl_cmd(dhd, WLC_SET_VAR, iovbuf, sizeof(iovbuf), TRUE, 0);
 #endif
 
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 	/* query for 'ver' to get version info from firmware */
 	memset(buf, 0, sizeof(buf));
 	ptr = buf;
@@ -4631,17 +4605,13 @@ dhd_os_wd_timer(void *bus, uint wdtick)
 	/* Totally stop the timer */
 	if (!wdtick && dhd->wd_timer_valid == TRUE) {
 		dhd->wd_timer_valid = FALSE;
-<<<<<<< HEAD
-=======
 		dhd_os_spin_unlock(pub, flags);
 		if (dhd)
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 #ifdef DHDTHREAD
 		del_timer_sync(&dhd->timer);
 #else
 		del_timer(&dhd->timer);
 #endif /* DHDTHREAD */
-		dhd_os_spin_unlock(pub, flags);
 		return;
 	}
 

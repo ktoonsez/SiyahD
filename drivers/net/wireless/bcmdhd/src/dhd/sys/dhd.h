@@ -254,11 +254,7 @@ typedef struct dhd_pub {
 	void* wlfc_state;
 #endif
 	bool	dongle_isolation;
-<<<<<<< HEAD
-	bool	dongle_trap_occured;	/* flag for forcible sending HANG event whenever trap occured */
-=======
 	bool	dongle_trap_occured;
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 	int   hang_was_sent;
 	int   rxcnt_timeout;		/* counter rxcnt timeout to send HANG */
 	int   txcnt_timeout;		/* counter txcnt timeout to send HANG */
@@ -577,7 +573,7 @@ extern uint dhd_bus_status(dhd_pub_t *dhdp);
 extern int  dhd_bus_start(dhd_pub_t *dhdp);
 extern int dhd_bus_membytes(dhd_pub_t *dhdp, bool set, uint32 address, uint8 *data, uint size);
 extern void dhd_print_buf(void *pbuf, int len, int bytes_per_line);
-extern bool dhd_is_associated(dhd_pub_t *dhd, void *bss_buf);
+extern bool dhd_is_associated(dhd_pub_t *dhd, void *bss_buf, int *retval);
 
 #if defined(KEEP_ALIVE)
 extern int dhd_keep_alive_onoff(dhd_pub_t *dhd);

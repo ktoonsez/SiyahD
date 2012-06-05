@@ -104,27 +104,6 @@ static int exynos_target(struct cpufreq_policy *policy,
 
 	freqs.old = policy->cur;
 
-<<<<<<< HEAD
-	if (policy->max < freqs.old || policy->min > freqs.old)
-	{
-		struct cpufreq_policy policytemp;
-		memcpy(&policytemp, policy, sizeof(struct cpufreq_policy));
-		if (policytemp.max < freqs.old)
-			policytemp.max = freqs.old;
-		if (policytemp.min > freqs.old)
-			policytemp.min = freqs.old;
-		if (cpufreq_frequency_table_target(&policytemp, freq_table,
-						   freqs.old, relation, &old_index)) {
-			ret = -EINVAL;
-			goto out;
-		}
-	} else {
-		if (cpufreq_frequency_table_target(policy, freq_table,
-						   freqs.old, relation, &old_index)) {
-			ret = -EINVAL;
-			goto out;
-		}
-=======
 	/*
 	 * cpufreq_frequency_table_target() cannot be used for freqs.old
 	 * because policy->min/max may have been changed. If changed, the
@@ -138,7 +117,6 @@ static int exynos_target(struct cpufreq_policy *policy,
 	if (old_index == UINT_MAX) {
 		ret = -EINVAL;
 		goto out;
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 	}
 
 	if (cpufreq_frequency_table_target(policy, freq_table,
@@ -270,18 +248,6 @@ int exynos_cpufreq_lock(unsigned int nId,
 		return 0;
 	}
 
-<<<<<<< HEAD
-	volt_table = exynos_info->volt_table;
-	policy = cpufreq_cpu_get(0);
-	freq_table = exynos_info->freq_table;
-
-	//prevent locking to a freq higher than stock freq unless overclocked -gm
-	cpufreq_level = max(min(exynos_info->max_current_idx, exynos_info->pm_lock_idx) ,
-							(unsigned int)cpufreq_level);
-
-	mutex_lock(&set_cpu_freq_lock);
-=======
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 	g_cpufreq_lock_id |= (1 << nId);
 	g_cpufreq_lock_val[nId] = cpufreq_level;
 

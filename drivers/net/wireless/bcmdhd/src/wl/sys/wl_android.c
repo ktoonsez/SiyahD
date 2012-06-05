@@ -77,24 +77,18 @@
 #define CMD_P2P_SET_PS		"P2P_SET_PS"
 #define CMD_SET_AP_WPS_P2P_IE		"SET_AP_WPS_P2P_IE"
 
-<<<<<<< HEAD
-=======
 
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 /* Hostapd private command */
 #define CMD_SET_HAPD_AUTO_CHANNEL	"HAPD_AUTO_CHANNEL"
 #define CMD_SET_HAPD_MAX_NUM_STA	"HAPD_MAX_NUM_STA"
 #define CMD_SET_HAPD_SSID			"HAPD_SSID"
 #define CMD_SET_HAPD_HIDE_SSID		"HAPD_HIDE_SSID"
 #define CMD_HAPD_STA_DISASSOC		"HAPD_STA_DISASSOC"
-<<<<<<< HEAD
-=======
 #ifdef BCMCCX
 #define CMD_GETCCKM_RN		"get cckm_rn"
 #define CMD_SETCCKM_KRK		"set cckm_krk"
 #define CMD_GET_ASSOC_RES_IES	"get assoc_res_ies"
 #endif
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 
 #ifdef PNO_SUPPORT
 #define CMD_PNOSSIDCLR_SET	"PNOSSIDCLR"
@@ -233,20 +227,6 @@ static int wl_android_set_suspendopt(struct net_device *dev, char *command, int 
 	int ret_now;
 	int ret = 0;
 
-<<<<<<< HEAD
-	suspend_flag = *(command + strlen(CMD_SETSUSPENDOPT) + 1) - '0';
-
-	if (suspend_flag != 0)
-		suspend_flag = 1;
-	ret_now = net_os_set_suspend_disable(dev, suspend_flag);
-
-	if (ret_now != suspend_flag) {
-		if (!(ret = net_os_set_suspend(dev, ret_now)))
-			DHD_INFO(("%s: Suspend Flag %d -> %d\n",
-				__func__, ret_now, suspend_flag));
-		else
-			DHD_ERROR(("%s: failed %d\n", __func__, ret));
-=======
 #ifdef CUSTOMER_HW_SAMSUNG
 	if (!dhd_download_fw_on_driverload) {
 #endif /* CUSTOMER_HW_SAMSUNG */
@@ -264,7 +244,6 @@ static int wl_android_set_suspendopt(struct net_device *dev, char *command, int 
 				DHD_ERROR(("%s: failed %d\n", __func__, ret));
 		}
 #ifdef CUSTOMER_HW_SAMSUNG
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 	}
 #endif /* CUSTOMER_HW_SAMSUNG */
 	return ret;
@@ -850,10 +829,6 @@ static int
 wl_android_sta_diassoc(struct net_device *dev, const char* straddr)
 {
 	scb_val_t scbval;
-<<<<<<< HEAD
-	char addr[ETHER_ADDR_LEN];
-=======
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 	s32 ret;
 
 	DHD_INFO(("%s: deauth STA %s\n", __func__, straddr));

@@ -159,27 +159,11 @@ sdioh_attach(osl_t *osh, void *bar0, uint irq)
 	/* Claim host controller */
 	if (gInstance->func[1]) {
 		sdio_claim_host(gInstance->func[1]);
-<<<<<<< HEAD
 
 		sd->client_block_size[1] = 64;
 		err_ret = sdio_set_block_size(gInstance->func[1], 64);
 		if (err_ret)
 			sd_err(("bcmsdh_sdmmc: Failed to set F1 blocksize\n"));
-
-		/* Release host controller F1 */
-		sdio_release_host(gInstance->func[1]);
-	} else {
-		sd_err(("%s:gInstance->func[1] is null\n", __func__));
-		MFREE(sd->osh, sd, sizeof(sdioh_info_t));
-		return NULL;
-	}
-=======
-
-		sd->client_block_size[1] = 64;
-		err_ret = sdio_set_block_size(gInstance->func[1], 64);
-		if (err_ret)
-			sd_err(("bcmsdh_sdmmc: Failed to set F1 blocksize\n"));
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 
 		/* Release host controller F1 */
 		sdio_release_host(gInstance->func[1]);

@@ -679,15 +679,6 @@ static u8 sdhci_calc_timeout(struct sdhci_host *host, struct mmc_command *cmd)
 		 */
 		if (count >= 0xF)
 			count = 0xE;
-<<<<<<< HEAD
-	}
-
-	if (count >= 0xF) {
-		printk(KERN_WARNING "%s: Too large timeout requested for CMD%d!\n",
-		       mmc_hostname(host->mmc), cmd->opcode);
-		count = 0xE;
-=======
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 	}
 
 	if (count >= 0xF)

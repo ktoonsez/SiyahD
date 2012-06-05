@@ -194,10 +194,7 @@ static int bcmsdh_sdmmc_suspend(struct device *pdev)
 
 	if (dhd_os_check_wakelock(bcmsdh_get_drvdata()))
 		return -EBUSY;
-<<<<<<< HEAD
-=======
 #if !defined(CUSTOMER_HW_SAMSUNG)
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 #if defined(OOB_INTR_ONLY)
 	bcmsdh_oob_intr_set(0);
 #endif	/* defined(OOB_INTR_ONLY) */

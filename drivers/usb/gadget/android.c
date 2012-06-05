@@ -213,8 +213,6 @@ static void android_work(struct work_struct *data)
 	} else {
 		printk(KERN_DEBUG "usb: %s did not send uevent (%d %d %p)\n",
 		 __func__, dev->connected, dev->sw_connected, cdev->config);
-<<<<<<< HEAD
-=======
 	}
 }
 
@@ -229,7 +227,6 @@ static void android_enable(struct android_dev *dev)
 		usb_add_config(cdev, &android_config_driver,
 					android_bind_config);
 		usb_gadget_connect(cdev->gadget);
->>>>>>> Dorimanx-SG2-I9100-Kernel/master-3.0.y
 	}
 }
 
