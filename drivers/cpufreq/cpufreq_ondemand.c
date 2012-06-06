@@ -35,24 +35,24 @@
  * It helps to keep variable names smaller, simpler
  */
 
-#define DEF_FREQUENCY_DOWN_DIFFERENTIAL         (25)
+#define DEF_FREQUENCY_DOWN_DIFFERENTIAL         (10)
 #define DEF_FREQUENCY_UP_THRESHOLD              (80)
-#define DEF_SAMPLING_DOWN_FACTOR                (3)
+#define DEF_SAMPLING_DOWN_FACTOR                (5)
 #define MAX_SAMPLING_DOWN_FACTOR                (100000)
-#define MICRO_FREQUENCY_DOWN_DIFFERENTIAL       (5)
-#define MICRO_FREQUENCY_UP_THRESHOLD            (60)
+#define MICRO_FREQUENCY_DOWN_DIFFERENTIAL       (1)
+#define MICRO_FREQUENCY_UP_THRESHOLD            (50)
 #define MICRO_FREQUENCY_MIN_SAMPLE_RATE         (10000)
 #define MIN_FREQUENCY_UP_THRESHOLD              (11)
 #define MAX_FREQUENCY_UP_THRESHOLD              (100)
-#define FREQ_STEP                               (50)
-#define UP_THRESHOLD_AT_MIN_FREQ                (50)
-#define FREQ_FOR_RESPONSIVENESS                 (500000)
+#define FREQ_STEP                               (20)
+#define UP_THRESHOLD_AT_MIN_FREQ                (60)
+#define FREQ_FOR_RESPONSIVENESS                 (600000)
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 /* FIX ME! what is set here, will be on wake state also! */
-#define FREQ_STEP_SUSPEND                       (50)
-#define SAMPLING_FACTOR_SUSPEND                 (3)
-#define DEF_FREQUENCY_UP_THRESHOLD_SUSPEND      (60)
+#define FREQ_STEP_SUSPEND                       (20)
+#define SAMPLING_FACTOR_SUSPEND                 (5)
+#define DEF_FREQUENCY_UP_THRESHOLD_SUSPEND      (50)
 #endif
 
 /*
