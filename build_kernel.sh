@@ -93,8 +93,15 @@ then
 	rm -rf $INITRAMFS_TMP/.hg
 fi
 
+#For now remove the VLM binary from initramfs till it's will be used for something.
+if [ -e $INITRAMFS_TMP/sbin/lvm ]
+then
+	rm -f $INITRAMFS_TMP/sbin/lvm
+fi
+
 # copy modules into initramfs
 mkdir -p $INITRAMFS/lib/modules
+mkdir -p $INITRAMFS_TMP/lib/modules
 find -name '*.ko' -exec cp -av {} $INITRAMFS_TMP/lib/modules/ \;
 ${CROSS_COMPILE}strip --strip-debug $INITRAMFS_TMP/lib/modules/*.ko
 chmod 755 $INITRAMFS_TMP/lib/modules/*
