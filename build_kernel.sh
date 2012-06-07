@@ -32,6 +32,8 @@ fi
 if [ ! -f $KERNELDIR/.config ];
 then
 	make dorimanx_defconfig
+else 
+	cp $KERNELDIR/arch/arm/configs/dorimanx_defconfig .config
 fi
 
 . $KERNELDIR/.config
