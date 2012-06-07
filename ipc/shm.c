@@ -386,6 +386,16 @@ static int shm_fsync(struct file *file, int datasync)
 	return sfd->file->f_op->fsync(sfd->file, datasync);
 }
 
+static long shm_fallocate(struct file *file, int mode, loff_t offset,
+			  loff_t len)
+{
+	struct shm_file_data *sfd = shm_file_data(file);
+
+	if (!sfd->file->f_op->fallocate)
+		return -EOPNOTSUPP;
+	return sfd->file->f_op->fallocate(file, mode, offset, len);
+}
+
 static unsigned long shm_get_unmapped_area(struct file *file,
 	unsigned long addr, unsigned long len, unsigned long pgoff,
 	unsigned long flags)
@@ -403,6 +413,7 @@ static const struct file_operations shm_file_operations = {
 	.get_unmapped_area	= shm_get_unmapped_area,
 #endif
 	.llseek		= noop_llseek,
+	.fallocate	= shm_fallocate,
 };
 
 static const struct file_operations shm_file_operations_huge = {
@@ -411,6 +422,7 @@ static const struct file_operations shm_file_operations_huge = {
 	.release	= shm_release,
 	.get_unmapped_area	= shm_get_unmapped_area,
 	.llseek		= noop_llseek,
+	.fallocate	= shm_fallocate,
 };
 
 int is_file_shm_hugepages(struct file *file)
