@@ -29,39 +29,39 @@ then
 	export KERNELDIR=`readlink -f ${1}`
 fi
 
-if [ ! -f $KERNELDIR/.config ];
-then
+if [ ! -f $KERNELDIR/.config ]; then
 	make dorimanx_defconfig
+else
+	if [ $KERNELDIR/arch/arm/configs/dorimanx_defconfig -nt .config ]; then
+		cp $KERNELDIR/arch/arm/configs/dorimanx_defconfig .config
+	fi;
 fi
 
 . $KERNELDIR/.config
 
 # remove previous zImage files
-if [ -e $KERNELDIR/zImage ]; 
-then
+if [ -e $KERNELDIR/zImage ]; then
 	rm $KERNELDIR/zImage
 fi
-if [ -e $KERNELDIR/arch/arm/boot/zImage ]; 
-then
+
+if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
 	rm $KERNELDIR/arch/arm/boot/zImage
 fi
 
 # remove all old modules before compile
 cd $KERNELDIR
 OLDMODULES=`find -name *.ko`
-for i in $OLDMODULES;
-do
+for i in $OLDMODULES; do
 	rm -f $i
 done
 
 # remove previous initramfs files
-if [ -e $INITRAMFS_TMP ];
-then
+if [ -e $INITRAMFS_TMP ]; then
 	echo "removing old temp iniramfs"
 	rm -rf $INITRAMFS_TMP
 fi
-if [ -f /tmp/cpio* ];
-then
+
+if [ -f /tmp/cpio* ]; then
 	echo "removing old temp iniramfs_tmp.cpio"
 	rm -rf /tmp/cpio*
 fi
@@ -71,8 +71,7 @@ rm -f usr/initramfs_data.cpio
 rm -f usr/initramfs_data.o
 
 cd $KERNELDIR/
-if [ $USER != "root" ];
-then
+if [ $USER != "root" ]; then
 	make -j$NAMBEROFCPUS modules || exit 1
 else
 	nice -n 10 make -j$NAMBEROFCPUS modules || exit 1
@@ -81,21 +80,18 @@ fi
 # copy initramfs files to tmp directory
 cp -ax $INITRAMFS_SOURCE $INITRAMFS_TMP
 # clear git repositories in initramfs
-if [ -e /tmp/initramfs-source/.git ];
-then
+if [ -e /tmp/initramfs-source/.git ]; then
 	rm -rf /tmp/initramfs-source/.git
 fi
 # remove empty directory placeholders
 find $INITRAMFS_TMP -name EMPTY_DIRECTORY -exec rm -rf {} \;
 # remove mercurial repository
-if [ -d $INITRAMFS_TMP/.hg ];
-then
+if [ -d $INITRAMFS_TMP/.hg ]; then
 	rm -rf $INITRAMFS_TMP/.hg
 fi
 
 #For now remove the VLM binary from initramfs till it's will be used for something.
-if [ -e $INITRAMFS_TMP/sbin/lvm ]
-then
+if [ -e $INITRAMFS_TMP/sbin/lvm ]; then
 	rm -f $INITRAMFS_TMP/sbin/lvm
 fi
 
@@ -105,15 +101,13 @@ mkdir -p $INITRAMFS_TMP/lib/modules
 find -name '*.ko' -exec cp -av {} $INITRAMFS_TMP/lib/modules/ \;
 ${CROSS_COMPILE}strip --strip-debug $INITRAMFS_TMP/lib/modules/*.ko
 chmod 755 $INITRAMFS_TMP/lib/modules/*
-if [ $USER != "root" ];
-then
+if [ $USER != "root" ]; then
 	make -j$NAMBEROFCPUS zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
 else
 	nice -n 10 make -j$NAMBEROFCPUS zImage CONFIG_INITRAMFS_SOURCE="$INITRAMFS_TMP" || exit 1
 fi
 
-if [ -e $KERNELDIR/arch/arm/boot/zImage ];
-then
+if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
 	$KERNELDIR/mkshbootimg.py $KERNELDIR/zImage $KERNELDIR/arch/arm/boot/zImage $KERNELDIR/payload.tar $KERNELDIR/recovery.tar.xz
 
 	# copy all needed to ready kernel folder.
