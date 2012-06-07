@@ -784,7 +784,7 @@ static int __init busfreq_mon_init(void)
 			(clkdiv_top[i][1] << EXYNOS4_CLKDIV_TOP_ACLK100_SHIFT) |
 			(clkdiv_top[i][2] << EXYNOS4_CLKDIV_TOP_ACLK160_SHIFT) |
 			(clkdiv_top[i][3] << EXYNOS4_CLKDIV_TOP_ACLK133_SHIFT) |
-			(clkdiv_top[i][4] << EXYNOS4_CLKDIV_TOP_ACLK100_SHIFT) | 
+			(clkdiv_top[i][4] << EXYNOS4_CLKDIV_TOP_ACLK100_SHIFT) |
 			(clkdiv_top[i][5] << EXYNOS4_CLKDIV_TOP_ONENAND_SHIFT));
 
 		exynos4_busfreq_table[i].clk_topdiv = tmp;
