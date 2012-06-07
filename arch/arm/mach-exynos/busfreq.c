@@ -77,6 +77,7 @@ enum busfreq_level_idx {
 	LV_0,
 	LV_1,
 	LV_2,
+	LV_3,
 	LV_END
 };
 
