@@ -81,8 +81,9 @@ arch/arm/boot/compressed/piggy.gzip
 arch/arm/boot/compressed/piggy.xzkern
 arch/arm/boot/compressed/vmlinux
 
-#Ready kernel zip ignore
+# ready kernel ignore
 READY/Kernel_Dorimanx-*
+READY/boot/zImage
 # stgit generated dirs
 patches-*
 
