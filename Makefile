@@ -360,7 +360,7 @@ CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
 				  -funswitch-loops -fgcse-after-reload -falign-loops
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 CFLAGS_DISABLE  = -fno-delete-null-pointer-checks -fno-gcse
-KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_REGISTER) \
+KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) \
                   $(CFLAGS_LOOPS) $(CFLAGS_MODULO) $(CFLAGS_DISABLE)
 MODFLAGS        = -DMODULE $(KERNELFLAGS)
 CFLAGS_MODULE   = $(MODFLAGS)
