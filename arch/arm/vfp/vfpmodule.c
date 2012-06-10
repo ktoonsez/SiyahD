@@ -396,6 +396,7 @@ void VFP_bounce(u32 trigger, u32 fpexc, struct pt_regs *regs)
 static void vfp_enable(void *unused)
 {
 	u32 access;
+
 	access = get_copro_access();
 
 	/*
