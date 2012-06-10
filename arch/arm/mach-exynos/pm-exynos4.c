@@ -331,10 +331,7 @@ void exynos4_cpu_suspend(void)
 	exynos_smc(SMC_CMD_SLEEP, 0, 0, 0);
 #else
 	/* issue the standby signal into the pm unit. */
-	if (arm_pm_idle)
-		arm_pm_idle();
-	else
-		cpu_do_idle();
+	cpu_do_idle();
 #endif
 }
 
