@@ -3712,7 +3712,9 @@ static int mc1n2_hwdep_ioctl_set_path(struct snd_soc_codec *codec,
 	} else {
 		audio_ctrl_mic_bias_gpio(mc1n2->pdata, MAIN_MIC, 1);
 		if (mc1n2->delay_mic1in > 0) {
-			mdelay(mc1n2->delay_mic1in);
+			if(mc1n2->delay_mic1in > 0) {
+				msleep(mc1n2->delay_mic1in);
+			}
 		}
 	}
 
