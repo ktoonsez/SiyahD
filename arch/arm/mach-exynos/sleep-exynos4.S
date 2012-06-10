@@ -110,6 +110,8 @@ sleep_save_misc:
 	 * other way of restoring the stack pointer after sleep, and we
 	 * must not write to the code segment (code is read-only)
 	 */
+	.align
+	.data
 
 ENTRY(s3c_cpu_resume)
 	b	cpu_resume
