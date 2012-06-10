@@ -346,22 +346,27 @@ PERL		= perl
 CHECK		= sparse
 
 CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
-			-Wbitwise -Wno-return-void $(CF)
+		  -Wbitwise -Wno-return-void $(CF)
 CFLAGS_COMPILE  = -pipe -fno-ident -fprofile-correction
 CFLAGS_ARM      = -marm -mtune=cortex-a9 -march=armv7-a -mfpu=neon \
-			-mfloat-abi=softfp
+		  -mfloat-abi=softfp \
+		  --param l2-cache-size=1024 \
+		  --param l1-cache-size=64 \
+		  --param simultaneous-prefetches=6 \
+		  --param prefetch-latency=400 
 CFLAGS_REGISTER = -fschedule-insns -fsched-spec-load -fforce-addr \
-			-frename-registers
+				  -frename-registers
 CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
-			-ftree-loop-distribution -ftree-loop-linear \
-			-floop-strip-mine -floop-block \
-			-ftree-vectorize -mvectorize-with-neon-quad \
-			-fpredictive-commoning -finline-functions \
-			-funswitch-loops -fgcse-after-reload -falign-loops 
+				  -ftree-loop-distribution -ftree-loop-linear \
+				  -floop-strip-mine -floop-block \
+				  -ftree-vectorize -mvectorize-with-neon-quad \
+				  -fpredictive-commoning -finline-functions \
+				  -funswitch-loops -fgcse-after-reload -falign-loops \
+				  -fprefetch-loop-arrays
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 CFLAGS_DISABLE  = -fno-delete-null-pointer-checks -fno-gcse
 KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) \
-			$(CFLAGS_LOOPS) $(CFLAGS_MODULO) $(CFLAGS_DISABLE)
+                  $(CFLAGS_LOOPS) $(CFLAGS_MODULO) $(CFLAGS_DISABLE)
 MODFLAGS        = -DMODULE $(KERNELFLAGS)
 CFLAGS_MODULE   = $(MODFLAGS)
 AFLAGS_MODULE   = $(MODFLAGS)
