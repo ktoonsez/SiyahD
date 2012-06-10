@@ -27,8 +27,6 @@
 */
 
 #include <linux/linkage.h>
-#include <asm/assembler.h>
-#include <asm/memory.h>
 #include <mach/smc.h>
 
 	.text
@@ -115,3 +113,4 @@ sleep_save_misc:
 
 ENTRY(s3c_cpu_resume)
 	b	cpu_resume
+ENDPROC(s3c_cpu_resume)
