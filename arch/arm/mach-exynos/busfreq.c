@@ -45,8 +45,8 @@
 
 #define MAX_LOAD		100
 #define DIVIDING_FACTOR		10000
-#define UP_THRESHOLD_DEFAULT	23
-#define DOWN_THRESHOLD_DEFAULT	23
+#define UP_THRESHOLD_DEFAULT	30
+#define DOWN_THRESHOLD_DEFAULT	25
 
 static unsigned up_threshold;
 static unsigned down_threshold;
