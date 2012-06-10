@@ -369,14 +369,10 @@ static void pm_suspend_marker(char *annotation)
  */
 int pm_suspend(suspend_state_t state)
 {
-	int error;
-
-	if (state <= PM_SUSPEND_ON || state >= PM_SUSPEND_MAX)
+	if (state > PM_SUSPEND_ON && state < PM_SUSPEND_MAX)
+		pm_suspend_marker("entry");
+		return enter_state(state);
+		pm_suspend_marker("exit");
 		return -EINVAL;
-
-	pm_suspend_marker("entry");
-	error = enter_state(state);
-	pm_suspend_marker("exit");
-	return error;
 }
 EXPORT_SYMBOL(pm_suspend);
