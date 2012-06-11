@@ -21,6 +21,7 @@
 #include <asm/cputype.h>
 #include <asm/thread_notify.h>
 #include <asm/vfp.h>
+#include <linux/cpu_pm.h>
 
 #include "vfpinstr.h"
 #include "vfp.h"
@@ -173,6 +174,35 @@ static int vfp_notifier(struct notifier_block *self, unsigned long cmd, void *v)
 
 static struct notifier_block vfp_notifier_block = {
 	.notifier_call	= vfp_notifier,
+};
+
+static int vfp_cpu_pm_notifier(struct notifier_block *self, unsigned long cmd,
+	void *v)
+{
+	u32 fpexc = fmrx(FPEXC);
+	unsigned int cpu = smp_processor_id();
+
+	switch (cmd) {
+	case CPU_PM_ENTER:
+		if (vfp_current_hw_state[cpu]) {
+			fmxr(FPEXC, fpexc | FPEXC_EN);
+			vfp_save_state(vfp_current_hw_state[cpu], fpexc);
+			/* force a reload when coming back from idle */
+			vfp_current_hw_state[cpu] = NULL;
+			fmxr(FPEXC, fpexc & ~FPEXC_EN);
+		}
+		break;
+	case CPU_PM_ENTER_FAILED:
+	case CPU_PM_EXIT:
+		/* make sure VFP is disabled when leaving idle */
+		fmxr(FPEXC, fpexc & ~FPEXC_EN);
+		break;
+	}
+	return NOTIFY_OK;
+}
+
+static struct notifier_block vfp_cpu_pm_notifier_block = {
+	.notifier_call = vfp_cpu_pm_notifier,
 };
 
 /*
@@ -413,6 +443,12 @@ static int vfp_pm_suspend(void)
 	struct thread_info *ti = current_thread_info();
 	u32 fpexc = fmrx(FPEXC);
 
+	/* If lazy disable, re-enable the VFP ready for it to be saved */
+	if (vfp_current_hw_state[ti->cpu] != &ti->vfpstate) {
+		fpexc |= FPEXC_EN;
+		fmxr(FPEXC, fpexc);
+	}
+
 	/* if vfp is on, then save state for resumption */
 	if (fpexc & FPEXC_EN) {
 		printk(KERN_DEBUG "%s: saving vfp state\n", __func__);
@@ -575,6 +611,7 @@ static int __init vfp_init(void)
 		vfp_vector = vfp_support_entry;
 
 		thread_register_notifier(&vfp_notifier_block);
+		cpu_pm_register_notifier(&vfp_cpu_pm_notifier_block);
 		vfp_pm_init();
 
 		/*
