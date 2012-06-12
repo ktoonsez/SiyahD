@@ -621,6 +621,9 @@ static int __devinit sdhci_s3c_probe(struct platform_device *pdev)
 	if (pdata->cd_type == S3C_SDHCI_CD_PERMANENT)
 		host->mmc->caps = MMC_CAP_NONREMOVABLE;
 
+	if (pdata->host_caps)
+		host->mmc->caps |= pdata->host_caps;
+
 	/* if vmmc_name is in pdata */
 	if (pdata->vmmc_name)
 		host->vmmc_name = pdata->vmmc_name;
