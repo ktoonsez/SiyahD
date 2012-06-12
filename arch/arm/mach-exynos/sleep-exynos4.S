@@ -28,6 +28,8 @@
 
 #include <linux/linkage.h>
 #include <mach/smc.h>
+#include <asm/assembler.h>
+#include <asm/memory.h>
 
 	.text
 
