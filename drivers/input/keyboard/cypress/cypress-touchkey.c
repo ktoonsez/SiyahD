@@ -1475,9 +1475,7 @@ static struct miscdevice bln_device = {
         .name  = "backlightnotification",
 };
 
-#ifdef CONFIG_TOUCHSCREEN_ATMEL_MXT224_U1
 extern void (*mxt224_touch_cb)(void);
-#endif
 
 void cypress_notify_touch(void)
 {
@@ -1646,10 +1644,9 @@ static int i2c_touchkey_probe(struct i2c_client *client,
 	status = 2;
 	i2c_touchkey_write((u8 *)&status, 1);
 
-#ifdef CONFIG_TOUCHSCREEN_ATMEL_MXT224_U1
 	mxt224_touch_cb = cypress_notify_touch;
 #endif
-#endif
+
 	return 0;
 }
 
