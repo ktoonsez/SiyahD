@@ -12,12 +12,12 @@
 #include <linux/platform_device.h>
 #include <linux/miscdevice.h>
 
-#define MAX_CURRENT_AC   750
-#define MAX_CURRENT_MISC 700
-#define MAX_CURRENT_USB  550
-int charge_current_ac = 650;
-int charge_current_misc = 450;
-int charge_current_usb = 450;
+#define MAX_CURRENT_AC   850
+#define MAX_CURRENT_MISC 850
+#define MAX_CURRENT_USB  600
+int charge_current_ac = 700;
+int charge_current_misc = 700;
+int charge_current_usb = 500;
 
 static ssize_t charge_current_show(struct device *dev, struct device_attribute *attr, char *buf) {
 	return sprintf(buf, "AC: %d\nMisc: %d\nUSB: %d\n",
