@@ -301,7 +301,7 @@ static const unsigned int asv_voltage_A[CPUFREQ_LEVEL_END][8] = {
 	{ 1025000, 1000000,  975000,  950000,  925000,  900000,  875000,  850000 }, // 400MHz
 	{ 1025000, 1000000,  975000,  950000,  925000,  900000,  875000,  850000 }, // 300MHz
 	{ 1025000, 1000000,  975000,  950000,  925000,  900000,  875000,  850000 }, // 200MHz
-	{ 1025000, 1000000,  975000,  950000,  925000,  900000,  875000,  850000 }, // 100MHz
+	{ 1025000,  975000,  950000,  925000,  925000,  900000,  875000,  850000 }, // 100MHz
 	{ 1000000,  975000,  950000,  925000,  900000,  875000,  850000,  825000 }, //  50MHz
 	{ 1000000,  975000,  950000,  925000,  900000,  875000,  850000,  825000 }, //  25MHz
 
@@ -341,7 +341,7 @@ static const unsigned int asv_voltage_B[CPUFREQ_LEVEL_END][5] = {
 static void set_clkdiv(unsigned int div_index)
 {
 	unsigned int tmp;
-	/* Change Divider - CPU0 */
+	/* Change Divider - CPU-1 */
 
 	tmp = exynos4210_clkdiv_table[div_index].clkdiv;
 
