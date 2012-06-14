@@ -579,12 +579,12 @@ static int exynos_cpufreq_notifier_event(struct notifier_block *this,
 
 		ret = exynos_cpufreq_lock(DVFS_LOCK_ID_PM,
 					   exynos_info->pm_lock_idx);
-		if (WARN_ON(ret < 0))
+		if (ret < 0)
 			return NOTIFY_BAD;
 #if defined(CONFIG_CPU_EXYNOS4210)
 		ret = exynos_cpufreq_upper_limit(DVFS_LOCK_ID_PM,
 						exynos_info->pm_lock_idx);
-		if (WARN_ON(ret < 0))
+		if (ret < 0)
 			return NOTIFY_BAD;
 #endif
 
