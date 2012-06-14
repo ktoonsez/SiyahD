@@ -26,6 +26,7 @@ config HAVE_IRQ_WORK
 config IRQ_WORK
 	bool
 	depends on HAVE_IRQ_WORK
+	select LLIST
 
 menu "General setup"
 

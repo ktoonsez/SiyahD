@@ -175,6 +175,9 @@ config HAVE_ARCH_JUMP_LABEL
 config HAVE_ARCH_MUTEX_CPU_RELAX
 	bool
 
+config ARCH_HAVE_NMI_SAFE_CMPXCHG
+	bool
+
 config HAVE_RCU_TABLE_FREE
 	bool
 
