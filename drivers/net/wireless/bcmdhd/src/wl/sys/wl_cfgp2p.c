@@ -1352,6 +1352,7 @@ wl_cfgp2p_listen_expired(unsigned long data)
 	struct wl_priv *wl = (struct wl_priv *) data;
 
 	CFGP2P_DBG((" Enter\n"));
+	memset(&msg, 0, sizeof(wl_event_msg_t));
 	msg.event_type =  hton32(WLC_E_P2P_DISC_LISTEN_COMPLETE);
 	wl_cfg80211_event(wl_to_p2p_bss_ndev(wl, P2PAPI_BSSCFG_DEVICE), &msg, NULL);
 }
