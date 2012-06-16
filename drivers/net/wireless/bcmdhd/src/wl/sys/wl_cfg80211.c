@@ -8173,12 +8173,6 @@ s32 wl_update_wiphybands(struct wl_priv *wl)
 	if (err)
 		return err;
 
-	err = wl_construct_reginfo(wl, bw_cap);
-	if (err) {
-		WL_ERR(("wl_construct_reginfo() fails err=%d\n", err));
-		return err;
-	}
-
 	wiphy = wl_to_wiphy(wl);
 	nband = bandlist[0];
 	wiphy->bands[IEEE80211_BAND_5GHZ] = NULL;
