@@ -831,7 +831,7 @@ static void receive_file_work(struct work_struct *data)
 			if (ret != write_req->actual) {
 				r = -EIO;
 				if (dev->state != STATE_OFFLINE)
-					dev->state = STATE_ERROR;	
+					dev->state = STATE_ERROR;
 				break;
 			}
 			write_req = NULL;

@@ -4234,7 +4234,7 @@ wl_cfg80211_send_at_common_channel(struct wl_priv *wl,
 	if (wl->afx_hdl->peer_chan != WL_INVALID)
 		wl_cfg80211_send_pending_tx_act_frm(wl);
 	else {
-		WL_ERR(("Couldn't find the peer after %d retries\n",	
+		WL_ERR(("Couldn't find the peer after %d retries\n",
 			wl->afx_hdl->retry));
 	}
 	wl->afx_hdl->is_listen = FALSE;

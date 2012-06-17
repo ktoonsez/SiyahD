@@ -2716,7 +2716,7 @@ static inline void update_sg_lb_stats(struct sched_domain *sd,
 			int *balance, struct sg_lb_stats *sgs)
 {
 	unsigned long nr_running, max_nr_running, min_nr_running;
-	unsigned long load, max_cpu_load, min_cpu_load;	
+	unsigned long load, max_cpu_load, min_cpu_load;
 	int i;
 	unsigned int balance_cpu = -1, first_idle_cpu = 0;
 	unsigned long avg_load_per_task = 0;
@@ -2793,7 +2793,7 @@ static inline void update_sg_lb_stats(struct sched_domain *sd,
 		avg_load_per_task = sgs->sum_weighted_load / sgs->sum_nr_running;
 
 	if ((max_cpu_load - min_cpu_load) >= avg_load_per_task &&
-			(max_nr_running - min_nr_running) > 1)	
+			(max_nr_running - min_nr_running) > 1)
 		sgs->group_imb = 1;
 
 	sgs->group_capacity = DIV_ROUND_CLOSEST(group->sgp->power,
