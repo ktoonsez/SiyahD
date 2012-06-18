@@ -509,7 +509,7 @@ struct hci_conn *hci_connect(struct hci_dev *hdev, int type,
 	struct hci_conn *acl;
 	struct hci_conn *sco;
 	struct hci_conn *le;
-//	struct inquiry_entry *ie;
+	struct inquiry_entry *ie;
 
 	BT_DBG("%s dst %s", hdev->name, batostr(dst));
 
