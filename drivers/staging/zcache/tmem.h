@@ -193,7 +193,7 @@ extern void tmem_register_hostops(struct tmem_hostops *m);
 
 /* core tmem accessor functions */
 extern int tmem_put(struct tmem_pool *, struct tmem_oid *, uint32_t index,
-			char *, size_t, bool, bool);
+			char *, size_t, bool, int);
 extern int tmem_get(struct tmem_pool *, struct tmem_oid *, uint32_t index,
 			char *, size_t *, bool, int);
 extern int tmem_replace(struct tmem_pool *, struct tmem_oid *, uint32_t index,
