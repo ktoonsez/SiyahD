@@ -26,7 +26,7 @@
 
 #include <linux/list.h>
 #include <linux/spinlock.h>
-#include <asm/atomic.h>
+#include <linux/atomic.h>
 
 #include "tmem.h"
 
@@ -529,7 +529,7 @@ static void tmem_pampd_destroy_all_in_obj(struct tmem_obj *obj)
  * always flushes for simplicity.
  */
 int tmem_put(struct tmem_pool *pool, struct tmem_oid *oidp, uint32_t index,
-		char *data, size_t size, bool raw, bool ephemeral)
+		char *data, size_t size, bool raw, int ephemeral)
 {
 	struct tmem_obj *obj = NULL, *objfound = NULL, *objnew = NULL;
 	void *pampd = NULL, *pampd_del = NULL;
@@ -607,11 +607,11 @@ int tmem_get(struct tmem_pool *pool, struct tmem_oid *oidp, uint32_t index,
 	int ret = -1;
 	struct tmem_hashbucket *hb;
 	bool free = (get_and_free == 1) || ((get_and_free == 0) && ephemeral);
-	bool lock_held = false;
+	bool lock_held = 0;
 
 	hb = &pool->hashbucket[tmem_oid_hash(oidp)];
 	spin_lock(&hb->lock);
-	lock_held = true;
+	lock_held = 1;
 	obj = tmem_obj_find(hb, oidp);
 	if (obj == NULL)
 		goto out;
@@ -629,7 +629,7 @@ int tmem_get(struct tmem_pool *pool, struct tmem_oid *oidp, uint32_t index,
 		}
 	}
 	if (tmem_pamops.is_remote(pampd)) {
-		lock_held = false;
+		lock_held = 0;
 		spin_unlock(&hb->lock);
 	}
 	if (free)
@@ -682,8 +682,8 @@ out:
 
 /*
  * If a page in tmem matches the handle, replace the page so that any
- * subsequent "get" gets the new page.  Returns 0 if
- * there was a page to replace, else returns -1.
+ * subsequent "get" gets the new page.  Returns the new page if
+ * there was a page to replace, else returns NULL.
  */
 int tmem_replace(struct tmem_pool *pool, struct tmem_oid *oidp,
 			uint32_t index, void *new_pampd)
