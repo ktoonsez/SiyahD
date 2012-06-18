@@ -1699,6 +1699,7 @@ static unsigned int mmc_erase_timeout(struct mmc_card *card,
 		return mmc_mmc_erase_timeout(card, arg, qty);
 }
 
+#if 0 //unused function, may brick our device.
 static int mmc_do_erase(struct mmc_card *card, unsigned int from,
 			unsigned int to, unsigned int arg)
 {
@@ -1799,6 +1800,7 @@ static int mmc_do_erase(struct mmc_card *card, unsigned int from,
 out:
 	return err;
 }
+#endif
 
 /**
  * mmc_erase - erase sectors.

@@ -835,7 +835,6 @@ void touchkey_work_func(struct work_struct *p)
 	int retry = 10;
 	int keycode_type = 0;
 	int pressed;
-	int status;
 
 	set_touchkey_debug('a');
 

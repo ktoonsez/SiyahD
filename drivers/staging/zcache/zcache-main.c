@@ -27,7 +27,7 @@
 #include <linux/slab.h>
 #include <linux/spinlock.h>
 #include <linux/types.h>
-#include <asm/atomic.h>
+#include <linux/atomic.h>
 #include <linux/math64.h>
 #include "tmem.h"
 
