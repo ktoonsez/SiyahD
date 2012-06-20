@@ -116,6 +116,7 @@ u32 wl_dbg_level = WL_DBG_ERR;
 #define MAX_WAIT_TIME 1500
 #define WL_SCAN_ACTIVE_TIME	 40 /* ms : Embedded default Active setting from DHD Driver */
 #define WL_SCAN_PASSIVE_TIME	130 /* ms: Embedded default Passive setting from DHD Driver */
+#define WL_SCAN_BUSY_MAX	8
 
 #ifdef VSDB
 /* ms : default wait time to keep STA's connecting or connection during continuous af tx */
@@ -2202,6 +2203,13 @@ wl_cfg80211_scan(struct wiphy *wiphy, struct net_device *ndev,
 	err = __wl_cfg80211_scan(wiphy, ndev, request, NULL);
 	if (unlikely(err)) {
 		WL_ERR(("scan error (%d)\n", err));
+		if (err == BCME_BUSY) {
+			wl->scan_busy_count++;
+			if (wl->scan_busy_count > WL_SCAN_BUSY_MAX) {
+				wl->scan_busy_count = 0;
+				net_os_send_hang_message(ndev);
+			}
+		}
 		return err;
 	}
 
@@ -6900,6 +6908,7 @@ static void wl_notify_iscan_complete(struct wl_iscan_ctrl *iscan, bool aborted)
 	unsigned long flags;
 
 	WL_DBG(("Enter \n"));
+	wl->scan_busy_count = 0;
 	if (!wl_get_drv_status(wl, SCANNING, ndev)) {
 		wl_clr_drv_status(wl, SCANNING, ndev);
 		WL_ERR(("Scan complete while device not scanning\n"));
@@ -7184,6 +7193,8 @@ static void wl_notify_escan_complete(struct wl_priv *wl,
 	wl_clr_drv_status(wl, SCANNING, ndev);
 	if (p2p_is_on(wl))
 		wl_clr_p2p_status(wl, SCANNING);
+
+	wl->scan_busy_count = 0;
 	if (likely(wl->scan_request)) {
 		u8 temp_id = wl->escan_info.cur_sync_id;
 		if (aborted)
