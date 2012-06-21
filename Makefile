@@ -1,10 +1,6 @@
 VERSION = 3
 PATCHLEVEL = 0
-<<<<<<< HEAD
-SUBLEVEL = 34
-=======
 SUBLEVEL = 35
->>>>>>> dorimanx/master-3.0.y
 EXTRAVERSION =
 NAME = Sneaky Weasel
 

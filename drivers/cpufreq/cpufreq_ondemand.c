@@ -37,26 +37,6 @@
  * It helps to keep variable names smaller, simpler
  */
 
-<<<<<<< HEAD
-#define DEF_FREQUENCY_DOWN_DIFFERENTIAL         (25)
-#define DEF_FREQUENCY_UP_THRESHOLD              (80)
-#define DEF_SAMPLING_DOWN_FACTOR                (5)
-#define MAX_SAMPLING_DOWN_FACTOR                (100000)
-#define MICRO_FREQUENCY_DOWN_DIFFERENTIAL       (1)
-#define MICRO_FREQUENCY_UP_THRESHOLD            (60)
-#define MICRO_FREQUENCY_MIN_SAMPLE_RATE         (10000)
-#define MIN_FREQUENCY_UP_THRESHOLD              (10)
-#define MAX_FREQUENCY_UP_THRESHOLD              (100)
-#define FREQ_STEP                               (40)
-#define UP_THRESHOLD_AT_MIN_FREQ                (40)
-#define FREQ_FOR_RESPONSIVENESS                 (600000)
-
-#ifdef CONFIG_HAS_EARLYSUSPEND
-/* FIX ME! what is set here, will be on wake state also! */
-#define FREQ_STEP_SUSPEND                       (40)
-#define SAMPLING_FACTOR_SUSPEND                 (5)
-#define DEF_FREQUENCY_UP_THRESHOLD_SUSPEND      (60)
-=======
 #define DEF_FREQUENCY_DOWN_DIFFERENTIAL         (10)
 #define MIN_FREQUENCY_DOWN_DIFFERENTIAL		(1)
 #define DEF_FREQUENCY_UP_THRESHOLD              (95)
@@ -77,7 +57,6 @@
 #define FREQ_STEP_SUSPEND                       (30)
 #define SAMPLING_FACTOR_SUSPEND                 (1)
 #define DEF_FREQUENCY_UP_THRESHOLD_SUSPEND      (85)
->>>>>>> dorimanx/master-3.0.y
 #endif
 
 /*
@@ -1122,20 +1101,14 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 		dbs_timer_init(this_dbs_info);
 #ifdef CONFIG_HAS_EARLYSUSPEND
                 register_early_suspend(&early_suspend);
-<<<<<<< HEAD
-=======
 		register_early_suspend(&ondemand_power_suspend);
->>>>>>> dorimanx/master-3.0.y
 #endif
 		break;
 
 	case CPUFREQ_GOV_STOP:
 #ifdef CONFIG_HAS_EARLYSUSPEND
                 unregister_early_suspend(&early_suspend);
-<<<<<<< HEAD
-=======
 		unregister_early_suspend(&ondemand_power_suspend);
->>>>>>> dorimanx/master-3.0.y
 #endif
 		dbs_timer_exit(this_dbs_info);
 

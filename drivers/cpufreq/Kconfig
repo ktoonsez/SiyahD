@@ -156,15 +156,12 @@ config CPU_FREQ_DEFAULT_GOV_INTELLIDEMAND
 	select CPU_FREQ_GOV_INTELLIDEMAND
 	---help---
           Use the CPUFreq governor 'intellidemand' as default.
-<<<<<<< HEAD
-=======
 
 config CPU_FREQ_DEFAULT_GOV_HYPER
         bool "hyper"
         select CPU_FREQ_GOV_HYPER
         help
           Use the CPUFreq governor 'hyper' as default.
->>>>>>> dorimanx/master-3.0.y
 	  
 config CPU_FREQ_DEFAULT_GOV_LAZY
     bool "lazy"
@@ -402,14 +399,11 @@ config CPU_FREQ_GOV_HYPER
         help
           'hyper' - a tweaked "ondemand" based smart and smooth optimized governor!
 
-<<<<<<< HEAD
-=======
            If in doubt, say Y.
 
 config CPU_FREQ_GOV_PEGASUSQ
 	tristate "'pegasusq' cpufreq policy governor"
 
->>>>>>> dorimanx/master-3.0.y
 config CPU_FREQ_GOV_SMARTASS
 	tristate "'smartass' cpufreq governor"
 	depends on CPU_FREQ

@@ -831,11 +831,7 @@ static void receive_file_work(struct work_struct *data)
 			if (ret != write_req->actual) {
 				r = -EIO;
 				if (dev->state != STATE_OFFLINE)
-<<<<<<< HEAD
-					dev->state = STATE_ERROR;	
-=======
 					dev->state = STATE_ERROR;
->>>>>>> dorimanx/master-3.0.y
 				break;
 			}
 			write_req = NULL;

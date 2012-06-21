@@ -34,7 +34,6 @@ struct mm_struct *swap_token_mm;
 struct mem_cgroup *swap_token_memcg;
 #ifndef CONFIG_ZRAM
 static unsigned int global_faults;
-#endif
 static unsigned int last_aging;
 
 #ifdef CONFIG_CGROUP_MEM_RES_CTLR

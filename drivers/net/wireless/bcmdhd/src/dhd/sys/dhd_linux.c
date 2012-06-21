@@ -615,11 +615,7 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 	char iovbuf[32];
 #ifndef CUSTOMER_HW_SAMSUNG
 	int power_mode = PM_MAX;
-<<<<<<< HEAD
-	if (wifi_pm == 1);
-=======
 	if (wifi_pm == 1)
->>>>>>> dorimanx/master-3.0.y
 		power_mode = PM_FAST;
 
 	/* wl_pkt_filter_enable_t	enable_parm; */

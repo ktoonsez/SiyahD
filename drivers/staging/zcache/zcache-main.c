@@ -388,11 +388,7 @@ init_zh:
 	zh->index = index;
 	zh->oid = *oid;
 	zh->pool_id = pool_id;
-<<<<<<< HEAD:drivers/staging/zcache/zcache-main.c
-
-=======
 	zh->client_id = client_id;
->>>>>>> dorimanx/master-3.0.y:drivers/staging/zcache/zcache-main.c
 	to = zbud_data(zh, size);
 	memcpy(to, cdata, size);
 	spin_unlock(&zbpg->lock);

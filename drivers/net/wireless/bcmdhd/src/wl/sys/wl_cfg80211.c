@@ -4244,7 +4244,7 @@ wl_cfg80211_send_at_common_channel(struct wl_priv *wl,
 	if (wl->afx_hdl->peer_chan != WL_INVALID)
 		wl_cfg80211_send_pending_tx_act_frm(wl);
 	else {
-		WL_ERR(("Couldn't find the peer after %d retries\n",	
+		WL_ERR(("Couldn't find the peer after %d retries\n",
 			wl->afx_hdl->retry));
 	}
 	wl->afx_hdl->is_listen = FALSE;
@@ -8224,13 +8224,13 @@ s32 wl_update_wiphybands(struct wl_priv *wl)
 	wiphy->bands[IEEE80211_BAND_2GHZ] = NULL;
 	for (i = 1; i <= nband && i < ARRAYSIZE(bandlist); i++) {
 		index = -1;
-		if (bandlist[i] == WLC_BAND_5G && __wl_band_5ghz_a.n_channels > 0) {
+		if (bandlist[i] == WLC_BAND_5G) {
 			wiphy->bands[IEEE80211_BAND_5GHZ] =
 				&__wl_band_5ghz_a;
 			index = IEEE80211_BAND_5GHZ;
 			if (bw_cap == WLC_N_BW_40ALL || bw_cap == WLC_N_BW_20IN2G_40IN5G)
 				wiphy->bands[index]->ht_cap.cap |= IEEE80211_HT_CAP_SGI_40;
-		} else if (bandlist[i] == WLC_BAND_2G && __wl_band_2ghz.n_channels > 0) {
+		} else if (bandlist[i] == WLC_BAND_2G) {
 			wiphy->bands[IEEE80211_BAND_2GHZ] =
 				&__wl_band_2ghz;
 			index = IEEE80211_BAND_2GHZ;

@@ -33,9 +33,6 @@
 
 #include <trace/events/power.h>
 
-// Safe boot speed
-#define SafeBootSpeed 1200000
-
 unsigned int exynos4x12_volt_table[14];
 
 /**
@@ -1097,13 +1094,6 @@ static int cpufreq_add_dev(struct sys_device *sys_dev)
 		goto err_unlock_policy;
 	}
 
-<<<<<<< HEAD
-	// Set max speed at boot to 1.2Mhz since is the safest speed to boot
-	if (policy->max != SafeBootSpeed)
-		policy->max = SafeBootSpeed;
-
-=======
->>>>>>> dorimanx/master-3.0.y
 #ifdef CONFIG_HOTPLUG_CPU
 	for_each_online_cpu(sibling) {
 		struct cpufreq_policy *cp = per_cpu(cpufreq_cpu_data, sibling);
@@ -1116,10 +1106,6 @@ static int cpufreq_add_dev(struct sys_device *sys_dev)
 		}
 	}
 #endif
-<<<<<<< HEAD
-
-=======
->>>>>>> dorimanx/master-3.0.y
 	policy->user_policy.min = policy->min;
 	policy->user_policy.min_suspend = policy->min_suspend;
 	policy->user_policy.max = policy->max;

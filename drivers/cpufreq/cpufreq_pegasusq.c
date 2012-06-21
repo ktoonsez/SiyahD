@@ -160,11 +160,7 @@ static unsigned int get_nr_run_avg(void)
 #define DEF_FREQ_STEP				(40)
 #define DEF_START_DELAY				(0)
 
-<<<<<<< HEAD
-#define UP_THRESHOLD_AT_MIN_FREQ		(80)
-=======
 #define UP_THRESHOLD_AT_MIN_FREQ		(40)
->>>>>>> dorimanx/master-3.0.y
 #define FREQ_FOR_RESPONSIVENESS			(600000)
 
 #define HOTPLUG_DOWN_INDEX			(0)
@@ -172,11 +168,7 @@ static unsigned int get_nr_run_avg(void)
 
 #ifdef CONFIG_CPU_EXYNOS4210
 static int hotplug_rq[4][2] = {
-<<<<<<< HEAD
-	{0, 200}, {200, 300}, {300, 400}, {400, 0}
-=======
 	{0, 150}, {150, 300}, {300, 400}, {400, 0}
->>>>>>> dorimanx/master-3.0.y
 };
 
 static int hotplug_freq[4][2] = {

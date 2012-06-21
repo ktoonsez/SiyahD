@@ -3594,11 +3594,7 @@ decay_load_missed(unsigned long load, unsigned long missed_updates, int idx)
  * every tick. We fix it up based on jiffies.
  */
 static void __update_cpu_load(struct rq *this_rq, unsigned long this_load,
-<<<<<<< HEAD
-			unsigned long pending_updates)
-=======
 		unsigned long pending_updates)
->>>>>>> dorimanx/master-3.0.y
 {
 	int i, scale;
 
@@ -3638,18 +3634,6 @@ void update_idle_cpu_load(struct rq *this_rq)
 	unsigned long load = this_rq->load.weight;
 	unsigned long pending_updates;
 
-<<<<<<< HEAD
-       /*
-	* Bloody broken means of dealing with nohz, but better than nothing..
-	* jiffies is updated by one cpu, another cpu can drift wrt the jiffy
-	* update and see 0 difference the one time and 2 the next, even though
-	* we ticked at roughtly the same rate.
-	*
-	* Hence we only use this from nohz_idle_balance() and skip this
-	* nonsense when called from the scheduler_tick() since that's
-	* guaranteed a stable rate.
-	*/
-=======
 	/*
 	 * Bloody broken means of dealing with nohz, but better than nothing..
 	 * jiffies is updated by one cpu, another cpu can drift wrt the jiffy
@@ -3660,7 +3644,6 @@ void update_idle_cpu_load(struct rq *this_rq)
 	 * nonsense when called from the scheduler_tick() since that's
 	 * guaranteed a stable rate.
 	 */
->>>>>>> dorimanx/master-3.0.y
 	if (load || curr_jiffies == this_rq->last_load_update_tick)
 		return;
 
@@ -3675,15 +3658,9 @@ void update_idle_cpu_load(struct rq *this_rq)
  */
 static void update_cpu_load_active(struct rq *this_rq)
 {
-<<<<<<< HEAD
-       /*
-	* See the mess in update_idle_cpu_load().
-	*/
-=======
 	/*
 	 * See the mess in update_idle_cpu_load().
 	 */
->>>>>>> dorimanx/master-3.0.y
 	this_rq->last_load_update_tick = jiffies;
 	__update_cpu_load(this_rq, this_rq->load.weight, 1);
 
