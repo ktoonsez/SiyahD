@@ -612,7 +612,13 @@ static void dhd_set_packet_filter(int value, dhd_pub_t *dhd)
 #if defined(CONFIG_HAS_EARLYSUSPEND)
 static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 {
+
+#ifndef CUSTOMER_HW_SAMSUNG
 	char iovbuf[32];
+#endif
+#ifdef BCM4334_CHIP
+	char iovbuf[32];
+#endif
 #ifndef CUSTOMER_HW_SAMSUNG
 	int power_mode = PM_MAX;
 	if (wifi_pm == 1)
