@@ -352,14 +352,14 @@ CFLAGS_ARM      = -marm -mtune=cortex-a9 -march=armv7-a -mfpu=neon \
 		  -mfloat-abi=softfp \
 		  --param l2-cache-size=1024 \
 		  --param l1-cache-size=64 \
-		  --param simultaneous-prefetches=6 \
+		  --param simultaneous-prefetches=8 \
 		  --param prefetch-latency=400 
 CFLAGS_REGISTER = -fschedule-insns -fsched-spec-load -fforce-addr \
 				  -frename-registers
 CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
 				  -ftree-loop-distribution -ftree-loop-linear \
 				  -floop-strip-mine -floop-block \
-				  -ftree-vectorize -mvectorize-with-neon-quad \
+				  -ftree-vectorize -mvectorize-with-neon-quad -fvect-cost-model \
 				  -fpredictive-commoning -finline-functions \
 				  -funswitch-loops -fgcse-after-reload -falign-loops \
 				  -fprefetch-loop-arrays
