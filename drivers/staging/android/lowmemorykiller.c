@@ -173,6 +173,7 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 	for_each_process(tsk) {
 		struct task_struct *p;
 		int oom_score_adj;
+		int target_offset;
 
 		if (tsk->flags & PF_KTHREAD)
 			continue;
