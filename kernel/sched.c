@@ -3594,7 +3594,11 @@ decay_load_missed(unsigned long load, unsigned long missed_updates, int idx)
  * every tick. We fix it up based on jiffies.
  */
 static void __update_cpu_load(struct rq *this_rq, unsigned long this_load,
+<<<<<<< HEAD
 			unsigned long pending_updates)
+=======
+		unsigned long pending_updates)
+>>>>>>> dorimanx/master-3.0.y
 {
 	int i, scale;
 
@@ -3634,6 +3638,7 @@ void update_idle_cpu_load(struct rq *this_rq)
 	unsigned long load = this_rq->load.weight;
 	unsigned long pending_updates;
 
+<<<<<<< HEAD
        /*
 	* Bloody broken means of dealing with nohz, but better than nothing..
 	* jiffies is updated by one cpu, another cpu can drift wrt the jiffy
@@ -3644,6 +3649,18 @@ void update_idle_cpu_load(struct rq *this_rq)
 	* nonsense when called from the scheduler_tick() since that's
 	* guaranteed a stable rate.
 	*/
+=======
+	/*
+	 * Bloody broken means of dealing with nohz, but better than nothing..
+	 * jiffies is updated by one cpu, another cpu can drift wrt the jiffy
+	 * update and see 0 difference the one time and 2 the next, even though
+	 * we ticked at roughtly the same rate.
+	 *
+	 * Hence we only use this from nohz_idle_balance() and skip this
+	 * nonsense when called from the scheduler_tick() since that's
+	 * guaranteed a stable rate.
+	 */
+>>>>>>> dorimanx/master-3.0.y
 	if (load || curr_jiffies == this_rq->last_load_update_tick)
 		return;
 
@@ -3658,9 +3675,15 @@ void update_idle_cpu_load(struct rq *this_rq)
  */
 static void update_cpu_load_active(struct rq *this_rq)
 {
+<<<<<<< HEAD
        /*
 	* See the mess in update_idle_cpu_load().
 	*/
+=======
+	/*
+	 * See the mess in update_idle_cpu_load().
+	 */
+>>>>>>> dorimanx/master-3.0.y
 	this_rq->last_load_update_tick = jiffies;
 	__update_cpu_load(this_rq, this_rq->load.weight, 1);
 
@@ -7262,11 +7285,8 @@ int sched_domain_level_max;
 
 static int __init setup_relax_domain_level(char *str)
 {
-	unsigned long val;
-
-	val = simple_strtoul(str, NULL, 0);
-	if (val < sched_domain_level_max)
-		default_relax_domain_level = val;
+	if (kstrtoint(str, 0, &default_relax_domain_level))
+		pr_warn("Unable to set relax_domain_level\n");
 
 	return 1;
 }
@@ -7469,7 +7489,6 @@ struct sched_domain *build_sched_domain(struct sched_domain_topology_level *tl,
 	if (!sd)
 		return child;
 
-	set_domain_attribute(sd, attr);
 	cpumask_and(sched_domain_span(sd), cpu_map, tl->mask(cpu));
 	if (child) {
 		sd->level = child->level + 1;
@@ -7477,6 +7496,7 @@ struct sched_domain *build_sched_domain(struct sched_domain_topology_level *tl,
 		child->parent = sd;
 	}
 	sd->child = child;
+	set_domain_attribute(sd, attr);
 
 	return sd;
 }

@@ -54,6 +54,7 @@ static struct mem_cgroup *swap_token_memcg_from_mm(struct mm_struct *mm)
 	return NULL;
 }
 #endif
+#endif /* ZRAM */
 
 void grab_swap_token(struct mm_struct *mm)
 {
@@ -126,6 +127,7 @@ void __put_swap_token(struct mm_struct *mm)
 #endif
 }
 
+#ifndef CONFIG_ZRAM
 static bool match_memcg(struct mem_cgroup *a, struct mem_cgroup *b)
 {
 	if (!a)
@@ -136,6 +138,7 @@ static bool match_memcg(struct mem_cgroup *a, struct mem_cgroup *b)
 		return true;
 	return false;
 }
+#endif
 
 void disable_swap_token(struct mem_cgroup *memcg)
 {

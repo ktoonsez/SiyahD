@@ -18,7 +18,7 @@ do
 rm -f $i
 done
 }
-#CLEANBKP
+CLEANBKP
 
 JUNK4=`find -name *.ko`
 for i in $JUNK4

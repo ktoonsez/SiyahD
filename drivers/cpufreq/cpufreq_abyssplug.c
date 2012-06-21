@@ -32,6 +32,7 @@
 #include <linux/err.h>
 #include <linux/slab.h>
 
+<<<<<<< HEAD
 /* greater than 80% avg load across online CPUs increases frequency */
 #define DEFAULT_UP_FREQ_MIN_LOAD			(95)
 
@@ -40,6 +41,16 @@
 
 /* less than 20% avg load across online CPUs decreases frequency */
 #define DEFAULT_DOWN_FREQ_MAX_LOAD			(20)
+=======
+/* greater than 95% avg load across online CPUs increases frequency */
+#define DEFAULT_UP_FREQ_MIN_LOAD			(95)
+
+/* Keep 10% of idle under the up threshold when decreasing the frequency */
+#define DEFAULT_FREQ_DOWN_DIFFERENTIAL			(1)
+
+/* less than 40% avg load across online CPUs decreases frequency */
+#define DEFAULT_DOWN_FREQ_MAX_LOAD			(40)
+>>>>>>> dorimanx/master-3.0.y
 
 /* default sampling period (uSec) is bogus; 10x ondemand's default for x86 */
 #define DEFAULT_SAMPLING_PERIOD				(100000)

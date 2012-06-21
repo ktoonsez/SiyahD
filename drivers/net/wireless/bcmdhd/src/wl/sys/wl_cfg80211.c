@@ -116,6 +116,7 @@ u32 wl_dbg_level = WL_DBG_ERR;
 #define MAX_WAIT_TIME 1500
 #define WL_SCAN_ACTIVE_TIME	 40 /* ms : Embedded default Active setting from DHD Driver */
 #define WL_SCAN_PASSIVE_TIME	130 /* ms: Embedded default Passive setting from DHD Driver */
+#define WL_SCAN_BUSY_MAX	8
 
 #ifdef VSDB
 /* ms : default wait time to keep STA's connecting or connection during continuous af tx */
@@ -308,6 +309,8 @@ static s32 wl_bss_connect_done(struct wl_priv *wl, struct net_device *ndev,
 static s32 wl_bss_roaming_done(struct wl_priv *wl, struct net_device *ndev,
 	const wl_event_msg_t *e, void *data);
 static s32 wl_notify_mic_status(struct wl_priv *wl, struct net_device *ndev,
+	const wl_event_msg_t *e, void *data);
+static s32 wl_notify_pfn_status(struct wl_priv *wl, struct net_device *ndev,
 	const wl_event_msg_t *e, void *data);
 static s32 wl_notifier_change_state(struct wl_priv *wl, struct net_info *_net_info,
 	enum wl_status state, bool set);
@@ -2200,6 +2203,13 @@ wl_cfg80211_scan(struct wiphy *wiphy, struct net_device *ndev,
 	err = __wl_cfg80211_scan(wiphy, ndev, request, NULL);
 	if (unlikely(err)) {
 		WL_ERR(("scan error (%d)\n", err));
+		if (err == BCME_BUSY) {
+			wl->scan_busy_count++;
+			if (wl->scan_busy_count > WL_SCAN_BUSY_MAX) {
+				wl->scan_busy_count = 0;
+				net_os_send_hang_message(ndev);
+			}
+		}
 		return err;
 	}
 
@@ -6319,6 +6329,19 @@ wl_notify_mic_status(struct wl_priv *wl, struct net_device *ndev,
 }
 
 static s32
+wl_notify_pfn_status(struct wl_priv *wl, struct net_device *ndev,
+	const wl_event_msg_t *e, void *data)
+{
+	WL_ERR((" PNO Event\n"));
+
+	mutex_lock(&wl->usr_sync);
+	/* TODO: Use cfg80211_sched_scan_results(wiphy); */
+	cfg80211_disconnected(ndev, 0, NULL, 0, GFP_KERNEL);
+	mutex_unlock(&wl->usr_sync);
+	return 0;
+}
+
+static s32
 wl_notify_scan_status(struct wl_priv *wl, struct net_device *ndev,
 	const wl_event_msg_t *e, void *data)
 {
@@ -6697,7 +6720,7 @@ static void wl_init_event_handler(struct wl_priv *wl)
 	wl->evt_handler[WLC_E_P2P_DISC_LISTEN_COMPLETE] = wl_cfgp2p_listen_complete;
 	wl->evt_handler[WLC_E_ACTION_FRAME_COMPLETE] = wl_cfgp2p_action_tx_complete;
 	wl->evt_handler[WLC_E_ACTION_FRAME_OFF_CHAN_COMPLETE] = wl_cfgp2p_action_tx_complete;
-
+	wl->evt_handler[WLC_E_PFN_NET_FOUND] = wl_notify_pfn_status;
 }
 
 static s32 wl_init_priv_mem(struct wl_priv *wl)
@@ -6885,6 +6908,7 @@ static void wl_notify_iscan_complete(struct wl_iscan_ctrl *iscan, bool aborted)
 	unsigned long flags;
 
 	WL_DBG(("Enter \n"));
+	wl->scan_busy_count = 0;
 	if (!wl_get_drv_status(wl, SCANNING, ndev)) {
 		wl_clr_drv_status(wl, SCANNING, ndev);
 		WL_ERR(("Scan complete while device not scanning\n"));
@@ -7169,6 +7193,8 @@ static void wl_notify_escan_complete(struct wl_priv *wl,
 	wl_clr_drv_status(wl, SCANNING, ndev);
 	if (p2p_is_on(wl))
 		wl_clr_p2p_status(wl, SCANNING);
+
+	wl->scan_busy_count = 0;
 	if (likely(wl->scan_request)) {
 		u8 temp_id = wl->escan_info.cur_sync_id;
 		if (aborted)
@@ -7865,8 +7891,10 @@ wl_cfg80211_event(struct net_device *ndev, const wl_event_msg_t * e, void *data)
 {
 	u32 event_type = ntoh32(e->event_type);
 	struct wl_priv *wl = wlcfg_drv_priv;
+#if 0 //removed due to FAKE PNO patch
 #if defined(PNO_SUPPORT) && defined(CONFIG_HAS_WAKELOCK)
 	int pno_wakelock_timeout = 10; /* 10 second */
+#endif
 #endif
 
 #if (WL_DBG_LEVEL > 0)
@@ -7875,6 +7903,7 @@ wl_cfg80211_event(struct net_device *ndev, const wl_event_msg_t * e, void *data)
 	WL_DBG(("event_type (%d):" "WLC_E_" "%s\n", event_type, estr));
 #endif /* (WL_DBG_LEVEL > 0) */
 
+#if 0 //removed due to FAKE PNO patch
 	if (event_type == WLC_E_PFN_NET_FOUND) {
 #if defined(PNO_SUPPORT) && defined(CONFIG_HAS_WAKELOCK)
 		net_os_wake_lock_timeout_for_pno(ndev, pno_wakelock_timeout);
@@ -7883,7 +7912,7 @@ wl_cfg80211_event(struct net_device *ndev, const wl_event_msg_t * e, void *data)
 	}
 	else if (event_type == WLC_E_PFN_NET_LOST)
 		WL_ERR((" PNOEVENT: PNO_NET_LOST\n"));
-
+#endif
 	if (likely(!wl_enq_event(wl, ndev, event_type, e, data)))
 		wl_wakeup_event(wl);
 }

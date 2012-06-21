@@ -160,7 +160,11 @@ static unsigned int get_nr_run_avg(void)
 #define DEF_FREQ_STEP				(40)
 #define DEF_START_DELAY				(0)
 
+<<<<<<< HEAD
 #define UP_THRESHOLD_AT_MIN_FREQ		(80)
+=======
+#define UP_THRESHOLD_AT_MIN_FREQ		(40)
+>>>>>>> dorimanx/master-3.0.y
 #define FREQ_FOR_RESPONSIVENESS			(600000)
 
 #define HOTPLUG_DOWN_INDEX			(0)
@@ -168,7 +172,11 @@ static unsigned int get_nr_run_avg(void)
 
 #ifdef CONFIG_CPU_EXYNOS4210
 static int hotplug_rq[4][2] = {
+<<<<<<< HEAD
 	{0, 200}, {200, 300}, {300, 400}, {400, 0}
+=======
+	{0, 150}, {150, 300}, {300, 400}, {400, 0}
+>>>>>>> dorimanx/master-3.0.y
 };
 
 static int hotplug_freq[4][2] = {
@@ -907,7 +915,7 @@ static int check_up(void)
 	int up_freq, up_rq;
 	int min_freq = INT_MAX;
 	int min_rq_avg = INT_MAX;
-	int avg_freq = 0, avg_rq = 0;
+//	int avg_freq = 0, avg_rq = 0;
 	int online;
 	int hotplug_lock = atomic_read(&g_hotplug_lock);
 
@@ -937,16 +945,17 @@ static int check_up(void)
 
 		min_freq = min(min_freq, freq);
 		min_rq_avg = min(min_rq_avg, rq_avg);
-		avg_rq += rq_avg;
-		avg_freq += freq;
+//		avg_rq += rq_avg;
+//		avg_freq += freq;
 
 		if (dbs_tuners_ins.dvfs_debug)
 			debug_hotplug_check(1, rq_avg, freq, usage);
 	}
-	avg_rq /= up_rate;
-	avg_freq /= up_rate;
+//	avg_rq /= up_rate;
+//	avg_freq /= up_rate;
 
-	if (avg_freq >= up_freq && avg_rq > up_rq) {
+//	if (avg_freq >= up_freq && avg_rq > up_rq) {
+	if (min_freq >= up_freq && min_rq_avg > up_rq) {
 		printk(KERN_ERR "[HOTPLUG IN] %s %d>=%d && %d>%d\n",
 			__func__, min_freq, up_freq, min_rq_avg, up_rq);
 		//hotplug_history->num_hist = 0;
@@ -965,7 +974,7 @@ static int check_down(void)
 	int down_freq, down_rq;
 	int max_freq = 0;
 	int max_rq_avg = 0;
-	int avg_freq = 0, avg_rq = 0;
+//	int avg_freq = 0, avg_rq = 0;
 	int online;
 	int hotplug_lock = atomic_read(&g_hotplug_lock);
 
@@ -996,16 +1005,17 @@ static int check_down(void)
 
 		max_freq = max(max_freq, freq);
 		max_rq_avg = max(max_rq_avg, rq_avg);
-		avg_rq += rq_avg;
-		avg_freq += freq;
+//		avg_rq += rq_avg;
+//		avg_freq += freq;
 
 		if (dbs_tuners_ins.dvfs_debug)
 			debug_hotplug_check(0, rq_avg, freq, usage);
 	}
-	avg_rq /= down_rate;
-	avg_freq /= down_rate;
+//	avg_rq /= down_rate;
+//	avg_freq /= down_rate;
 
-	if (avg_freq <= down_freq && avg_rq <= down_rq) {
+//	if (avg_freq <= down_freq && avg_rq <= down_rq) {
+	if (max_freq <= down_freq && max_rq_avg <= down_rq) {
 		printk(KERN_ERR "[HOTPLUG OUT] %s %d<=%d && %d<%d\n",
 			__func__, max_freq, down_freq, max_rq_avg, down_rq);
 		//hotplug_history->num_hist = 0;
@@ -1215,6 +1225,7 @@ static inline void dbs_timer_exit(struct cpu_dbs_info_s *dbs_info)
 	cancel_work_sync(&dbs_info->down_work);
 }
 
+#if 0 //Not used function
 static int pm_notifier_call(struct notifier_block *this,
 			    unsigned long event, void *ptr)
 {
@@ -1237,10 +1248,7 @@ static int pm_notifier_call(struct notifier_block *this,
 	}
 	return NOTIFY_DONE;
 }
-
-static struct notifier_block pm_notifier = {
-	.notifier_call = pm_notifier_call,
-};
+#endif
 
 static int reboot_notifier_call(struct notifier_block *this,
 				unsigned long code, void *_cmd)
