@@ -138,6 +138,26 @@ u32 wl_dbg_level = WL_DBG_ERR;
 #define WL_AF_TX_REDUCE_RETRY_VSDB(wl, max_retry)
 #endif /* VSDB */
 
+#ifdef VSDB
+/* ms : default wait time to keep STA's connecting or connection during continuous af tx */
+#define DEFAULT_SLEEP_TIME_VSDB 200
+#define WL_CHANNEL_SYNC_RETRY_VSDB	3
+
+/* if sta is connected or connecting, sleep for a while before retry for VSDB */
+#define WL_AF_TX_KEEP_PRI_CONNECTION_VSDB(wl)	\
+	do {	\
+		if (wl_get_drv_status(wl, CONNECTED, wl_to_prmry_ndev(wl)) ||	\
+			wl_get_drv_status(wl, CONNECTING, wl_to_prmry_ndev(wl))) {	\
+			msleep(DEFAULT_SLEEP_TIME_VSDB);	\
+		}	\
+	} while (0)
+#define WL_AF_TX_REDUCE_RETRY_VSDB(wl, max_retry)
+#else /* VSDB */
+/* if not VSDB, do nothing */
+#define WL_AF_TX_KEEP_PRI_CONNECTION_VSDB(wl)
+#define WL_AF_TX_REDUCE_RETRY_VSDB(wl, max_retry)
+#endif /* VSDB */
+
 #ifdef D11AC_IOTYPES
 #define WL_CHANSPEC_CTL_SB_NONE WL_CHANSPEC_CTL_SB_LLL
 #endif /* D11AC_IOTYPES */
@@ -4196,7 +4216,6 @@ wl_cfg80211_send_at_common_channel(struct wl_priv *wl,
 	wl->afx_hdl->peer_chan = WL_INVALID;
 	wl->afx_hdl->ack_recv = false;
 
-
 	WL_AF_TX_REDUCE_RETRY_VSDB(wl, max_retry);
 
 	wl_set_drv_status(wl, SCANNING_PEER_CHANNEL, dev);
@@ -4542,14 +4561,16 @@ wl_cfg80211_mgmt_tx(struct wiphy *wiphy, struct net_device *ndev,
 
 #ifdef VSDB
 	/* if connecting, sleep for a while before retry for VSDB */
-	if (wl_get_drv_status(wl, CONNECTING, wl_to_prmry_ndev(wl)))
+	if (wl_get_drv_status(wl, CONNECTING, wl_to_prmry_ndev(wl))) {
 		msleep(50);
+	}
 #endif
 
 	/* if scanning, abort current scan. */
-	if (wl_get_drv_status_all(wl, SCANNING))
+	if (wl_get_drv_status_all(wl, SCANNING)) {
 		wl_cfg80211_scan_abort(wl, dev);
 
+	}
 	/* Set SENDING_ACT_FRM and destinatio address for sending af */
 	wl_set_drv_status(wl, SENDING_ACT_FRM, dev);
 	memcpy(wl->afx_hdl->tx_dst_addr.octet,
@@ -8124,13 +8145,13 @@ static int wl_construct_reginfo(struct wl_priv *wl, s32 bw_cap)
 			array_size = ARRAYSIZE(__wl_2ghz_channels);
 			n_cnt = &n_2g;
 			band = IEEE80211_BAND_2GHZ;
-			ht40_allowed = (bw_cap  == WLC_N_BW_40ALL) ? true : false;
+			ht40_allowed = (bw_cap == WLC_N_BW_40ALL) ? true : false;
 		} else if (CHSPEC_IS5G(c) && channel > CH_MAX_2G_CHANNEL) {
 			band_chan_arr = __wl_5ghz_a_channels;
 			array_size = ARRAYSIZE(__wl_5ghz_a_channels);
 			n_cnt = &n_5g;
 			band = IEEE80211_BAND_5GHZ;
-			ht40_allowed = (bw_cap  == WLC_N_BW_20ALL) ? false : true;
+			ht40_allowed = (bw_cap == WLC_N_BW_20ALL) ? false : true;
 		}
 		for (j = 0; (j < *n_cnt && (*n_cnt < array_size)); j++) {
 			if (band_chan_arr[j].hw_value == channel) {
@@ -8211,12 +8232,20 @@ s32 wl_update_wiphybands(struct wl_priv *wl)
 		return err;
 	}
 	err = wldev_iovar_getint(dev, "nmode", &nmode);
-	if (err)
+	if (err) {
 		return err;
+	}
 
 	err = wldev_iovar_getint(dev, "mimo_bw_cap", &bw_cap);
-	if (err)
+	if (err) {
 		return err;
+       }
+
+	err = wl_construct_reginfo(wl, bw_cap);
+	if (err) {
+		WL_ERR(("wl_construct_reginfo() fails err=%d\n", err));
+		return err;
+	}
 
 	wiphy = wl_to_wiphy(wl);
 	nband = bandlist[0];
@@ -8227,20 +8256,21 @@ s32 wl_update_wiphybands(struct wl_priv *wl)
 		if (bandlist[i] == WLC_BAND_5G) {
 			wiphy->bands[IEEE80211_BAND_5GHZ] =
 				&__wl_band_5ghz_a;
-			index = IEEE80211_BAND_5GHZ;
+				index = IEEE80211_BAND_5GHZ;
 			if (bw_cap == WLC_N_BW_40ALL || bw_cap == WLC_N_BW_20IN2G_40IN5G)
 				wiphy->bands[index]->ht_cap.cap |= IEEE80211_HT_CAP_SGI_40;
-		} else if (bandlist[i] == WLC_BAND_2G) {
+		}
+		else if (bandlist[i] == WLC_BAND_2G) {
 			wiphy->bands[IEEE80211_BAND_2GHZ] =
 				&__wl_band_2ghz;
-			index = IEEE80211_BAND_2GHZ;
-			if (bandlist[i] == WLC_BAND_2G && bw_cap == WLC_N_BW_40ALL)
+				index = IEEE80211_BAND_2GHZ;
+			if (bw_cap == WLC_N_BW_40ALL)
 				wiphy->bands[index]->ht_cap.cap |= IEEE80211_HT_CAP_SGI_40;
 
 		}
 		if ((index >= 0) && nmode) {
-			wiphy->bands[index]->ht_cap.cap |= 
-			(IEEE80211_HT_CAP_SGI_20 | IEEE80211_HT_CAP_DSSSCCK40);
+			wiphy->bands[index]->ht_cap.cap |=
+                        (IEEE80211_HT_CAP_SGI_20 | IEEE80211_HT_CAP_DSSSCCK40);
 			wiphy->bands[index]->ht_cap.ht_supported = TRUE;
 			wiphy->bands[index]->ht_cap.ampdu_factor = IEEE80211_HT_MAX_AMPDU_64K;
 			wiphy->bands[index]->ht_cap.ampdu_density = IEEE80211_HT_MPDU_DENSITY_16;
