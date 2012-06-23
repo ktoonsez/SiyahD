@@ -162,8 +162,9 @@ sdioh_attach(osl_t *osh, void *bar0, uint irq)
 
 		sd->client_block_size[1] = 64;
 		err_ret = sdio_set_block_size(gInstance->func[1], 64);
-		if (err_ret)
+		if (err_ret) {
 			sd_err(("bcmsdh_sdmmc: Failed to set F1 blocksize\n"));
+		}
 
 		/* Release host controller F1 */
 		sdio_release_host(gInstance->func[1]);
@@ -1361,9 +1362,9 @@ sdioh_start(sdioh_info_t *si, int stage)
 				sdio_claim_host(gInstance->func[1]);
 
 				sd->client_block_size[1] = 64;
-				if (sdio_set_block_size(gInstance->func[1], 64))
+				if (sdio_set_block_size(gInstance->func[1], 64)) {
 					sd_err(("bcmsdh_sdmmc: Failed to set F1 blocksize\n"));
-
+				}
 				/* Release host controller F1 */
 				sdio_release_host(gInstance->func[1]);
 			}
