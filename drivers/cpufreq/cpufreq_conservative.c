@@ -29,8 +29,8 @@
  * It helps to keep variable names smaller, simpler
  */
 
-#define DEF_FREQUENCY_UP_THRESHOLD		(70)
-#define DEF_FREQUENCY_DOWN_THRESHOLD		(35)
+#define DEF_FREQUENCY_UP_THRESHOLD		(95)
+#define DEF_FREQUENCY_DOWN_THRESHOLD		(40)
 
 /*
  * The polling frequency of this governor depends on the capability of
@@ -92,7 +92,7 @@ static struct dbs_tuners {
 	.up_threshold = DEF_FREQUENCY_UP_THRESHOLD,
 	.down_threshold = DEF_FREQUENCY_DOWN_THRESHOLD,
 	.sampling_down_factor = DEF_SAMPLING_DOWN_FACTOR,
-	.ignore_nice = 0,
+	.ignore_nice = 1,
 	.freq_step = 10,
 	.latency_multiplier = LATENCY_MULTIPLIER,
 };
