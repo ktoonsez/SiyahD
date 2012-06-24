@@ -34,7 +34,7 @@
  */
 
 #define DEF_FREQUENCY_DOWN_DIFFERENTIAL		(10)
-#define DEF_FREQUENCY_UP_THRESHOLD		(85)
+#define DEF_FREQUENCY_UP_THRESHOLD		(88)
 #define DEF_SAMPLE_RATE				(10000)
 #define MICRO_FREQUENCY_DOWN_DIFFERENTIAL	(3)
 #define MICRO_FREQUENCY_UP_THRESHOLD		(98)
@@ -56,7 +56,7 @@
 
 static unsigned int min_sampling_rate, current_sampling_rate;
 
-#define LATENCY_MULTIPLIER			(1000)
+#define LATENCY_MULTIPLIER				(1000)
 #define MIN_LATENCY_MULTIPLIER			(100)
 #define TRANSITION_LATENCY_LIMIT		(10 * 1000 * 1000)
 
@@ -118,7 +118,7 @@ static struct dbs_tuners {
     unsigned int io_is_busy;
     unsigned int min_timeinstate;
 #ifdef CONFIG_HAS_EARLYSUSPEND
-    bool screenoff_maxfreq;
+    bool screenoff_minfreq;
 #endif
 } dbs_tuners_ins = {
     .up_threshold = DEF_FREQUENCY_UP_THRESHOLD,
@@ -126,7 +126,7 @@ static struct dbs_tuners {
     .ignore_nice = 0,
     .powersave_bias = 0,
 #ifdef CONFIG_HAS_EARLYSUSPEND
-    .screenoff_maxfreq = false,
+    .screenoff_minfreq = true,
 #endif
 };
 
@@ -219,7 +219,7 @@ show_one(io_is_busy, io_is_busy);
 show_one(up_threshold, up_threshold);
 show_one(min_timeinstate, min_timeinstate);
 #ifdef CONFIG_HAS_EARLYSUSPEND
-show_one(screenoff_maxfreq, screenoff_maxfreq);
+show_one(screenoff_minfreq, screenoff_minfreq);
 #endif
 
 static ssize_t store_sampling_rate(struct kobject *a, struct attribute *b,
@@ -292,7 +292,7 @@ static ssize_t store_min_timeinstate(struct kobject *a, struct attribute *b,
 }
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
-static ssize_t store_screenoff_maxfreq(struct kobject *a, struct attribute *b,
+static ssize_t store_screenoff_minfreq(struct kobject *a, struct attribute *b,
                                  const char *buf, size_t count)
 {
     unsigned int input;
@@ -302,7 +302,7 @@ static ssize_t store_screenoff_maxfreq(struct kobject *a, struct attribute *b,
        return -EINVAL;
 
     mutex_lock(&dbs_mutex);
-    dbs_tuners_ins.screenoff_maxfreq = input;
+    dbs_tuners_ins.screenoff_minfreq = input;
     mutex_unlock(&dbs_mutex);
 
     return count;
@@ -314,7 +314,7 @@ define_one_global_rw(io_is_busy);
 define_one_global_rw(up_threshold);
 define_one_global_rw(min_timeinstate);
 #ifdef CONFIG_HAS_EARLYSUSPEND
-define_one_global_rw(screenoff_maxfreq);
+define_one_global_rw(screenoff_minfreq);
 #endif
 
 static struct attribute *dbs_attributes[] = {
@@ -324,7 +324,7 @@ static struct attribute *dbs_attributes[] = {
     &io_is_busy.attr,
     &min_timeinstate.attr,
 #ifdef CONFIG_HAS_EARLYSUSPEND
-    &screenoff_maxfreq.attr,
+    &screenoff_minfreq.attr,
 #endif
     NULL
 };
@@ -350,12 +350,12 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
     current_sampling_rate = dbs_tuners_ins.sampling_rate;
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
-    if (suspended && dbs_tuners_ins.screenoff_maxfreq) {
-	/* if we are already at full speed then break out early */
-	    if (policy->cur == policy->max)
+    if (suspended && dbs_tuners_ins.screenoff_minfreq) {
+	/* if we are already at min speed then break out early */
+	    if (policy->cur == policy->min)
 		return;
 
-	    __cpufreq_driver_target(policy, policy->max,
+	    __cpufreq_driver_target(policy, policy->min,
 				    CPUFREQ_RELATION_H);
 
 	current_sampling_rate = dbs_tuners_ins.min_timeinstate;
@@ -464,7 +464,6 @@ static void do_dbs_timer(struct work_struct *work)
 	container_of(work, struct cpu_dbs_info_s, work.work);
     unsigned int cpu = dbs_info->cpu;
     int delay;
-    int sample_type = dbs_info->sample_type;
 
     mutex_lock(&dbs_info->timer_mutex);
 
