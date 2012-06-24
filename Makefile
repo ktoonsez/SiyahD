@@ -356,6 +356,7 @@ CFLAGS_ARM      = -marm -mtune=cortex-a9 -march=armv7-a -mfpu=neon \
 		  --param prefetch-latency=400 
 CFLAGS_REGISTER = -fschedule-insns -fsched-spec-load -fforce-addr \
 				  -frename-registers
+CFLAGS_MATH		= -ffast-math
 CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
 				  -ftree-loop-distribution -ftree-loop-linear \
 				  -floop-strip-mine -floop-block \
@@ -365,7 +366,7 @@ CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
 				  -fprefetch-loop-arrays -fipa-cp-clone
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 CFLAGS_DISABLE  = -fno-delete-null-pointer-checks -fno-gcse
-KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) \
+KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_MATH) \
                   $(CFLAGS_LOOPS) $(CFLAGS_MODULO) $(CFLAGS_DISABLE)
 MODFLAGS        = -DMODULE $(KERNELFLAGS)
 CFLAGS_MODULE   = $(MODFLAGS)
