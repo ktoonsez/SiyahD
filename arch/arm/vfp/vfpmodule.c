@@ -18,6 +18,10 @@
 #include <linux/smp.h>
 #include <linux/init.h>
 
+#ifdef CONFIG_PM
+#include <linux/syscore_ops.h>
+#endif
+
 #include <asm/cputype.h>
 #include <asm/thread_notify.h>
 #include <asm/vfp.h>
@@ -436,8 +440,6 @@ static void vfp_enable(void *unused)
 }
 
 #ifdef CONFIG_PM
-#include <linux/syscore_ops.h>
-
 static int vfp_pm_suspend(void)
 {
 	struct thread_info *ti = current_thread_info();
