@@ -36,7 +36,6 @@
 #include <linux/oom.h>
 #include <linux/sched.h>
 #include <linux/rcupdate.h>
-#include <linux/profile.h>
 #include <linux/notifier.h>
 #include <linux/memory.h>
 #include <linux/memory_hotplug.h>
