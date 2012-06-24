@@ -151,6 +151,7 @@ static void option_instat_callback(struct urb *urb);
 #define HUAWEI_PRODUCT_E14AC			0x14AC
 #define HUAWEI_PRODUCT_K3806			0x14AE
 #define HUAWEI_PRODUCT_K4605			0x14C6
+#define HUAWEI_PRODUCT_K5005			0x14C8
 #define HUAWEI_PRODUCT_K3770			0x14C9
 #define HUAWEI_PRODUCT_K3771			0x14CA
 #define HUAWEI_PRODUCT_K4510			0x14CB
@@ -426,71 +427,6 @@ static void option_instat_callback(struct urb *urb);
 #define SAMSUNG_VENDOR_ID                       0x04e8
 #define SAMSUNG_PRODUCT_GT_B3730                0x6889
 
-/* YUGA products  www.yuga-info.com*/
-#define YUGA_VENDOR_ID				0x257A
-#define YUGA_PRODUCT_CEM600			0x1601
-#define YUGA_PRODUCT_CEM610			0x1602
-#define YUGA_PRODUCT_CEM500			0x1603
-#define YUGA_PRODUCT_CEM510			0x1604
-#define YUGA_PRODUCT_CEM800			0x1605
-#define YUGA_PRODUCT_CEM900			0x1606
-
-#define YUGA_PRODUCT_CEU818			0x1607
-#define YUGA_PRODUCT_CEU816			0x1608
-#define YUGA_PRODUCT_CEU828			0x1609
-#define YUGA_PRODUCT_CEU826			0x160A
-#define YUGA_PRODUCT_CEU518			0x160B
-#define YUGA_PRODUCT_CEU516			0x160C
-#define YUGA_PRODUCT_CEU528			0x160D
-#define YUGA_PRODUCT_CEU526			0x160F
-
-#define YUGA_PRODUCT_CWM600			0x2601
-#define YUGA_PRODUCT_CWM610			0x2602
-#define YUGA_PRODUCT_CWM500			0x2603
-#define YUGA_PRODUCT_CWM510			0x2604
-#define YUGA_PRODUCT_CWM800			0x2605
-#define YUGA_PRODUCT_CWM900			0x2606
-
-#define YUGA_PRODUCT_CWU718			0x2607
-#define YUGA_PRODUCT_CWU716			0x2608
-#define YUGA_PRODUCT_CWU728			0x2609
-#define YUGA_PRODUCT_CWU726			0x260A
-#define YUGA_PRODUCT_CWU518			0x260B
-#define YUGA_PRODUCT_CWU516			0x260C
-#define YUGA_PRODUCT_CWU528			0x260D
-#define YUGA_PRODUCT_CWU526			0x260F
-
-#define YUGA_PRODUCT_CLM600			0x2601
-#define YUGA_PRODUCT_CLM610			0x2602
-#define YUGA_PRODUCT_CLM500			0x2603
-#define YUGA_PRODUCT_CLM510			0x2604
-#define YUGA_PRODUCT_CLM800			0x2605
-#define YUGA_PRODUCT_CLM900			0x2606
-
-#define YUGA_PRODUCT_CLU718			0x2607
-#define YUGA_PRODUCT_CLU716			0x2608
-#define YUGA_PRODUCT_CLU728			0x2609
-#define YUGA_PRODUCT_CLU726			0x260A
-#define YUGA_PRODUCT_CLU518			0x260B
-#define YUGA_PRODUCT_CLU516			0x260C
-#define YUGA_PRODUCT_CLU528			0x260D
-#define YUGA_PRODUCT_CLU526			0x260F
-
-/* Viettel products */
-#define VIETTEL_VENDOR_ID			0x2262
-#define VIETTEL_PRODUCT_VT1000			0x0002
-
-/* ZD Incorporated */
-#define ZD_VENDOR_ID				0x0685
-#define ZD_PRODUCT_7000				0x7000
-
-/* LG products */
-#define LG_VENDOR_ID				0x1004
-#define LG_PRODUCT_L02C				0x618f
-
-/* MediaTek products */
-#define MEDIATEK_VENDOR_ID			0x0e8d
-
 /* YUGA products  www.yuga-info.com gavin.kx@qq.com */
 #define YUGA_VENDOR_ID				0x257A
 #define YUGA_PRODUCT_CEM600			0x1601
@@ -737,6 +673,11 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K3806, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K4605, 0xff, 0xff, 0xff),
 		.driver_info = (kernel_ulong_t) &huawei_cdc12_blacklist },
+	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K4605, 0xff, 0x01, 0x31) },
+	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K4605, 0xff, 0x01, 0x32) },
+	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K5005, 0xff, 0x01, 0x31) },
+	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K5005, 0xff, 0x01, 0x32) },
+	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K5005, 0xff, 0x01, 0x33) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K3770, 0xff, 0x02, 0x31) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K3770, 0xff, 0x02, 0x32) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(HUAWEI_VENDOR_ID, HUAWEI_PRODUCT_K3771, 0xff, 0x02, 0x31) },
@@ -1278,6 +1219,11 @@ static const struct usb_device_id option_ids[] = {
 	{ USB_DEVICE(YUGA_VENDOR_ID, YUGA_PRODUCT_CLU516) },
 	{ USB_DEVICE(YUGA_VENDOR_ID, YUGA_PRODUCT_CLU528) },
 	{ USB_DEVICE(YUGA_VENDOR_ID, YUGA_PRODUCT_CLU526) },
+	{ USB_DEVICE(YUGA_VENDOR_ID, YUGA_PRODUCT_CEU881) },
+	{ USB_DEVICE(YUGA_VENDOR_ID, YUGA_PRODUCT_CEU882) },
+	{ USB_DEVICE(YUGA_VENDOR_ID, YUGA_PRODUCT_CWU581) },
+	{ USB_DEVICE(YUGA_VENDOR_ID, YUGA_PRODUCT_CWU582) },
+	{ USB_DEVICE(YUGA_VENDOR_ID, YUGA_PRODUCT_CWU583) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(VIETTEL_VENDOR_ID, VIETTEL_PRODUCT_VT1000, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE_AND_INTERFACE_INFO(ZD_VENDOR_ID, ZD_PRODUCT_7000, 0xff, 0xff, 0xff) },
 	{ USB_DEVICE(LG_VENDOR_ID, LG_PRODUCT_L02C) }, /* docomo L-02C modem */
@@ -1435,6 +1381,15 @@ static int option_probe(struct usb_serial *serial,
 	return 0;
 }
 
+static void option_release(struct usb_serial *serial)
+{
+	struct usb_wwan_intf_private *priv = usb_get_serial_data(serial);
+
+	usb_wwan_release(serial);
+
+	kfree(priv);
+}
+
 static void option_instat_callback(struct urb *urb)
 {
 	int err;
@@ -1502,7 +1457,7 @@ static int option_send_setup(struct usb_serial_port *port)
 	struct usb_serial *serial = port->serial;
 	struct usb_wwan_intf_private *intfdata =
 		(struct usb_wwan_intf_private *) serial->private;
-	struct option_port_private *portdata;
+	struct usb_wwan_port_private *portdata;
 	int ifNum = serial->interface->cur_altsetting->desc.bInterfaceNumber;
 	int val = 0;
 	dbg("%s", __func__);
