@@ -348,10 +348,6 @@ static int ecryptfs_parse_options(struct ecryptfs_sb_info *sbi, char *options,
 
 	*check_ruid = 0;
 
-	*check_ruid = 0;
-
-	*check_ruid = 0;
-
 	if (!options) {
 		rc = -EINVAL;
 		goto out;
