@@ -207,6 +207,8 @@ static void hotplug_timer(struct work_struct *work)
 
 	if ((!standhotplug_enabled) || (screen_off && !cpu_online(1))) {
 		printk(KERN_INFO "pm-hotplug: disable cpu auto-hotplug\n");
+		if (cpu_online(1) == 1)
+			cpu_down(1);
 		goto off_hotplug;
 	}
 
@@ -219,7 +221,7 @@ static void hotplug_timer(struct work_struct *work)
 	}
 
 	if (user_lock == 1)
-		goto off_hotplug;
+		goto no_hotplug;
 
 	for_each_online_cpu(i) {
 		struct cpu_time_info *tmp_info;
@@ -282,11 +284,9 @@ static void hotplug_timer(struct work_struct *work)
 	} 
 
 no_hotplug:
-
 	queue_delayed_work_on(0, hotplug_wq, &hotplug_work, hotpluging_rate);
 
 off_hotplug:
-
 	mutex_unlock(&hotplug_lock);
 }
 
