@@ -250,9 +250,9 @@ ssize_t pwm_val_store(struct device *dev,
 	else if (pwm_duty < 18820) {
 		pwm_duty = 18820;
 	}
-	/* if samsung rom will try to mess with pwm_duty then set it to 100% */	
+	/* if samsung rom will try to mess with pwm_duty then set it to 100% */
 	if (pwm_duty == 19011) {
-		pwm_duty = 37640;	
+		pwm_duty = 37640;
 	}
 
 	pr_info("[VIB] %s: pwm_duty=%d\n", __func__, pwm_duty);
