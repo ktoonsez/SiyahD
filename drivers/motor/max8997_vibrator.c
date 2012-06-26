@@ -27,8 +27,8 @@
 #include "mach/gpio.h"
 #endif
 
-static unsigned long pwm_val = 50; /* duty in percent */
-static int pwm_duty = 28230; /* duty value, 37640=100% 28230=50%, 18820=0% */
+static unsigned long pwm_val = 75; /* duty in percent */
+static int pwm_duty = 32935; /* duty value, 37640=100% 28230=50%, 18820=0% */
 
 struct vibrator_drvdata {
 	struct max8997_motor_data *pdata;
@@ -123,7 +123,7 @@ static void vibrator_work(struct work_struct *_work)
 			regulator_enable(data->regulator);
 		i2c_max8997_hapticmotor(data, true);
 		pwm_config(data->pwm, pwm_duty, data->pdata->period);
-		pr_info("[VIB] %s: pwm_config duty=%d\n", __func__, pwm_duty);
+		pr_debug("[VIB] %s: pwm_config duty=%d\n", __func__, pwm_duty);
 		pwm_enable(data->pwm);
 
 		data->running = true;
@@ -239,7 +239,7 @@ ssize_t pwm_val_store(struct device *dev,
 	if (kstrtoul(buf, 0, &pwm_val))
 		pr_err("[VIB] %s: error on storing pwm_val\n", __func__); 
 
-	pr_info("[VIB] %s: pwm_val=%lu\n", __func__, pwm_val);
+	pr_debug("[VIB] %s: pwm_val=%lu\n", __func__, pwm_val);
 
 	pwm_duty = (pwm_val * 18820) / 100 + 18820;
 
@@ -248,14 +248,14 @@ ssize_t pwm_val_store(struct device *dev,
 		pwm_duty = 37640;
 	}
 	else if (pwm_duty < 18820) {
-		pwm_duty = 18820;
+		pwm_duty = 32935;
 	}
 	/* if samsung rom will try to mess with pwm_duty then set it to 100% */
-	if (pwm_duty == 19011) {
-		pwm_duty = 37640;
+	if (pwm_duty < 28230) {
+		pwm_duty = 32935;
 	}
 
-	pr_info("[VIB] %s: pwm_duty=%d\n", __func__, pwm_duty);
+	pr_debug("[VIB] %s: pwm_duty=%d\n", __func__, pwm_duty);
 
 	return size;
 }
