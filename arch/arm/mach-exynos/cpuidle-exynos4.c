@@ -766,7 +766,7 @@ static int exynos4_enter_lowpower(struct cpuidle_device *dev,
 		__raw_writel(tmp, S5P_CENTRAL_SEQ_OPTION);
 	}
 
-	if (new_state == &dev->states[0])
+	if (new_state == &dev->states_usage[0])
 		return exynos4_enter_idle(dev, new_state);
 
 	enter_mode = exynos4_check_entermode();
@@ -890,11 +890,11 @@ static int __init exynos4_init_cpuidle(void)
 		max_cpuidle_state = device->state_count;
 
 		for (i = 0; i < max_cpuidle_state; i++) {
-			memcpy(&device->states[i], &exynos4_cpuidle_set[i],
+			memcpy(&device->states_usage[i], &exynos4_cpuidle_set[i],
 					sizeof(struct cpuidle_state));
 		}
 
-		device->safe_state = &device->states[0];
+		device->safe_state = &device->states_usage[0];
 
 		if (cpuidle_register_device(device)) {
 			printk(KERN_ERR "CPUidle register device failed\n,");
