@@ -28,7 +28,7 @@
 #endif
 
 static unsigned long pwm_val = 75; /* duty in percent */
-static int pwm_duty = 32935; /* duty value, 37640=100% 28230=50%, 18820=0% */
+static int pwm_duty = 32935; /* duty value, 37640=100% 32935=75% 28230=50%, 23525=25% 18820=0% */
 
 struct vibrator_drvdata {
 	struct max8997_motor_data *pdata;
@@ -248,10 +248,10 @@ ssize_t pwm_val_store(struct device *dev,
 		pwm_duty = 37640;
 	}
 	else if (pwm_duty < 18820) {
-		pwm_duty = 32935;
+		pwm_duty = 23525;
 	}
-	/* if samsung rom will try to mess with pwm_duty then set it to 100% */
-	if (pwm_duty < 28230) {
+	/* if samsung rom will try to mess with pwm_duty and reduce it lower than 25% then set it to 75% */
+	if (pwm_duty < 23525) {
 		pwm_duty = 32935;
 	}
 
