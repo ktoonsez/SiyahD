@@ -639,6 +639,7 @@ static int max8997_flash_enable(struct regulator_dev *rdev)
 	default:
 		return -EINVAL;
 	}
+
 	return ret;
 }
 
