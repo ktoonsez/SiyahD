@@ -32,7 +32,6 @@ struct mmu_gather {
 	struct mm_struct *mm;
 	struct mmu_table_batch *batch;
 	unsigned int fullmm;
-	unsigned int need_flush;
 };
 
 struct mmu_table_batch {
@@ -53,7 +52,6 @@ static inline void tlb_gather_mmu(struct mmu_gather *tlb,
 {
 	tlb->mm = mm;
 	tlb->fullmm = full_mm_flush;
-	tlb->need_flush = 0;
 	tlb->batch = NULL;
 	if (tlb->fullmm)
 		__tlb_flush_mm(mm);
@@ -67,7 +65,7 @@ static inline void tlb_flush_mmu(struct mmu_gather *tlb)
 static inline void tlb_finish_mmu(struct mmu_gather *tlb,
 				  unsigned long start, unsigned long end)
 {
-	tlb_table_flush(tlb)
+	tlb_table_flush(tlb);
 }
 
 /*

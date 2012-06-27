@@ -1920,7 +1920,7 @@ no_transform:
 ok:
 	xfrm_pols_put(pols, drop_pols);
 	if (dst && dst->xfrm &&
-			dst->xfrm->props.mode == XFRM_MODE_TUNNEL)
+	    dst->xfrm->props.mode == XFRM_MODE_TUNNEL)
 		dst->flags |= DST_XFRM_TUNNEL;
 	return dst;
 

@@ -503,7 +503,7 @@ block:
 
 	if (urb) {
 		if (netif_running (dev->net) &&
-		    !test_bit(EVENT_RX_HALT, &dev->flags) &&
+		    !test_bit (EVENT_RX_HALT, &dev->flags) &&
 		    state != unlink_start) {
 			rx_submit (dev, urb, GFP_ATOMIC);
 			return;
