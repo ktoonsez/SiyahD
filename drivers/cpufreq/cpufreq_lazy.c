@@ -58,7 +58,7 @@
 
 static unsigned int min_sampling_rate, current_sampling_rate;
 
-extern unsigned int touch_state_val;
+static unsigned int touch_state_val;
 
 #define LATENCY_MULTIPLIER			(1000)
 #define MIN_LATENCY_MULTIPLIER			(100)
@@ -415,7 +415,6 @@ static ssize_t store_smooth_ui(struct kobject *a, struct attribute *b,
 	dbs_tuners_ins.smooth_ui = !!input;
 	return count;
 }
->>>>>>> bfa5f01... + testing lazy-changes ... -> https://github.com/trailblazerz/samsung-kernel-aries/commits/linaro-4.7.1/drivers/cpufreq/cpufreq_lazy.c
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 static ssize_t store_screenoff_maxfreq(struct kobject *a, struct attribute *b,
