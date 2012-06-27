@@ -75,7 +75,6 @@ touchkey register
 #define BL_ALWAYS_OFF	-2
 #define BL_STANDARD	3000
 #define BLN_VERSION	10
-#define BLN_VOLT	3000
 
 /* Breathing defaults */
 #define BREATHING_STEP_INCR	50
@@ -518,7 +517,7 @@ static void reset_breathing(void)
 	if (breathing_enabled)
 		change_touch_key_led_voltage(breathe.min);
 	else if (blinking_enabled)
-		change_touch_key_led_voltage(BLN_VOLT);
+		change_touch_key_led_voltage(led_brightness);
 }
 
 static void led_fadeout(void)
@@ -730,7 +729,7 @@ static ssize_t led_status_write( struct device *dev, struct device_attribute *at
 					reset_breathing();
 					start_breathing_timer();
 				} else {
-					change_touch_key_led_voltage(BLN_VOLT);
+					change_touch_key_led_voltage(led_brightness);
 				}
 
 				/* See if a timeout value has been set for the notification */
