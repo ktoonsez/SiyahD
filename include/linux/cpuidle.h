@@ -92,7 +92,6 @@ struct cpuidle_device {
 	int			state_count;
 	struct cpuidle_state_usage	states_usage[CPUIDLE_STATE_MAX];
 	struct cpuidle_state_kobj *kobjs[CPUIDLE_STATE_MAX];
-	struct cpuidle_state *last_state;
 
 	struct list_head 	device_list;
 	struct kobject		kobj;

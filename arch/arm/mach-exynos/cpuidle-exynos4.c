@@ -444,7 +444,8 @@ static void vfp_enable(void *unused)
 }
 
 static int exynos4_enter_core0_aftr(struct cpuidle_device *dev,
-				    struct cpuidle_state *state)
+					struct cpuidle_driver *drv,
+					int index)
 {
 	struct timeval before, after;
 	int idle_time;
@@ -511,13 +512,15 @@ early_wakeup:
 	idle_time = (after.tv_sec - before.tv_sec) * USEC_PER_SEC +
 		    (after.tv_usec - before.tv_usec);
 
-	return idle_time;
+	dev->last_residency = idle_time;
+	return index;
 }
 
 extern void bt_uart_rts_ctrl(int flag);
 
 static int exynos4_enter_core0_lpa(struct cpuidle_device *dev,
-				   struct cpuidle_state *state)
+					struct cpuidle_driver *drv,
+					int index)
 {
 	struct timeval before, after;
 	int idle_time;
@@ -630,31 +633,34 @@ early_wakeup:
 	bt_uart_rts_ctrl(0);
 #endif
 
-	return idle_time;
+    dev->last_residency = idle_time;
+    return index;
 }
 
 static int exynos4_enter_idle(struct cpuidle_device *dev,
-			      struct cpuidle_state *state);
+				struct cpuidle_driver *drv,
+			    int index);
 
 static int exynos4_enter_lowpower(struct cpuidle_device *dev,
-				  struct cpuidle_state *state);
+				struct cpuidle_driver *drv,
+			    int index);
 
-static struct cpuidle_state exynos4_cpuidle_set[] = {
+static struct cpuidle_state exynos4_cpuidle_set[] __initdata = {
 	[0] = {
-		.enter			= exynos4_enter_idle,
+		.enter				= exynos4_enter_idle,
 		.exit_latency		= 1,
 		.target_residency	= 10000,
-		.flags			= CPUIDLE_FLAG_TIME_VALID,
-		.name			= "IDLE",
-		.desc			= "ARM clock gating(WFI)",
+		.flags				= CPUIDLE_FLAG_TIME_VALID,
+		.name				= "IDLE",
+		.desc				= "ARM clock gating(WFI)",
 	},
 	[1] = {
-		.enter			= exynos4_enter_lowpower,
+		.enter				= exynos4_enter_lowpower,
 		.exit_latency		= 300,
 		.target_residency	= 10000,
-		.flags			= CPUIDLE_FLAG_TIME_VALID,
-		.name			= "LOW_POWER",
-		.desc			= "ARM power down",
+		.flags				= CPUIDLE_FLAG_TIME_VALID,
+		.name				= "LOW_POWER",
+		.desc				= "ARM power down",
 	},
 };
 
@@ -670,7 +676,8 @@ static unsigned int old_div;
 static DEFINE_SPINLOCK(idle_lock);
 
 static int exynos4_enter_idle(struct cpuidle_device *dev,
-			      struct cpuidle_state *state)
+                struct cpuidle_driver *drv,
+                int index)
 {
 	struct timeval before, after;
 	int idle_time;
@@ -726,7 +733,8 @@ static int exynos4_enter_idle(struct cpuidle_device *dev,
 	idle_time = (after.tv_sec - before.tv_sec) * USEC_PER_SEC +
 		    (after.tv_usec - before.tv_usec);
 
-	return idle_time;
+    dev->last_residency = idle_time;
+    return index;
 }
 
 static int exynos4_check_entermode(void)
@@ -748,34 +756,32 @@ static int exynos4_check_entermode(void)
 }
 
 static int exynos4_enter_lowpower(struct cpuidle_device *dev,
-				  struct cpuidle_state *state)
+                struct cpuidle_driver *drv,
+                int index)
 {
-	struct cpuidle_state *new_state = state;
 	unsigned int enter_mode;
 	unsigned int tmp;
+	int new_index = index;
 
 	/* This mode only can be entered when only Core0 is online */
-	if (num_online_cpus() != 1) {
-		BUG_ON(!dev->safe_state);
-		new_state = dev->safe_state;
-	}
-	dev->last_state = new_state;
-
+	if (num_online_cpus() > 1)
+		new_index = drv->safe_state_index;
+	
 	if (!soc_is_exynos4210()) {
 		tmp = S5P_USE_STANDBY_WFI0 | S5P_USE_STANDBY_WFE0;
 		__raw_writel(tmp, S5P_CENTRAL_SEQ_OPTION);
 	}
 
-	if (new_state == &dev->states_usage[0])
-		return exynos4_enter_idle(dev, new_state);
+    if (new_index == 0)
+        return exynos4_enter_idle(dev, drv, new_index);
 
 	enter_mode = exynos4_check_entermode();
 	if (!enter_mode)
-		return exynos4_enter_idle(dev, new_state);
+		return exynos4_enter_idle(dev, drv, new_index);
 	else if (enter_mode == S5P_CHECK_DIDLE)
-		return exynos4_enter_core0_aftr(dev, new_state);
+		return exynos4_enter_core0_aftr(dev, drv, new_index);
 	else
-		return exynos4_enter_core0_lpa(dev, new_state);
+		return exynos4_enter_core0_lpa(dev, drv, new_index);
 }
 
 static int exynos4_cpuidle_notifier_event(struct notifier_block *this,
@@ -864,6 +870,7 @@ static int __init exynos4_init_cpuidle(void)
 {
 	int i, max_cpuidle_state, cpu_id;
 	struct cpuidle_device *device;
+	struct cpuidle_driver *drv = &exynos4_idle_driver;
 	struct platform_device *pdev;
 	struct resource *res;
 
@@ -876,6 +883,15 @@ static int __init exynos4_init_cpuidle(void)
 	if (use_clock_down == HW_CLK_DWN)
 		exynos4_core_down_clk();
 
+	/* Setup cpuidle driver */
+	drv->state_count = (sizeof(exynos4_cpuidle_set) /
+						sizeof(struct cpuidle_state));
+	max_cpuidle_state = drv->state_count;
+	for (i = 0; i < max_cpuidle_state; i++) {
+		memcpy(&drv->states[i], &exynos4_cpuidle_set[i],
+						sizeof(struct cpuidle_state));
+	}
+
 	cpuidle_register_driver(&exynos4_idle_driver);
 
 	for_each_cpu(cpu_id, cpu_online_mask) {
@@ -887,14 +903,7 @@ static int __init exynos4_init_cpuidle(void)
 		else
 			device->state_count = 1;	/* Support IDLE only */
 
-		max_cpuidle_state = device->state_count;
-
-		for (i = 0; i < max_cpuidle_state; i++) {
-			memcpy(&device->states_usage[i], &exynos4_cpuidle_set[i],
-					sizeof(struct cpuidle_state));
-		}
-
-		device->safe_state = &device->states_usage[0];
+		device->state_count = drv->state_count;
 
 		if (cpuidle_register_device(device)) {
 			printk(KERN_ERR "CPUidle register device failed\n,");

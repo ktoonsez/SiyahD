@@ -620,7 +620,7 @@ static int exynos_cpufreq_policy_notifier_call(struct notifier_block *this,
 				unsigned long code, void *data)
 {
 	struct cpufreq_policy *policy = data;
-	enum cpufreq_level_index level;
+	enum cpufreq_level_index level = 0;
 
 	switch (code) {
 	case CPUFREQ_ADJUST:
