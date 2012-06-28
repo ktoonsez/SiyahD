@@ -589,7 +589,7 @@ void mmc_set_data_timeout(struct mmc_data *data, const struct mmc_card *card)
 			 */
 			limit_us = 800000;
 		else
-			limit_us = 200000;
+			limit_us = 100000;
 
 		/*
 		 * SDHC cards always use these fixed values.
@@ -1472,7 +1472,7 @@ int mmc_resume_bus(struct mmc_host *host)
 		host->bus_ops->resume(host);
 	}
 
-	if (host->bus_ops && host->bus_ops->detect && !host->bus_dead)
+	if (host->bus_ops->detect && !host->bus_dead)
 		host->bus_ops->detect(host);
 
 	mmc_bus_put(host);
@@ -1814,8 +1814,6 @@ out:
 int mmc_erase(struct mmc_card *card, unsigned int from, unsigned int nr,
 	      unsigned int arg)
 {
-//	unsigned int rem, to = from + nr;
-
 	printk("%s: mmc_erase() disabled for protection. from = %u, nr = %u, arg = %u\n",
 			__func__,from,nr,arg);
 	return -EOPNOTSUPP;

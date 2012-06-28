@@ -981,7 +981,7 @@ static void dw_mci_enable_sdio_irq(struct mmc_host *mmc, int enb)
 	}
 }
 
-static u8 dw_mci_tuning_sampling(struct dw_mci *host)
+static u8 dw_mci_tuning_sampling(struct dw_mci * host)
 {
 	u32 clksel;
 	u8 sample;
@@ -995,7 +995,7 @@ static u8 dw_mci_tuning_sampling(struct dw_mci *host)
 	return sample;
 }
 
-static void dw_mci_set_sampling(struct dw_mci *host, u8 sample)
+static void dw_mci_set_sampling(struct dw_mci * host, u8 sample)
 {
 	u32 clksel;
 
@@ -1004,7 +1004,7 @@ static void dw_mci_set_sampling(struct dw_mci *host, u8 sample)
 	mci_writel(host, CLKSEL, clksel);
 }
 
-static u8 dw_mci_get_sampling(struct dw_mci *host)
+static u8 dw_mci_get_sampling(struct dw_mci * host)
 {
 	u32 clksel;
 	u8 sample;
@@ -2241,8 +2241,9 @@ static int __exit dw_mci_remove(struct platform_device *pdev)
 	mci_writel(host, RINTSTS, 0xFFFFFFFF);
 	mci_writel(host, INTMASK, 0); /* disable all mmc interrupt first */
 
-	if (host->pdata->cd_type == DW_MCI_CD_EXTERNAL)
+	if (host->pdata->cd_type == DW_MCI_CD_EXTERNAL) {
 		host->pdata->ext_cd_cleanup(&dw_mci_notify_change);
+	}
 
 	platform_set_drvdata(pdev, NULL);
 

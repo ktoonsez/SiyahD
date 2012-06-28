@@ -888,7 +888,7 @@ static int mmc_blk_issue_secdiscard_rq(struct mmc_queue *mq,
 {
 	struct mmc_blk_data *md = mq->data;
 	struct mmc_card *card = md->queue.card;
-	unsigned int from = 0, nr = 0, arg = 0;
+	unsigned int from, nr, arg;
 	int err = 0, type = MMC_BLK_SECDISCARD;
 
 	if (!(mmc_can_secure_erase_trim(card) || mmc_can_sanitize(card))) {
@@ -1630,9 +1630,9 @@ static int mmc_blk_issue_rw_rq(struct mmc_queue *mq, struct request *rqc)
 		struct mmc_command cmd;
 #endif
 		if (rqc) {
-			if (reqs >= packed_num)
+			if (reqs >= packed_num) {
 				mmc_blk_packed_hdr_wrq_prep(mq->mqrq_cur, card, mq);
-			else
+			} else
 				mmc_blk_rw_rq_prep(mq->mqrq_cur, card, 0, mq);
 			areq = &mq->mqrq_cur->mmc_active;
 		} else
