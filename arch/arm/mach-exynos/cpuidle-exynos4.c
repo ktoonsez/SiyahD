@@ -645,7 +645,7 @@ static int exynos4_enter_lowpower(struct cpuidle_device *dev,
 				struct cpuidle_driver *drv,
 			    int index);
 
-static struct cpuidle_state exynos4_cpuidle_set[] = {
+static struct cpuidle_state exynos4_cpuidle_set[] __initdata = {
 	[0] = {
 		.enter				= exynos4_enter_idle,
 		.exit_latency		= 1,
