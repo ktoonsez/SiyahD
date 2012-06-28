@@ -1305,7 +1305,7 @@ intel_tv_detect_type (struct intel_tv *intel_tv,
 
 	/* For unknown reasons the hw barfs if we don't do this vblank wait. */
 	intel_wait_for_vblank(intel_tv->base.base.dev,
-			to_intel_crtc(intel_tv->base.base.crtc)->pipe);	
+			      to_intel_crtc(intel_tv->base.base.crtc)->pipe);
 
 	/* Restore interrupt config */
 	if (connector->polled & DRM_CONNECTOR_POLL_HPD) {

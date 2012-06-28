@@ -206,14 +206,6 @@ struct xhci_op_regs {
 /* bits 12:31 are reserved (and should be preserved on writes). */
 
 /* IMAN - Interrupt Management Register */
-#define IMAN_IP    (1 << 1)
-#define IMAN_IE    (1 << 0)
-
-/* IMAN - Interrupt Management Register */
-#define IMAN_IP		(1 << 1)
-#define IMAN_IE		(1 << 0)
-
-/* IMAN - Interrupt Management Register */
 #define IMAN_IP		(1 << 1)
 #define IMAN_IE		(1 << 0)
 

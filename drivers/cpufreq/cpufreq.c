@@ -28,14 +28,10 @@
 #include <linux/cpu.h>
 #include <linux/completion.h>
 #include <linux/mutex.h>
-#include <linux/sched.h>
 #include <linux/syscore_ops.h>
 #include <linux/earlysuspend.h>
 
 #include <trace/events/power.h>
-
-// Safe boot speed
-#define SafeBootSpeed 1200000
 
 unsigned int exynos4x12_volt_table[14];
 
@@ -1098,10 +1094,6 @@ static int cpufreq_add_dev(struct sys_device *sys_dev)
 		goto err_unlock_policy;
 	}
 
-	// Set max speed at boot to 1.2Mhz since is the safest speed to boot
-	if (policy->max != SafeBootSpeed)
-		policy->max = SafeBootSpeed;
-
 #ifdef CONFIG_HOTPLUG_CPU
 	for_each_online_cpu(sibling) {
 		struct cpufreq_policy *cp = per_cpu(cpufreq_cpu_data, sibling);
@@ -1599,12 +1591,6 @@ int __cpufreq_driver_target(struct cpufreq_policy *policy,
 		target_freq, relation);
 	if (cpu_online(policy->cpu) && cpufreq_driver->target)
 		retval = cpufreq_driver->target(policy, target_freq, relation);
-	if (likely(retval != -EINVAL)) {
-		if (target_freq == policy->max)
-			cpu_nonscaling(policy->cpu);
-		else
-			cpu_scaling(policy->cpu);
-	}
 
 	return retval;
 }
