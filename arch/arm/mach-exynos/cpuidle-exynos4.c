@@ -645,7 +645,7 @@ static int exynos4_enter_lowpower(struct cpuidle_device *dev,
 				struct cpuidle_driver *drv,
 			    int index);
 
-static struct cpuidle_state exynos4_cpuidle_set[] __initdata = {
+static struct cpuidle_state exynos4_cpuidle_set[] = {
 	[0] = {
 		.enter				= exynos4_enter_idle,
 		.exit_latency		= 1,
@@ -883,14 +883,7 @@ static int __init exynos4_init_cpuidle(void)
 	if (use_clock_down == HW_CLK_DWN)
 		exynos4_core_down_clk();
 
-	/* Setup cpuidle driver */
-	drv->state_count = (sizeof(exynos4_cpuidle_set) /
-						sizeof(struct cpuidle_state));
-	max_cpuidle_state = drv->state_count;
-	for (i = 0; i < max_cpuidle_state; i++) {
-		memcpy(&drv->states[i], &exynos4_cpuidle_set[i],
-						sizeof(struct cpuidle_state));
-	}
+	drv->safe_state_index = 0;
 
 	cpuidle_register_driver(&exynos4_idle_driver);
 
@@ -899,11 +892,16 @@ static int __init exynos4_init_cpuidle(void)
 		device->cpu = cpu_id;
 
 		if (cpu_id == 0)
-			device->state_count = ARRAY_SIZE(exynos4_cpuidle_set);
+			drv->state_count = ARRAY_SIZE(exynos4_cpuidle_set);
 		else
-			device->state_count = 1;	/* Support IDLE only */
+			drv->state_count = 1;	/* Support IDLE only */
 
-		device->state_count = drv->state_count;
+		max_cpuidle_state = drv->state_count;
+
+		for (i = 0; i < max_cpuidle_state; i++) {
+			memcpy(&drv->states[i], &exynos4_cpuidle_set[i],
+					sizeof(struct cpuidle_state));
+		}
 
 		if (cpuidle_register_device(device)) {
 			printk(KERN_ERR "CPUidle register device failed\n,");
