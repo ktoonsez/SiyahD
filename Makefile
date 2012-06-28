@@ -366,7 +366,7 @@ CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
 				  -fprefetch-loop-arrays
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 CFLAGS_DISABLE  = -fno-delete-null-pointer-checks -fno-gcse
-KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) \
+KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_MATH) \
                   $(CFLAGS_LOOPS) $(CFLAGS_MODULO) $(CFLAGS_DISABLE)
 MODFLAGS        = -DMODULE $(KERNELFLAGS)
 CFLAGS_MODULE   = $(MODFLAGS)
