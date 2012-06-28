@@ -108,7 +108,7 @@ int cpuidle_idle_call(void)
 		 * but that results in multiple copies of same code.
 		 */
 		dev->states_usage[entered_state].time +=
-		    (unsigned long long)dev->last_residency;
+				(unsigned long long)dev->last_residency;
 		dev->states_usage[entered_state].usage++;
 	}
 
@@ -166,7 +166,7 @@ EXPORT_SYMBOL_GPL(cpuidle_resume_and_unlock);
 
 #ifdef CONFIG_ARCH_HAS_CPU_RELAX
 static int poll_idle(struct cpuidle_device *dev,
-	   struct cpuidle_driver *drv, int index)
+		struct cpuidle_driver *drv, int index)
 {
 	ktime_t	t1, t2;
 	s64 diff;
@@ -232,7 +232,7 @@ int cpuidle_enable_device(struct cpuidle_device *dev)
 		return ret;
 
 	if (cpuidle_curr_governor->enable &&
-		(ret = cpuidle_curr_governor->enable(cpuidle_get_driver(), dev)))
+	    (ret = cpuidle_curr_governor->enable(cpuidle_get_driver(), dev)))
 		goto fail_sysfs;
 
 	for (i = 0; i < dev->state_count; i++) {
@@ -303,18 +303,13 @@ static int __cpuidle_register_device(struct cpuidle_device *dev)
 
 	per_cpu(cpuidle_devices, dev->cpu) = dev;
 	list_add(&dev->device_list, &cpuidle_detected_devices);
-	ret = cpuidle_add_sysfs(sys_dev);
-	if (ret)
-		goto err_sysfs;
+	if ((ret = cpuidle_add_sysfs(sys_dev))) {
+		module_put(cpuidle_driver->owner);
+		return ret;
+	}
 
 	dev->registered = 1;
 	return 0;
-
-err_sysfs:
-	list_del(&dev->device_list);
-	per_cpu(cpuidle_devices, dev->cpu) = NULL;
-	module_put(cpuidle_driver->owner);
-	return ret;
 }
 
 /**
