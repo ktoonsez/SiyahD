@@ -15,8 +15,14 @@ assert(package_extract_file("boot/zImage", "/tmp/zImage"),
 run_program("/tmp/flash_image", "/dev/block/mmcblk0p5", "/tmp/zImage"),
 delete("/tmp/zImage"));
 delete("/tmp/flash_image");
+ui_print("Kernel successfully installed");
+ui_print("");
+ui_print("Cleaning cache ... ");
+delete_recursive("/cache");
+ui_print("Cleaning dalvik-cache...");
+delete_recursive("/data/dalvik-cache");
+ui_print("");
+# END: Install Kernel
+
 show_progress(0.100000, 0);
 unmount("/system");
-ui_print("Kernel successfully installed");
-# END: Install system
-
