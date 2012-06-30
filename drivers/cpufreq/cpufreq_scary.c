@@ -28,11 +28,11 @@
  * It helps to keep variable names smaller, simpler
  */
 
-#define DEF_FREQUENCY_UP_THRESHOLD		(60)
+#define DEF_FREQUENCY_UP_THRESHOLD		(90)
 #define DEF_FREQUENCY_DOWN_THRESHOLD		(40)
 #define DEFAULT_FREQ_STEP			(20)
 #define DEF_SAMPLING_DOWN_FACTOR                (1)
-#define MAX_SAMPLING_DOWN_FACTOR                (10)
+#define MAX_SAMPLING_DOWN_FACTOR                (10000)
 #define DEFAULT_SLEEP_MIN_FREQ                  100000
 #define DEFAULT_SLEEP_MAX_FREQ			700000
 
@@ -381,7 +381,7 @@ static void smartass_suspend(int cpu, int suspend)
     struct cpufreq_policy *policy = this_smartass->cur_policy;
     unsigned int new_freq;
 
-    if (!this_smartass->enable || sleep_max_freq==0) // disable behavior for sleep_max_freq==0
+    if (!this_smartass->enable || sleep_max_freq == 0) // disable behavior for sleep_max_freq==0
         return;
 
     if (suspend) 
@@ -389,13 +389,13 @@ static void smartass_suspend(int cpu, int suspend)
         //If the current min speed is greater than the max sleep, we reset the min to 120mhz, for battery savings
             if (policy->min >= sleep_max_freq)
             {
-                sleep_prev_freq=policy->min;
-                policy->min= sleep_min_freq;
+                sleep_prev_freq = policy->min;
+                policy->min = sleep_min_freq;
             }
             if (policy->max > sleep_max_freq)
             {
-                sleep_prev_max=policy->max;
-                policy->max=sleep_max_freq;
+                sleep_prev_max = policy->max;
+                policy->max = sleep_max_freq;
             }
         if (policy->cur > sleep_max_freq) 
         {
@@ -404,16 +404,16 @@ static void smartass_suspend(int cpu, int suspend)
                 new_freq = policy->max;
             if (new_freq < policy->min)
                 new_freq = policy->min;
-            __cpufreq_driver_target(policy, new_freq,CPUFREQ_RELATION_H);
+            __cpufreq_driver_target(policy, new_freq, CPUFREQ_RELATION_H);
        }
        
     }
     else //Resetting the min speed
     {
         if (policy->min < sleep_prev_freq)
-            policy->min=sleep_prev_freq;
+            policy->min = sleep_prev_freq;
         if (policy->max < sleep_prev_max)
-            policy->max=sleep_prev_max;
+            policy->max = sleep_prev_max;
     }
     
 }
@@ -423,7 +423,7 @@ static void smartass_early_suspend(struct early_suspend *handler)
     int i;
     suspended = 1;
     for_each_online_cpu(i)
-    smartass_suspend(i,1);
+    smartass_suspend(i, 1);
 }
 
 static void smartass_late_resume(struct early_suspend *handler) 
@@ -431,7 +431,7 @@ static void smartass_late_resume(struct early_suspend *handler)
     int i;
     suspended = 0;
     for_each_online_cpu(i)
-    smartass_suspend(i,0);
+    smartass_suspend(i, 0);
 }
 
 static struct early_suspend smartass_power_suspend = 
@@ -529,7 +529,7 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
    		if (this_dbs_info->requested_freq > policy->max)
    			this_dbs_info->requested_freq = policy->max;
 
-        __cpufreq_driver_target(policy, this_dbs_info->requested_freq,CPUFREQ_RELATION_H);
+        __cpufreq_driver_target(policy, this_dbs_info->requested_freq, CPUFREQ_RELATION_H);
 
    		return;
     }
@@ -605,8 +605,8 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 	unsigned int min_freq = ~0;
 	unsigned int max_freq = 0;
 	unsigned int i;	
-	struct cpufreq_frequency_table *freq_table;	
-    suspended=0;
+	struct cpufreq_frequency_table *freq_table;
+	suspended=0;
 
 	this_dbs_info = &per_cpu(cs_cpu_dbs_info, cpu);
 
@@ -685,7 +685,7 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 		sleep_min_freq = min_freq;
 		sleep_max_freq = min_freq;								//Minimum CPU frequency in table
 		sleep_prev_freq = min_freq;								//Minimum CPU frequency in table
-		sleep_prev_max= min_freq;								//Minimum CPU frequency in table
+		sleep_prev_max = min_freq;								//Minimum CPU frequency in table
 
 		break;
 
