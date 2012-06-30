@@ -8244,10 +8244,7 @@ s32 wl_update_wiphybands(struct wl_priv *wl)
 	err = wl_construct_reginfo(wl, bw_cap);
 	if (err) {
 		WL_ERR(("wl_construct_reginfo() fails err=%d\n", err));
-		if (err != BCME_UNSUPPORTED)
-			return err;
-		/* Ignore error if "chanspecs" command is not supported */
-		err = 0;
+		return err;
 	}
 
 	wiphy = wl_to_wiphy(wl);

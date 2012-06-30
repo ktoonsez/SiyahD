@@ -12,10 +12,10 @@ ui_print("                                                ");
 ui_print("------------------------------------------------");
 ui_print("");
 
-run_program("/sbin/mount", "/dev/block/mmcblk0p7", "/cache");
-run_program("/sbin/mount", "/dev/block/mmcblk0p10", "/data");
-run_program("/sbin/mount", "/dev/block/mmcblk0p9", "/system");
-run_program("/sbin/mount", "/dev/block/mmcblk0p11", "/sdcard");
+mount("ext4", "EMMC", "/dev/block/mmcblk0p9", "/system");
+mount("ext4", "EMMC", "/dev/block/mmcblk0p10", "/data");
+mount("ext4", "EMMC", "/dev/block/mmcblk0p11", "/sdcard");
+mount("ext4", "EMMC", "/dev/block/mmcblk0p7", "/cache");
 
 # ---- Flash the kernel ----
 ui_print("");
@@ -31,7 +31,6 @@ delete("/tmp/zImage"));
 delete("/tmp/flash_image");
 ui_print("Kernel successfully installed");
 show_progress(0.100000, 0);
-unmount("/system");
 
 # ---- Clean ----
 ui_print("");
@@ -74,7 +73,10 @@ delete("/system/etc/init.d/99nstools");
 delete("/data/user.log");
 delete("/system/Hawker.u.copier");
 delete_recursive("/cache");
-delete_recursive("/data/dalvik-cache");
 ui_print("");
 show_progress(1.000000, 0);
 ui_print("Cleaning complete!");
+unmount("/system");
+unmount("/data");
+unmount("/sdcard");
+

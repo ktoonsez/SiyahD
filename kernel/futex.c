@@ -2452,6 +2452,7 @@ SYSCALL_DEFINE3(get_robust_list, int, pid,
 	rcu_read_lock();
 
 	ret = -ESRCH;
+
 	if (!pid)
 		p = current;
 	else {

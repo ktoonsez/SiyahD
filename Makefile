@@ -363,7 +363,7 @@ CFLAGS_LOOPS    = -fsingle-precision-constant -fgraphite-identity \
 				  -ftree-vectorize -mvectorize-with-neon-quad -fvect-cost-model \
 				  -fpredictive-commoning -finline-functions \
 				  -funswitch-loops -fgcse-after-reload -falign-loops \
-				  -fprefetch-loop-arrays
+				  -fprefetch-loop-arrays -fipa-cp-clone
 CFLAGS_MODULO   = -fmodulo-sched -fmodulo-sched-allow-regmoves
 CFLAGS_DISABLE  = -fno-delete-null-pointer-checks -fno-gcse
 KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) $(CFLAGS_MATH) \

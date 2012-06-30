@@ -1569,9 +1569,6 @@ static const struct usb_device_id acm_ids[] = {
 	/* Support for Owen devices */
 	{ USB_DEVICE(0x03eb, 0x0030), }, /* Owen SI30 */
 
-	/* Support for Owen devices */
-	{ USB_DEVICE(0x03eb, 0x0030), }, /* Owen SI30 */
-
 	/* NOTE: non-Nokia COMM/ACM/0xff is likely MSFT RNDIS... NOT a modem! */
 
 	/* Support Lego NXT using pbLua firmware */
