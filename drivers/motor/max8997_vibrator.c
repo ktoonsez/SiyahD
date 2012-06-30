@@ -27,8 +27,8 @@
 #include "mach/gpio.h"
 #endif
 
-static unsigned long pwm_val = 75; /* duty in percent */
-static int pwm_duty = 32935; /* duty value, 37640=100% 32935=75% 28230=50%, 23525=25% 18820=0% */
+unsigned long pwm_val = 75; /* duty in percent */
+int pwm_duty = 32935; /* duty value, 37640=100% 32935=75% 28230=50%, 23525=25% 18820=0% */
 
 struct vibrator_drvdata {
 	struct max8997_motor_data *pdata;
@@ -208,6 +208,14 @@ void vibtonz_pwm(int nForce)
 	else if (pwm_period - pwm_duty > data->pdata->duty)
 		pwm_duty = pwm_period - data->pdata->duty;
 #endif
+
+	pwm_period = data->pdata->period;
+	pwm_duty = pwm_period / 2 + ((pwm_period / 2 - 2) * nForce) / 127;
+
+	if (pwm_duty > data->pdata->duty)
+		pwm_duty = data->pdata->duty;
+	else if (pwm_period - pwm_duty > data->pdata->duty)
+		pwm_duty = pwm_period - data->pdata->duty;
 
 	/* add to avoid the glitch issue */
 	if (prev_duty != pwm_duty) {
