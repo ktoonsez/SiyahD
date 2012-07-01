@@ -523,6 +523,7 @@ static int standhotplug_cpufreq_policy_notifier_call(struct notifier_block *this
 	case CPUFREQ_ADJUST:
 		if 	(
 			(!strnicmp(policy->governor->name, "pegasusq", CPUFREQ_NAME_LEN)) ||
+			(!strnicmp(policy->governor->name, "abyssplug", CPUFREQ_NAME_LEN)) ||
 			(!strnicmp(policy->governor->name, "hotplug", CPUFREQ_NAME_LEN))
 			) 
 		{ 

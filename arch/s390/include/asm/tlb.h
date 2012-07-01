@@ -67,7 +67,7 @@ static inline void tlb_flush_mmu(struct mmu_gather *tlb)
 static inline void tlb_finish_mmu(struct mmu_gather *tlb,
 				  unsigned long start, unsigned long end)
 {
-	tlb_table_flush(tlb)
+	tlb_table_flush(tlb);
 }
 
 /*
