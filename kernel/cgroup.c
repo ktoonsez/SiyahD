@@ -116,8 +116,6 @@ struct cgroupfs_root {
 
 	/* The name for this hierarchy - may be empty */
 	char name[MAX_CGROUP_ROOT_NAMELEN];
-
-	rwlock_t lock;
 };
 
 /*
@@ -997,9 +995,7 @@ static int rebind_subsystems(struct cgroupfs_root *root,
 			mutex_lock(&ss->hierarchy_mutex);
 			cgrp->subsys[i] = dummytop->subsys[i];
 			cgrp->subsys[i]->cgroup = cgrp;
-			write_lock(&root->lock);
 			list_move(&ss->sibling, &root->subsys_list);
-			write_unlock(&root->lock);
 			ss->root = root;
 			if (ss->bind)
 				ss->bind(ss, cgrp);
@@ -1048,8 +1044,7 @@ static int cgroup_show_options(struct seq_file *seq, struct vfsmount *vfs)
 	struct cgroupfs_root *root = vfs->mnt_sb->s_fs_info;
 	struct cgroup_subsys *ss;
 
-	//mutex_lock(&cgroup_mutex);
-	read_lock(&root->lock);
+	mutex_lock(&cgroup_mutex);
 	for_each_subsys(root, ss)
 		seq_printf(seq, ",%s", ss->name);
 	if (test_bit(ROOT_NOPREFIX, &root->flags))
@@ -1060,8 +1055,7 @@ static int cgroup_show_options(struct seq_file *seq, struct vfsmount *vfs)
 		seq_puts(seq, ",clone_children");
 	if (strlen(root->name))
 		seq_printf(seq, ",name=%s", root->name);
-	//mutex_unlock(&cgroup_mutex);
-	read_unlock(&root->lock);
+	mutex_unlock(&cgroup_mutex);
 	return 0;
 }
 
@@ -1299,11 +1293,8 @@ static int cgroup_remount(struct super_block *sb, int *flags, char *data)
 	/* (re)populate subsystem files */
 	cgroup_populate_dir(cgrp);
 
-	if (opts.release_agent) {
-		write_lock(&root->lock);
+	if (opts.release_agent)
 		strcpy(root->release_agent_path, opts.release_agent);
-		write_unlock(&root->lock);
-	}
  out_unlock:
 	kfree(opts.release_agent);
 	kfree(opts.name);
@@ -1336,7 +1327,6 @@ static void init_cgroup_root(struct cgroupfs_root *root)
 	struct cgroup *cgrp = &root->top_cgroup;
 	INIT_LIST_HEAD(&root->subsys_list);
 	INIT_LIST_HEAD(&root->root_list);
-	rwlock_init(&root->lock);
 	root->number_of_cgroups = 1;
 	cgrp->root = root;
 	cgrp->top_cgroup = cgrp;
@@ -2314,9 +2304,7 @@ static int cgroup_procs_write(struct cgroup *cgrp, struct cftype *cft, u64 tgid)
 		 * changes in the middle of the operation, in which case we need
 		 * to find the task_struct for the new leader and start over.
 		 */
-		write_lock(&cgrp->root->lock);
 		ret = attach_task_by_pid(cgrp, tgid, true);
-		write_unlock(&cgrp->root->lock);
 	} while (ret == -EAGAIN);
 	return ret;
 }
@@ -4944,9 +4932,9 @@ void free_css_id(struct cgroup_subsys *ss, struct cgroup_subsys_state *css)
 
 	rcu_assign_pointer(id->css, NULL);
 	rcu_assign_pointer(css->id, NULL);
-	write_lock(&ss->id_lock);
+	spin_lock(&ss->id_lock);
 	idr_remove(&ss->idr, id->id);
-	write_unlock(&ss->id_lock);
+	spin_unlock(&ss->id_lock);
 	kfree_rcu(id, rcu_head);
 }
 EXPORT_SYMBOL_GPL(free_css_id);
@@ -4990,9 +4978,9 @@ static struct css_id *get_new_cssid(struct cgroup_subsys *ss, int depth)
 	return newid;
 remove_idr:
 	error = -ENOSPC;
-	write_lock(&ss->id_lock);
+	spin_lock(&ss->id_lock);
 	idr_remove(&ss->idr, myid);
-	write_unlock(&ss->id_lock);
+	spin_unlock(&ss->id_lock);
 err_out:
 	kfree(newid);
 	return ERR_PTR(error);
@@ -5004,7 +4992,7 @@ static int __init_or_module cgroup_init_idr(struct cgroup_subsys *ss,
 {
 	struct css_id *newid;
 
-	rwlock_init(&ss->id_lock);
+	spin_lock_init(&ss->id_lock);
 	idr_init(&ss->idr);
 
 	newid = get_new_cssid(ss, 0);
@@ -5092,8 +5080,6 @@ css_get_next(struct cgroup_subsys *ss, int id,
 		return NULL;
 
 	BUG_ON(!ss->use_id);
-	WARN_ON_ONCE(!rcu_read_lock_held());
-
 	/* fill start point for scan */
 	tmpid = id;
 	while (1) {
@@ -5101,9 +5087,9 @@ css_get_next(struct cgroup_subsys *ss, int id,
 		 * scan next entry from bitmap(tree), tmpid is updated after
 		 * idr_get_next().
 		 */
-		read_lock(&ss->id_lock);
+		spin_lock(&ss->id_lock);
 		tmp = idr_get_next(&ss->idr, &tmpid);
-		read_unlock(&ss->id_lock);
+		spin_unlock(&ss->id_lock);
 
 		if (!tmp)
 			break;
