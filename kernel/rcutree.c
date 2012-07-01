@@ -562,7 +562,6 @@ static void print_other_cpu_stall(struct rcu_state *rsp)
 	       rsp->name);
 	rcu_for_each_leaf_node(rsp, rnp) {
 		raw_spin_lock_irqsave(&rnp->lock, flags);
-		rcu_print_task_stall(rnp
 		ndetected += rcu_print_task_stall(rnp);
 		raw_spin_unlock_irqrestore(&rnp->lock, flags);
 		if (rnp->qsmask == 0)
