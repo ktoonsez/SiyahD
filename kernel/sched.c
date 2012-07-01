@@ -5048,6 +5048,15 @@ struct task_struct *idle_task(int cpu)
 }
 
 /**
+ * is_idle_task - is the specified task an idle task?
+ * @tsk: the task in question.
+ */
+int is_idle_task(struct task_struct *p)
+{
+	return p->pid == 0;
+}
+
+/**
  * find_process_by_pid - find a process with a matching PID value.
  * @pid: the pid in question.
  */

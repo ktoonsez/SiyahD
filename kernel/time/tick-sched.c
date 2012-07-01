@@ -229,13 +229,15 @@ u64 get_cpu_idle_time_us(int cpu, u64 *last_update_time)
 	}
 
 	return ktime_to_us(idle);
+
 }
 EXPORT_SYMBOL_GPL(get_cpu_idle_time_us);
 
 /**
  * get_cpu_iowait_time_us - get the total iowait time of a cpu
  * @cpu: CPU number to query
- * @last_update_time: variable to store update time in
+ * @last_update_time: variable to store update time in. Do not update
+ * counters if NULL.
  *
  * Return the cummulative iowait time (since boot) for a given
  * CPU, in microseconds.
@@ -430,7 +432,6 @@ void tick_nohz_stop_sched_tick(int inidle)
 			ts->idle_tick = hrtimer_get_expires(&ts->sched_timer);
 			ts->tick_stopped = 1;
 			ts->idle_jiffies = last_jiffies;
-			rcu_enter_nohz();
 		}
 
 		ts->idle_sleeps++;
@@ -469,6 +470,8 @@ out:
 	ts->last_jiffies = last_jiffies;
 	ts->sleep_length = ktime_sub(dev->next_event, now);
 end:
+	if (inidle)
+		rcu_idle_enter();
 	local_irq_restore(flags);
 }
 
@@ -525,21 +528,22 @@ void tick_nohz_restart_sched_tick(void)
 	ktime_t now;
 
 	local_irq_disable();
-	if (ts->idle_active || (ts->inidle && ts->tick_stopped))
+	rcu_idle_exit();
+	WARN_ON_ONCE(!ts->inidle);
+
+	ts->inidle = 0;
+
+	if (ts->idle_active || ts->tick_stopped)
 		now = ktime_get();
 
 	if (ts->idle_active)
 		tick_nohz_stop_idle(cpu, now);
 
-	if (!ts->inidle || !ts->tick_stopped) {
-		ts->inidle = 0;
+	if (!ts->tick_stopped) {
 		local_irq_enable();
 		return;
 	}
 
-	ts->inidle = 0;
-
-	rcu_exit_nohz();
 
 	/* Update jiffies first */
 	select_nohz_load_balancer(0);
@@ -882,4 +886,3 @@ int tick_check_oneshot_change(int allow_nohz)
 	tick_nohz_switch_to_nohz();
 	return 0;
 }
-
