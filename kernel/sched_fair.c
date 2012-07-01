@@ -3641,6 +3641,7 @@ static struct {
 	cpumask_var_t idle_cpus_mask;
 	cpumask_var_t grp_idle_mask;
 	unsigned long next_balance;     /* in jiffy units */
+	spinlock_t next_balance_lock;	/* Serialize update to 'next_balance' */
 } nohz ____cacheline_aligned;
 
 int get_nohz_load_balancer(void)
@@ -3782,8 +3783,12 @@ static void nohz_balancer_kick(int cpu)
 
 	ilb_cpu = get_nohz_load_balancer();
 
-	if (ilb_cpu >= nr_cpu_ids) {
-		ilb_cpu = cpumask_first(nohz.idle_cpus_mask);
+	/*
+	 * ilb_cpu itself can be attempting to kick another idle cpu. Pick
+	 * another idle cpu in that case.
+	 */
+	if (ilb_cpu >= nr_cpu_ids || ilb_cpu == cpu) {
+		ilb_cpu = cpumask_any_but(nohz.idle_cpus_mask, cpu);
 		if (ilb_cpu >= nr_cpu_ids)
 			return;
 	}
@@ -3796,6 +3801,18 @@ static void nohz_balancer_kick(int cpu)
 		__smp_call_function_single(ilb_cpu, cp, 0);
 	}
 	return;
+}
+
+/* Update nohz.next_balance with a new minimum value */
+static inline void set_nohz_next_balance(unsigned long next_balance)
+{
+	if (time_after(next_balance, nohz.next_balance))
+		return;
+
+	spin_lock(&nohz.next_balance_lock);
+	if (time_before(next_balance, nohz.next_balance))
+		nohz.next_balance = next_balance;
+	spin_unlock(&nohz.next_balance_lock);
 }
 
 /*
@@ -3975,8 +3992,15 @@ static void nohz_idle_balance(int this_cpu, enum cpu_idle_type idle)
 	struct rq *rq;
 	int balance_cpu;
 
-	if (idle != CPU_IDLE || !this_rq->nohz_balance_kick)
+	if (!this_rq->nohz_balance_kick)
 		return;
+
+	/* Wakeup another idle cpu to do idle load balance if we got busy */
+	if (idle != CPU_IDLE) {
+		nohz_balancer_kick(this_cpu);
+		this_rq->nohz_balance_kick = 0;
+		return;
+	}
 
 	for_each_cpu(balance_cpu, nohz.idle_cpus_mask) {
 		if (balance_cpu == this_cpu)
@@ -3987,10 +4011,8 @@ static void nohz_idle_balance(int this_cpu, enum cpu_idle_type idle)
 		 * work being done for other cpus. Next load
 		 * balancing owner will pick it up.
 		 */
-		if (need_resched()) {
-			this_rq->nohz_balance_kick = 0;
+		if (need_resched())
 			break;
-		}
 
 		raw_spin_lock_irq(&this_rq->lock);
 		update_rq_clock(this_rq);
@@ -4003,7 +4025,7 @@ static void nohz_idle_balance(int this_cpu, enum cpu_idle_type idle)
 		if (time_after(this_rq->next_balance, rq->next_balance))
 			this_rq->next_balance = rq->next_balance;
 	}
-	nohz.next_balance = this_rq->next_balance;
+	set_nohz_next_balance(this_rq->next_balance);
 	this_rq->nohz_balance_kick = 0;
 }
 
@@ -4035,8 +4057,11 @@ static inline int nohz_kick_needed(struct rq *rq, int cpu)
 	second_pick_cpu = atomic_read(&nohz.second_pick_cpu);
 
 	if (first_pick_cpu < nr_cpu_ids && first_pick_cpu != cpu &&
-	    second_pick_cpu < nr_cpu_ids && second_pick_cpu != cpu)
+		second_pick_cpu < nr_cpu_ids && second_pick_cpu != cpu) {
+		if (rq->nr_running > 1)
+			return 1;
 		return 0;
+	}
 
 	ret = atomic_cmpxchg(&nohz.first_pick_cpu, nr_cpu_ids, cpu);
 	if (ret == nr_cpu_ids || ret == cpu) {
@@ -4092,7 +4117,7 @@ static inline void trigger_load_balance(struct rq *rq, int cpu)
 	    likely(!on_null_domain(cpu)))
 		raise_softirq(SCHED_SOFTIRQ);
 #ifdef CONFIG_NO_HZ
-	else if (nohz_kick_needed(rq, cpu) && likely(!on_null_domain(cpu)))
+	if (nohz_kick_needed(rq, cpu) && likely(!on_null_domain(cpu)))
 		nohz_balancer_kick(cpu);
 #endif
 }
