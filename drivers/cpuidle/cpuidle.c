@@ -303,7 +303,7 @@ static int __cpuidle_register_device(struct cpuidle_device *dev)
 
 	per_cpu(cpuidle_devices, dev->cpu) = dev;
 	list_add(&dev->device_list, &cpuidle_detected_devices);
-	ret = cpuidle_add_sysfs(cpu_dev);
+	ret = cpuidle_add_sysfs(sys_dev);
 	if (ret)
 		goto err_sysfs;
 
