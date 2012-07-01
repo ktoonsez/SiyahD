@@ -764,8 +764,10 @@ static int exynos4_enter_lowpower(struct cpuidle_device *dev,
 	int new_index = index;
 
 	/* This mode only can be entered when only Core0 is online */
-	if (num_online_cpus() > 1)
+	if (num_online_cpus() > 1) {
+		BUG_ON(!drv->safe_state_index);
 		new_index = drv->safe_state_index;
+	}
 
 	if (!soc_is_exynos4210()) {
 		tmp = S5P_USE_STANDBY_WFI0 | S5P_USE_STANDBY_WFE0;
