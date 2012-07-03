@@ -31,8 +31,8 @@
 #define DEF_FREQUENCY_UP_THRESHOLD		(80)
 #define DEF_FREQUENCY_DOWN_THRESHOLD		(45)
 #define DEFAULT_FREQ_STEP			(10)
-#define DEF_SAMPLING_DOWN_FACTOR                (1)
-#define MAX_SAMPLING_DOWN_FACTOR                (10000)
+#define DEF_SAMPLING_DOWN_FACTOR                (2)
+#define MAX_SAMPLING_DOWN_FACTOR                (100000)
 #define DEFAULT_SLEEP_MIN_FREQ                  200000
 #define DEFAULT_SLEEP_MAX_FREQ			600000
 
