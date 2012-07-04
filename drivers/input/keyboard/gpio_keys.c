@@ -417,7 +417,7 @@ static void gpio_keys_report_event(struct gpio_button_data *bdata)
 			}
 		}
 		else {
-			if(homekey_count==homekey_trg_cnt)
+			if(homekey_count == homekey_trg_cnt -1)
 			{
 				mdnie_toggle_negative();
 				homekey_count = 0;
