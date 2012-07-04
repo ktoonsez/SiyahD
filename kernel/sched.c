@@ -3525,20 +3525,6 @@ static long calc_load_fold_idle(void)
 	return delta;
 }
 
-#if 0
-static long calc_load_fold_unmask_idle(void)
-{
-	long delta = 0;
-	
-	if (atomic_long_read(&calc_unmask_cpu_load_idle)) {
-		delta = atomic_long_xchg(&calc_unmask_cpu_load_idle, 0);
-		atomic_long_sub(delta, &calc_load_tasks_idle);
-	}
-	
-	return delta;
-}
-#endif
-
 /**
  * fixed_power_int - compute: x^n, in O(log n) time
  *
