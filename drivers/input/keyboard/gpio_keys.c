@@ -389,8 +389,8 @@ static inline int64_t get_time_inms(void) {
 
 #define HOME_KEY_VAL	102
 extern void mdnie_toggle_negative(void);
-static int homekey_trg_cnt = 4;
-static int homekey_trg_ms = 300;
+int homekey_trg_cnt = 4;
+int homekey_trg_ms = 300;
 
 static void gpio_keys_report_event(struct gpio_button_data *bdata)
 {
