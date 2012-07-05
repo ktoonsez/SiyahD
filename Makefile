@@ -360,12 +360,8 @@ CFLAGS_ARM      = -marm \
 				  --param simultaneous-prefetches=8 \
 				  --param prefetch-latency=400 
 CFLAGS_DISABLE  = -fno-delete-null-pointer-checks \
-				  -fno-gcse \
-				  -fno-ident
-CFLAGS_REGISTER = -fschedule-insns \
-				  -fsched-spec-load \
-				  -fforce-addr \
-				  -frename-registers
+				  -fno-ident \
+				  -fno-gcse
 CFLAGS_MODULO   = -fmodulo-sched \
 				  -fmodulo-sched-allow-regmoves
 CFLAGS_LOOPS_DEFAULT = -ftree-vectorize \
@@ -387,7 +383,9 @@ CFLAGS_EXPEREMENT = -fprofile-correction \
 				  -funswitch-loops \
 				  -fgcse-after-reload \
 				  -falign-loops \
-				  -fipa-cp-clone
+				  -fipa-cp-clone \
+				  -funroll-loops \
+				  -finline-limit=100000
 
 KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) \
 				  $(CFLAGS_DISABLE) $(CFLAGS_MODULO) \
