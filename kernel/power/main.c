@@ -54,9 +54,8 @@ EXPORT_SYMBOL_GPL(unregister_pm_notifier);
 
 int pm_notifier_call_chain(unsigned long val)
 {
-	int ret = blocking_notifier_call_chain(&pm_chain_head, val, NULL);
-
-	return notifier_to_errno(ret);
+	return (blocking_notifier_call_chain(&pm_chain_head, val, NULL)
+			== NOTIFY_BAD) ? -EINVAL : 0;
 }
 
 /* If set, devices may be suspended and resumed asynchronously. */
@@ -422,7 +421,7 @@ static ssize_t cpufreq_max_limit_store(struct kobject *kobj,
 {
 	int val;
 	unsigned int cpufreq_level;
-//	int lock_ret;
+	int lock_ret;
 	ssize_t ret = -EINVAL;
 
 	mutex_lock(&cpufreq_limit_mutex);
@@ -434,7 +433,7 @@ static ssize_t cpufreq_max_limit_store(struct kobject *kobj,
 
 	if (val == -1) { /* Unlock request */
 		if (cpufreq_max_limit_val != -1) {
-//			exynos_cpufreq_upper_limit_free(DVFS_LOCK_ID_USER);
+			exynos_cpufreq_upper_limit_free(DVFS_LOCK_ID_USER);
 			cpufreq_max_limit_val = -1;
 		} else /* Already unlocked */
 			printk(KERN_ERR "%s: Unlock request is ignored\n",
@@ -442,12 +441,12 @@ static ssize_t cpufreq_max_limit_store(struct kobject *kobj,
 	} else { /* Lock request */
 		if (get_cpufreq_level((unsigned int)val, &cpufreq_level)
 		    == VALID_LEVEL) {
-//			if (cpufreq_max_limit_val != -1)
+			if (cpufreq_max_limit_val != -1)
 				/* Unlock the previous lock */
-//				exynos_cpufreq_upper_limit_free(
-//					DVFS_LOCK_ID_USER);
-//			lock_ret = exynos_cpufreq_upper_limit(
-//					DVFS_LOCK_ID_USER, cpufreq_level);
+				exynos_cpufreq_upper_limit_free(
+					DVFS_LOCK_ID_USER);
+			lock_ret = exynos_cpufreq_upper_limit(
+					DVFS_LOCK_ID_USER, cpufreq_level);
 			/* ret of exynos_cpufreq_upper_limit is meaningless.
 			   0 is fail? success? */
 			cpufreq_max_limit_val = val;
