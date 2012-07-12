@@ -383,8 +383,7 @@ CFLAGS_EXPEREMENT = -fprofile-correction \
 				  -funswitch-loops \
 				  -fgcse-after-reload \
 				  -falign-loops \
-				  -fipa-cp-clone \
-				  -finline-limit=600
+				  -fipa-cp-clone
 
 KERNELFLAGS     = $(CFLAGS_COMPILE) $(CFLAGS_ARM) \
 				  $(CFLAGS_DISABLE) $(CFLAGS_MODULO) \
