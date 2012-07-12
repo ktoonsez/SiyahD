@@ -381,7 +381,9 @@ CFLAGS_LOOPS_DEFAULT = -ftree-vectorize \
 
 CFLAGS_EXPEREMENT = -fprofile-correction \
 				  -ffast-math \
-				  -mvectorize-with-neon-quad
+				  -mvectorize-with-neon-quad \
+				  -funswitch-loops \
+				  -fpredictive-commoning
 
 KERNELFLAGS     = $(CFLAGS_COMPILE) \
 				  $(CFLAGS_ARM) \
