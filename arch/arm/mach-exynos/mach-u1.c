@@ -2289,7 +2289,7 @@ REGULATOR_INIT(ldo10, "VPLL_1.2V", 1200000, 1200000, 1,
 REGULATOR_INIT(ldo10, "VPLL_1.1V", 1100000, 1100000, 1,
 		REGULATOR_CHANGE_STATUS, 1);
 #endif
-REGULATOR_INIT(ldo11, "TOUCH_2.8V", 2800000, 2800000, 1,
+REGULATOR_INIT(ldo11, "TOUCH_2.8V", 2800000, 2800000, 0,
 		REGULATOR_CHANGE_STATUS, 0);
 REGULATOR_INIT(ldo12, "VT_CAM_1.8V", 1800000, 1800000, 0,
 		REGULATOR_CHANGE_STATUS, 1);
@@ -2355,7 +2355,7 @@ static struct regulator_init_data buck2_init_data = {
 static struct regulator_init_data buck3_init_data = {
 	.constraints	= {
 		.name		= "G3D_1.1V",
-		.min_uV		= 700000,
+		.min_uV		= 800000,
 		.max_uV		= 1200000,
 		.always_on	= 0,
 		.boot_on	= 0,
