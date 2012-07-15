@@ -245,8 +245,8 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 
 HOSTCC       = gcc
 HOSTCXX      = g++
-HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O3 -fomit-frame-pointer
-HOSTCXXFLAGS = -O3
+HOSTCFLAGS   = -Wall -Wmissing-prototypes -Wstrict-prototypes -O2 -fomit-frame-pointer
+HOSTCXXFLAGS = -O2
 
 # Decide whether to build built-in, modular, or both.
 # Normally, just do built-in.
@@ -356,6 +356,7 @@ CFLAGS_ARM      = -marm \
 				  -mfpu=neon \
 				  -mfloat-abi=softfp \
 				  -fsingle-precision-constant \
+				  -mvectorize-with-neon-quad \
 				  --param l2-cache-size=1024 \
 				  --param l1-cache-size=64 \
 				  --param simultaneous-prefetches=8 \
@@ -364,8 +365,6 @@ CFLAGS_ARM      = -marm \
 CFLAGS_DISABLE  = -fno-delete-null-pointer-checks \
 				  -fno-ident \
 				  -fno-gcse \
-				  -fno-inline-functions \
-				  -fno-ipa-cp-clone \
 				  -fno-unswitch-loops
 
 CFLAGS_MODULO   = -fmodulo-sched \
@@ -377,18 +376,21 @@ CFLAGS_LOOPS_DEFAULT1 = -ftree-vectorize \
 				  -floop-strip-mine \
 				  -floop-block \
 				  -ftree-loop-distribution \
-				  -fgraphiee-identity
+				  -fgraphiee-identity \
+				  -floop-block
 #LOOP FLAGS for GCC 4.3
 CFLAGS_LOOPS_DEFAULT = -ftree-vectorize \
 				  -ftree-loop-linear \
-				  -ftree-loop-distribution  
+				  -ftree-loop-distribution 
 
 CFLAGS_ADDONS = -funswitch-loops \
 				  -fpredictive-commoning
 
 CFLAGS_EXPEREMENT = -fprofile-correction \
 				  -ffast-math \
-				  -mvectorize-with-neon-quad \
+				  -fno-ipa-cp-clone \
+				  -fno-inline-functions \
+				  -funroll-loops
 
 KERNELFLAGS     = $(CFLAGS_COMPILE) \
 				  $(CFLAGS_ARM) \
