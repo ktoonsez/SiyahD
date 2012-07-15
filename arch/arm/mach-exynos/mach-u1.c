@@ -786,7 +786,9 @@ static int m5mo_flash_power(int enable)
 		if (regulator_is_enabled(movie))
 			regulator_disable(movie);
 	}
+#if defined(CONFIG_MACH_Q1_BD)
 torch_exit:
+#endif
 	regulator_put(flash);
 	regulator_put(movie);
 
@@ -1938,7 +1940,7 @@ static struct lcd_platform_data ld9040_platform_data = {
 	.gpio_cfg_lateresume = lcd_gpio_cfg_lateresume,
 	/* it indicates whether lcd panel is enabled from u-boot. */
 	.lcd_enabled = 1,
-	.reset_delay = 20,	/* 10ms */
+	.reset_delay = 20,	/* 20ms */
 	.power_on_delay = 20,	/* 20ms */
 	.power_off_delay = 200,	/* 120ms */
 	.pdata = &u1_panel_data,
@@ -3584,6 +3586,7 @@ static unsigned int sec_bat_get_lpcharging_state(void)
 	return val;
 }
 
+#if defined(CONFIG_MACH_Q1_BD)
 static void sec_bat_initial_check(void)
 {
 	pr_info("%s: connected_cable_type:%d\n",
@@ -3591,6 +3594,7 @@ static void sec_bat_initial_check(void)
 	if (connected_cable_type != CABLE_TYPE_NONE)
 		max8997_muic_charger_cb(connected_cable_type);
 }
+#endif
 
 static struct sec_bat_platform_data sec_bat_pdata = {
 	.fuel_gauge_name	= "fuelgauge",
@@ -3835,6 +3839,7 @@ struct gpio_keys_button u1_buttons[] = {
 		.wakeup = 1,
 		.isr_hook = sec_debug_check_crash_key,
 	},			/* power key */
+#if !defined(CONFIG_TARGET_LOCALE_NAATT_TEMP)
 	{
 		.code = KEY_HOME,
 		.gpio = GPIO_OK_KEY,
@@ -3842,6 +3847,7 @@ struct gpio_keys_button u1_buttons[] = {
 		.type = EV_KEY,
 		.wakeup = 1,
 	},			/* ok key */
+#endif
 };
 
 struct gpio_keys_platform_data u1_keypad_platform_data = {
@@ -3995,13 +4001,13 @@ static void mxt224_power_off(void)
 /*
   Configuration for MXT224
 */
-#define MXT224_THRESHOLD_BATT		40
+#define MXT224_THRESHOLD_BATT		50
 #define MXT224_THRESHOLD_BATT_INIT		50
-#define MXT224_THRESHOLD_CHRG		55
-#define MXT224_NOISE_THRESHOLD_BATT		30
-#define MXT224_NOISE_THRESHOLD_CHRG		40
-#define MXT224_MOVFILTER_BATT		11
-#define MXT224_MOVFILTER_CHRG		47
+#define MXT224_THRESHOLD_CHRG		53
+#define MXT224_NOISE_THRESHOLD_BATT		40
+#define MXT224_NOISE_THRESHOLD_CHRG		38
+#define MXT224_MOVFILTER_BATT		14
+#define MXT224_MOVFILTER_CHRG		46
 #define MXT224_ATCHCALST		4
 #define MXT224_ATCHCALTHR		35
 
@@ -4034,7 +4040,6 @@ static u8 t20_config[] = { PROCI_GRIPFACESUPPRESSION_T20,
 static u8 t22_config[] = { PROCG_NOISESUPPRESSION_T22,
 	143, 0, 0, 0, 0, 0, 0, 3, MXT224_NOISE_THRESHOLD_BATT, 0,
 	0, 29, 34, 39, 49, 58, 3
-//	0, 10, 12, 18, 20, 29, 3
 };
 
 static u8 t28_config[] = { SPT_CTECONFIG_T28,
