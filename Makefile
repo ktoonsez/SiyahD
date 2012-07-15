@@ -350,6 +350,8 @@ CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 
 CFLAGS_COMPILE  = -pipe
 
+#CFLAGS_DYNAMIC = -marm -mthumb
+
 CFLAGS_ARM      = -marm \
 				  -mtune=cortex-a9 \
 				  -march=armv7-a \
@@ -381,7 +383,7 @@ CFLAGS_LOOPS_DEFAULT1 = -ftree-vectorize \
 #LOOP FLAGS for GCC 4.3
 CFLAGS_LOOPS_DEFAULT = -ftree-vectorize \
 				  -ftree-loop-linear \
-				  -ftree-loop-distribution 
+				  -ftree-loop-distribution -funroll-loops
 
 CFLAGS_ADDONS = -funswitch-loops \
 				  -fpredictive-commoning
