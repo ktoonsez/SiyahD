@@ -350,8 +350,6 @@ CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 
 CFLAGS_COMPILE  = -pipe
 
-#CFLAGS_DYNAMIC = -marm -mthumb
-
 CFLAGS_ARM      = -marm \
 				  -mtune=cortex-a9 \
 				  -march=armv7-a \
@@ -367,7 +365,6 @@ CFLAGS_ARM      = -marm \
 CFLAGS_DISABLE  = -fno-delete-null-pointer-checks \
 				  -fno-ident \
 				  -fno-gcse \
-				  -fno-unswitch-loops
 
 CFLAGS_MODULO   = -fmodulo-sched \
 				  -fmodulo-sched-allow-regmoves
