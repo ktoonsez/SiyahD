@@ -369,6 +369,7 @@ CFLAGS_DISABLE  = -fno-delete-null-pointer-checks \
 CFLAGS_MODULO   = -fmodulo-sched \
 				  -fmodulo-sched-allow-regmoves
 
+#LOOP FLAGS for GCC 4.6 / 4.7.1 LINARO
 CFLAGS_LOOPS_DEFAULT1 = -ftree-vectorize \
 				  -ftree-loop-linear \
 				  -floop-interchange \
@@ -382,14 +383,7 @@ CFLAGS_LOOPS_DEFAULT = -ftree-vectorize \
 				  -ftree-loop-linear \
 				  -ftree-loop-distribution -funroll-loops
 
-CFLAGS_ADDONS = -funswitch-loops \
-				  -fpredictive-commoning
-
-CFLAGS_EXPEREMENT = -fprofile-correction \
-				  -ffast-math \
-				  -fno-ipa-cp-clone \
-				  -fno-inline-functions \
-				  -funroll-loops
+CFLAGS_ADDONS = -fpredictive-commoning -fprofile-correction
 
 KERNELFLAGS     = $(CFLAGS_COMPILE) \
 				  $(CFLAGS_ARM) \
@@ -397,6 +391,9 @@ KERNELFLAGS     = $(CFLAGS_COMPILE) \
 				  $(CFLAGS_MODULO) \
 				  $(CFLAGS_LOOPS_DEFAULT) \
 				  $(CFLAGS_ADDONS)
+
+#FLAGSPOOL = -funswitch-loops -fno-inline-functions -fno-ipa-cp-clone -ffast-math
+
 
 MODFLAGS        = -DMODULE $(KERNELFLAGS)
 CFLAGS_MODULE   = $(MODFLAGS)
