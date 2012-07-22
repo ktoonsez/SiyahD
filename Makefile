@@ -388,8 +388,7 @@ CFLAGS_LOOPS_GCC_4_7 = -floop-interchange \
 		  -fgraphiee-identity
 
 CFLAGS_ADDONS =   -fpredictive-commoning \
-		  -funswitch-loops \
-		  -ffast-math
+		  -funswitch-loops
 
 KERNELFLAGS 	= $(CFLAGS_COMPILE) \
 		  $(CFLAGS_ARM) \
@@ -406,7 +405,7 @@ ifeq ($(GCCVERSION),4.7)
 KERNELFLAGS  +=  $(CLFAGS_LOOPS_GCC_4_7)
 endif
 
-#FLAGSPOOL = -fprofile-correction -fno-inline-functions -fno-ipa-cp-clone -funroll-loops
+#FLAGSPOOL = -ffast-math -fprofile-correction -fno-inline-functions -fno-ipa-cp-clone -funroll-loops
 
 MODFLAGS        = -DMODULE $(KERNELFLAGS)
 CFLAGS_MODULE   = $(MODFLAGS)
