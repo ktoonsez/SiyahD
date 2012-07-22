@@ -174,10 +174,6 @@ module_param(gpu_power_state, int, S_IRUSR | S_IRGRP | S_IROTH); /* r--r--r-- */
 MODULE_PARM_DESC(gpu_power_state, "Mali Power State");
 extern _mali_device_power_states mali_dvfs_device_state;
 
-int mali_resume_freq_enabled;
-module_param(mali_resume_freq_enabled, int, S_IRUSR | S_IWUSR | S_IWGRP | S_IRGRP | S_IROTH); /* rw--rw--r-- */
-MODULE_PARM_DESC(mali_resume_freq_enabled, "Mali Resume Frequency enable/disable");
-
 static char mali_dev_name[] = "mali"; /* should be const, but the functions we call requires non-cost */
 
 /* the mali device */
@@ -418,18 +414,21 @@ static int mali_ioctl(struct inode *inode, struct file *filp, unsigned int cmd, 
 	MALI_DEBUG_PRINT(7, ("Ioctl received 0x%08X 0x%08lX\n", cmd, arg));
 
 	session_data = (struct mali_session_data *)filp->private_data;
-	if (NULL == session_data) {
+	if (NULL == session_data)
+	{
 		MALI_DEBUG_PRINT(7, ("filp->private_data was NULL\n"));
 		return -ENOTTY;
 	}
 
-	if (NULL == (void *)arg) {
+	if (NULL == (void *)arg)
+	{
 		MALI_DEBUG_PRINT(7, ("arg was NULL\n"));
 		return -ENOTTY;
 	}
 
-	if (_MALI_DEVICE_SHUTDOWN == mali_dvfs_device_state) {
-		MALI_DEBUG_PRINT(7, ("system is shutdown\n"));
+	if (_MALI_DEVICE_SHUTDOWN == mali_dvfs_device_state)
+	{
+		MALI_DEBUG_PRINT(7, ("system is shutdown \n"));
 		return 0;
 	}
 
