@@ -18,14 +18,9 @@
 #include <linux/smp.h>
 #include <linux/init.h>
 
-#ifdef CONFIG_PM
-#include <linux/syscore_ops.h>
-#endif
-
 #include <asm/cputype.h>
 #include <asm/thread_notify.h>
 #include <asm/vfp.h>
-#include <linux/cpu_pm.h>
 
 #include "vfpinstr.h"
 #include "vfp.h"
@@ -178,35 +173,6 @@ static int vfp_notifier(struct notifier_block *self, unsigned long cmd, void *v)
 
 static struct notifier_block vfp_notifier_block = {
 	.notifier_call	= vfp_notifier,
-};
-
-static int vfp_cpu_pm_notifier(struct notifier_block *self, unsigned long cmd,
-	void *v)
-{
-	u32 fpexc = fmrx(FPEXC);
-	unsigned int cpu = smp_processor_id();
-
-	switch (cmd) {
-	case CPU_PM_ENTER:
-		if (vfp_current_hw_state[cpu]) {
-			fmxr(FPEXC, fpexc | FPEXC_EN);
-			vfp_save_state(vfp_current_hw_state[cpu], fpexc);
-			/* force a reload when coming back from idle */
-			vfp_current_hw_state[cpu] = NULL;
-			fmxr(FPEXC, fpexc & ~FPEXC_EN);
-		}
-		break;
-	case CPU_PM_ENTER_FAILED:
-	case CPU_PM_EXIT:
-		/* make sure VFP is disabled when leaving idle */
-		fmxr(FPEXC, fpexc & ~FPEXC_EN);
-		break;
-	}
-	return NOTIFY_OK;
-}
-
-static struct notifier_block vfp_cpu_pm_notifier_block = {
-	.notifier_call = vfp_cpu_pm_notifier,
 };
 
 /*
@@ -429,9 +395,7 @@ void VFP_bounce(u32 trigger, u32 fpexc, struct pt_regs *regs)
 
 static void vfp_enable(void *unused)
 {
-	u32 access;
-
-	access = get_copro_access();
+	u32 access = get_copro_access();
 
 	/*
 	 * Enable full access to VFP (cp10 and cp11)
@@ -440,16 +404,12 @@ static void vfp_enable(void *unused)
 }
 
 #ifdef CONFIG_PM
+#include <linux/syscore_ops.h>
+
 static int vfp_pm_suspend(void)
 {
 	struct thread_info *ti = current_thread_info();
 	u32 fpexc = fmrx(FPEXC);
-
-	/* If lazy disable, re-enable the VFP ready for it to be saved */
-	if (vfp_current_hw_state[ti->cpu] != &ti->vfpstate) {
-		fpexc |= FPEXC_EN;
-		fmxr(FPEXC, fpexc);
-	}
 
 	/* if vfp is on, then save state for resumption */
 	if (fpexc & FPEXC_EN) {
@@ -581,7 +541,7 @@ static int __init vfp_init(void)
 	unsigned int cpu_arch = cpu_architecture();
 
 	if (cpu_arch >= CPU_ARCH_ARMv6)
-		on_each_cpu(vfp_enable, NULL, 1);
+		vfp_enable(NULL);
 
 	/*
 	 * First check that there is a VFP that we can use.
@@ -602,6 +562,8 @@ static int __init vfp_init(void)
 	} else {
 		hotcpu_notifier(vfp_hotplug, 0);
 
+		smp_call_function(vfp_enable, NULL, 1);
+
 		VFP_arch = (vfpsid & FPSID_ARCH_MASK) >> FPSID_ARCH_BIT;  /* Extract the architecture version */
 		printk("implementor %02x architecture %d part %02x variant %x rev %x\n",
 			(vfpsid & FPSID_IMPLEMENTER_MASK) >> FPSID_IMPLEMENTER_BIT,
@@ -613,7 +575,6 @@ static int __init vfp_init(void)
 		vfp_vector = vfp_support_entry;
 
 		thread_register_notifier(&vfp_notifier_block);
-		cpu_pm_register_notifier(&vfp_cpu_pm_notifier_block);
 		vfp_pm_init();
 
 		/*

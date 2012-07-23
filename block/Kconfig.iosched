@@ -62,7 +62,7 @@ config IOSCHED_SIO
 
 choice
 	prompt "Default I/O scheduler"
-	default DEFAULT_BFQ
+	default DEFAULT_CFQ
 	help
 	  Select the I/O scheduler which will be used by default for all
 	  block devices.
