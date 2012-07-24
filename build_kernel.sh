@@ -18,7 +18,7 @@ export CROSS_COMPILE=/media/Source-Code/android/system/prebuilt/linux-x86/toolch
 # gcc 4.7 (Linaro 12.04)
 #export CROSS_COMPILE=$PARENT_DIR/linaro/bin/arm-eabi-
 # gcc 4.6 (Linaro 12.06)
-#export CROSS_COMPILE=android-toolchain/bin/arm-eabi-
+#export CROSS_COMPILE=$KERNELDIR/android-toolchain/bin/arm-eabi-
 
 # build script
 export USER=`whoami`
