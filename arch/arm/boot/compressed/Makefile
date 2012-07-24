@@ -7,7 +7,7 @@
 # Check GCC version
 GCCVERSION  := $(shell $(CC) --version | grep ^gcc | sed 's/^.* //g' | cut -c1-3)
 
-# If found GCC 4.6 or above!
+# If found GCC 4.6!
 ifeq ($(GCCVERSION),4.6)
 
 OBJS		=
