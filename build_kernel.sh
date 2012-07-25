@@ -35,6 +35,9 @@ elif [ $GCCVERSION_OLD == 4.6 ]; then
 	cp $KERNELDIR/arch/arm/boot/compressed/Makefile_linaro $KERNELDIR/arch/arm/boot/compressed/Makefile
 elif [ $GCCVERSION_OLD == 4.7 ]; then
 	cp $KERNELDIR/arch/arm/boot/compressed/Makefile_linaro $KERNELDIR/arch/arm/boot/compressed/Makefile
+else
+	echo "Compiler not recognized! please fix the CUT function to match your compiler."
+	exit 0
 fi;
 
 # build script
