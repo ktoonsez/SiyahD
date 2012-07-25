@@ -39,6 +39,7 @@ struct max8997_data {
 	struct max8997_dev	*iodev;
 	int			num_regulators;
 	struct regulator_dev	**rdev;
+	int 			ramp_delay; /* in mV/us */
 	bool			buck1_gpiodvs;
 	int			buck_set1;
 	int			buck_set2;
@@ -1313,6 +1314,10 @@ static __devinit int max8997_pmic_probe(struct platform_device *pdev)
 		}
 	}
 
+	/* Misc Settings */
+	max8997->ramp_delay = 10; /* set 10mV/us, which is the default */
+	max8997_write_reg(i2c, MAX8997_REG_BUCKRAMP, (0xf << 4) | 0x9);
+
 	for (i = 0; i < pdata->num_regulators; i++) {
 		const struct vol_cur_map_desc *desc;
 		int id = pdata->regulators[i].id;
@@ -1330,7 +1335,7 @@ static __devinit int max8997_pmic_probe(struct platform_device *pdev)
 			regulators[index].n_voltages = count;
 		}
 		rdev[i] = regulator_register(&regulators[index], max8997->dev,
-				pdata->regulators[i].initdata, max8997);
+				pdata->regulators[i].initdata, max8997, NULL);
 		if (IS_ERR(rdev[i])) {
 			ret = PTR_ERR(rdev[i]);
 			dev_err(max8997->dev, "regulator init failed\n");
@@ -1367,6 +1372,7 @@ static int __devexit max8997_pmic_remove(struct platform_device *pdev)
 
 	return 0;
 }
+MODULE_DEVICE_TABLE(platform, max8997_pmic_id);
 
 static struct platform_driver max8997_pmic_driver = {
 	.driver = {
