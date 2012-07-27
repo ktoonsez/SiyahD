@@ -1,4 +1,4 @@
-#!/bin/shi
+#!/bin/sh
 cd PAYLOAD
 if [ -e Superuser.apk.xz ]; then
 	rm Superuser.apk.xz
