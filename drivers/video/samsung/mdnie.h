@@ -125,4 +125,12 @@ struct mdnie_backlight_value {
 	unsigned char 	dim;
 };
 
+extern u16 mdnie_user_mode;
+extern u16 mdnie_user_mcm_cb;
+extern u16 mdnie_user_mcm_cr;
+extern bool mdnie_user_de_control_enabled;
+extern u16 mdnie_user_de_sharpness;
+extern u16 mdnie_user_de_threshold;
+extern u16 mdnie_user_cs_gain;
+
 #endif /* __MDNIE_H__ */
