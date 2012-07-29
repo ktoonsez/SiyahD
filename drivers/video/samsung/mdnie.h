@@ -106,6 +106,9 @@ struct mdnie_info {
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	struct early_suspend    early_suspend;
 #endif
+	unsigned short user_mode;
+	unsigned short user_cb;
+	unsigned short user_cr;
 };
 
 extern struct mdnie_info *g_mdnie;
@@ -124,13 +127,5 @@ struct mdnie_backlight_value {
 	unsigned char low;
 	unsigned char 	dim;
 };
-
-extern u16 mdnie_user_mode;
-extern u16 mdnie_user_mcm_cb;
-extern u16 mdnie_user_mcm_cr;
-extern bool mdnie_user_de_control_enabled;
-extern u16 mdnie_user_de_sharpness;
-extern u16 mdnie_user_de_threshold;
-extern u16 mdnie_user_cs_gain;
 
 #endif /* __MDNIE_H__ */
