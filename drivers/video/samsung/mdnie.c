@@ -48,6 +48,8 @@
 #else	/* CONFIG_CPU_EXYNOS4210 */
 #if defined(CONFIG_FB_S5P_S6E8AA0)
 #include "mdnie_table_c1m0.h"
+#elif defined(CONFIG_FB_S5P_S6E63M0)
+#include "mdnie_table_c1m0.h"
 #endif
 #include "mdnie_color_tone.h"	/* sholud be added for 4212, 4412 */
 #endif
@@ -140,12 +142,12 @@ int mdnie_send_sequence(struct mdnie_info *mdnie, const unsigned short *seq)
 	return ret;
 }
 
-void set_mdnie_value(struct mdnie_info *mdnie)
+void set_mdnie_value(struct mdnie_info *mdnie, u8 force)
 {
 	u8 idx;
 
-	if (!mdnie->enable) {
-		dev_err(mdnie->dev, "do not configure mDNIe after LCD/mDNIe power off\n");
+	if ((!mdnie->enable) && (!force)) {
+		dev_err(mdnie->dev, "mdnie states is off\n");
 		return;
 	}
 
@@ -157,7 +159,7 @@ void set_mdnie_value(struct mdnie_info *mdnie)
 		mdnie->tone = TONE_NORMAL;
 
 	if (mdnie->tunning) {
-		dev_info(mdnie->dev, "mDNIe tunning mode is enabled\n");
+		dev_info(mdnie->dev, "mdnie tunning mode is enabled\n");
 		return;
 	}
 
@@ -227,7 +229,7 @@ static int get_backlight_level_from_brightness(unsigned int brightness)
 	else if (brightness > 0)
 		value = DIM_BACKLIGHT_VALUE;
 	else
-		value = brightness;
+		return 0;
 
 	if (value > 1600)
 		value = 1600;
@@ -281,6 +283,11 @@ static void mdnie_pwm_control_cabc(struct mdnie_info *mdnie, int value)
 	mdnie_write(0x28, 0x0000);
 
 	mutex_unlock(&mdnie->dev_lock);
+}
+
+void set_mdnie_pwm_value(struct mdnie_info *mdnie, int value)
+{
+	mdnie_pwm_control(mdnie, value);
 }
 
 static int update_brightness(struct mdnie_info *mdnie)
@@ -365,7 +372,7 @@ static ssize_t mode_store(struct device *dev,
 	mdnie->mode = value;
 	mutex_unlock(&mdnie->lock);
 
-	set_mdnie_value(mdnie);
+	set_mdnie_value(mdnie, 0);
 #if defined(CONFIG_FB_MDNIE_PWM)
 	if ((mdnie->enable) && (mdnie->bd_enable))
 		update_brightness(mdnie);
@@ -406,7 +413,7 @@ static ssize_t scenario_store(struct device *dev,
 	mdnie->scenario = value;
 	mutex_unlock(&mdnie->lock);
 
-	set_mdnie_value(mdnie);
+	set_mdnie_value(mdnie, 0);
 #if defined(CONFIG_FB_MDNIE_PWM)
 	if ((mdnie->enable) && (mdnie->bd_enable))
 		update_brightness(mdnie);
@@ -444,7 +451,7 @@ static ssize_t outdoor_store(struct device *dev,
 	mdnie->outdoor = value;
 	mutex_unlock(&mdnie->lock);
 
-	set_mdnie_value(mdnie);
+	set_mdnie_value(mdnie, 0);
 
 	return count;
 }
@@ -479,7 +486,7 @@ static ssize_t cabc_store(struct device *dev,
 	mdnie->cabc = value;
 	mutex_unlock(&mdnie->lock);
 
-	set_mdnie_value(mdnie);
+	set_mdnie_value(mdnie, 0);
 	if ((mdnie->enable) && (mdnie->bd_enable))
 		update_brightness(mdnie);
 
@@ -561,7 +568,7 @@ static ssize_t negative_store(struct device *dev,
 		mdnie->negative = value;
 		mutex_unlock(&mdnie->lock);
 
-		set_mdnie_value(mdnie);
+		set_mdnie_value(mdnie, 0);
 	}
 	return count;
 }
@@ -582,7 +589,7 @@ static ssize_t user_mode_store(struct device *dev,
 	sscanf(buf, "%d", &value);
 
 	mdnie->user_mode = value;
-	set_mdnie_value(mdnie);
+	set_mdnie_value(mdnie, 0);
 
 	return size;
 }
@@ -609,7 +616,7 @@ static ssize_t user_cb_store(struct device *dev,
 		mdnie->user_cb = (128 << 8);
 	}
 
-	set_mdnie_value(mdnie);
+	set_mdnie_value(mdnie, 0);
 
 	return size;
 }
@@ -636,7 +643,7 @@ static ssize_t user_cr_store(struct device *dev,
 		mdnie->user_cr = 128;
 	}
 
-	set_mdnie_value(mdnie);
+	set_mdnie_value(mdnie, 0);
 
 	return size;
 }
@@ -730,7 +737,7 @@ void mdnie_toggle_negative(void)
 	g_mdnie->negative = !g_mdnie->negative;
 	mutex_unlock(&g_mdnie->lock);
 
-	set_mdnie_value(g_mdnie);
+	set_mdnie_value(g_mdnie, 1);
 }
 
 static int mdnie_probe(struct platform_device *pdev)
@@ -822,7 +829,7 @@ static int mdnie_probe(struct platform_device *pdev)
 
 	g_mdnie = mdnie;
 
-	set_mdnie_value(mdnie);
+	set_mdnie_value(mdnie, 0);
 
 	dev_info(mdnie->dev, "registered successfully\n");
 
