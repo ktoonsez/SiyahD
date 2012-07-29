@@ -10,7 +10,6 @@
  * published by the Free Software Foundation.
 */
 
-
 #include "s3cfb.h"
 #include "s3cfb_ielcd.h"
 #include "s3cfb_mdnie.h"

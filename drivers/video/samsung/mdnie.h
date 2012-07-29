@@ -6,10 +6,10 @@
 enum MODE {
 	DYNAMIC,
 	STANDARD,
-	MOVIE,
 #if !defined(CONFIG_FB_MDNIE_PWM)
 	NATURAL,
 #endif
+	MOVIE,
 	MODE_MAX,
 };
 
@@ -25,7 +25,7 @@ enum SCENARIO {
 	SCENARIO_MAX,
 };
 
-#ifdef CONFIG_TARGET_LOCALE_KOR
+#if defined(CONFIG_TARGET_LOCALE_KOR) || defined(CONFIG_TARGET_LOCALE_NTT)
 enum SCENARIO_DMB {
 	DMB_NORMAL_MODE = 20,
 	DMB_WARM_MODE,
@@ -106,9 +106,6 @@ struct mdnie_info {
 #ifdef CONFIG_HAS_EARLYSUSPEND
 	struct early_suspend    early_suspend;
 #endif
-	unsigned short user_mode;
-	unsigned short user_cb;
-	unsigned short user_cr;
 };
 
 extern struct mdnie_info *g_mdnie;
@@ -125,7 +122,7 @@ struct mdnie_backlight_value {
 	unsigned int max;
 	unsigned int mid;
 	unsigned char low;
-	unsigned char   dim;
+	unsigned char 	dim;
 };
 
 #endif /* __MDNIE_H__ */
