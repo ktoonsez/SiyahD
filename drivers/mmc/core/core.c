@@ -394,27 +394,6 @@ struct mmc_async_req *mmc_start_req(struct mmc_host *host,
 				mmc_post_req(host, areq->mrq, -EINVAL);
 
 			host->areq = NULL;
-#if defined(CONFIG_MACH_M0) || defined(CONFIG_MACH_P4NOTE)
-			/* dh0421.hwang */
-			/*
-			 * dh0421.hwang
-			 * It's for Engineering DEBUGGING only
-			 * This has to be removed before PVR(guessing)
-			 * Please refer mshci reg dumps
-			 */
-			if (mmc_card_mmc(host->card) &&
-					err != 3) {
-				printk(KERN_ERR "[TEST] err means...\n");
-				printk(KERN_ERR "\t1: MMC_BLK_PARTIAL.\n");
-				printk(KERN_ERR "\t2: MMC_BLK_CMD_ERR.\n");
-				printk(KERN_ERR "\t3: MMC_BLK_RETRY.\n");
-				printk(KERN_ERR "\t4: MMC_BLK_ABORT.\n");
-				printk(KERN_ERR "\t5: MMC_BLK_DATA_ERR.\n");
-				printk(KERN_ERR "\t6: MMC_BLK_ECC_ERR.\n");
-				panic("[TEST] mmc%d, err_check returns %d.\n",
-						host->index, err);
-			}
-#endif
 			goto out;
 		}
 	}
@@ -587,7 +566,7 @@ void mmc_set_data_timeout(struct mmc_data *data, const struct mmc_card *card)
 			 * The limit is really 250 ms, but that is
 			 * insufficient for some crappy cards.
 			 */
-			limit_us = 800000;
+			limit_us = 300000;
 		else
 			limit_us = 100000;
 
@@ -1299,8 +1278,6 @@ static void mmc_poweroff_notify(struct mmc_host *host)
 
 	card = host->card;
 
-	mmc_claim_host(host);
-
 	/*
 	 * Send power notify command only if card
 	 * is mmc and notify state is powered ON
@@ -1330,7 +1307,6 @@ static void mmc_poweroff_notify(struct mmc_host *host)
 		/* Set the card state to no notification after the poweroff */
 		card->poweroff_notify_state = MMC_NO_POWER_NOTIFICATION;
 	}
-	mmc_release_host(host);
 }
 
 /*
@@ -1391,28 +1367,12 @@ static void mmc_power_up(struct mmc_host *host)
 
 void mmc_power_off(struct mmc_host *host)
 {
-	int err = 0;
 	mmc_host_clk_hold(host);
 
 	host->ios.clock = 0;
 	host->ios.vdd = 0;
 
-	/*
-	 * For eMMC 4.5 device send AWAKE command before
-	 * POWER_OFF_NOTIFY command, because in sleep state
-	 * eMMC 4.5 devices respond to only RESET and AWAKE cmd
-	 */
-	if (host->card && mmc_card_is_sleep(host->card) &&
-	    host->bus_ops->resume) {
-		err = host->bus_ops->resume(host);
-
-		if (!err)
-			mmc_poweroff_notify(host);
-		else
-			pr_warning("%s: error %d during resume "
-				   "(continue with poweroff sequence)\n",
-				   mmc_hostname(host), err);
-	}
+	mmc_poweroff_notify(host);
 
 	/*
 	 * Reset ocr mask to be the highest possible voltage supported for
@@ -1491,7 +1451,7 @@ int mmc_resume_bus(struct mmc_host *host)
 		host->bus_ops->resume(host);
 	}
 
-	if (host->bus_ops && host->bus_ops->detect && !host->bus_dead)
+	if (host->bus_ops->detect && !host->bus_dead)
 		host->bus_ops->detect(host);
 
 	mmc_bus_put(host);
@@ -1718,7 +1678,6 @@ static unsigned int mmc_erase_timeout(struct mmc_card *card,
 		return mmc_mmc_erase_timeout(card, arg, qty);
 }
 
-#if 0 //unused function, may brick our device.
 static int mmc_do_erase(struct mmc_card *card, unsigned int from,
 			unsigned int to, unsigned int arg)
 {
@@ -1819,7 +1778,6 @@ static int mmc_do_erase(struct mmc_card *card, unsigned int from,
 out:
 	return err;
 }
-#endif
 
 /**
  * mmc_erase - erase sectors.
@@ -1833,15 +1791,63 @@ out:
 int mmc_erase(struct mmc_card *card, unsigned int from, unsigned int nr,
 	      unsigned int arg)
 {
-	printk("%s: mmc_erase() disabled for protection. from = %u, nr = %u, arg = %u\n",
-			__func__,from,nr,arg);
-	return -EOPNOTSUPP;
+	unsigned int rem, to = from + nr;
+
+	if (!(card->host->caps & MMC_CAP_ERASE) ||
+	    !(card->csd.cmdclass & CCC_ERASE))
+		return -EOPNOTSUPP;
+
+	if (!card->erase_size)
+		return -EOPNOTSUPP;
+
+	if (mmc_card_sd(card) && arg != MMC_ERASE_ARG)
+		return -EOPNOTSUPP;
+
+	if ((arg & MMC_SECURE_ARGS) &&
+	    !(card->ext_csd.sec_feature_support & EXT_CSD_SEC_ER_EN))
+		return -EOPNOTSUPP;
+
+	if ((arg & MMC_TRIM_ARGS) &&
+	    !(card->ext_csd.sec_feature_support & EXT_CSD_SEC_GB_CL_EN))
+		return -EOPNOTSUPP;
+
+	if (arg == MMC_SECURE_ERASE_ARG) {
+		if (from % card->erase_size || nr % card->erase_size)
+			return -EINVAL;
+	}
+
+	if (arg == MMC_ERASE_ARG) {
+		rem = from % card->erase_size;
+		if (rem) {
+			rem = card->erase_size - rem;
+			from += rem;
+			if (nr > rem)
+				nr -= rem;
+			else
+				return 0;
+		}
+		rem = nr % card->erase_size;
+		if (rem)
+			nr -= rem;
+	}
+
+	if (nr == 0)
+		return 0;
+
+	to = from + nr;
+
+	if (to <= from)
+		return -EINVAL;
+
+	/* 'from' and 'to' are inclusive */
+	to -= 1;
+
+	return mmc_do_erase(card, from, to, arg);
 }
 EXPORT_SYMBOL(mmc_erase);
 
 int mmc_can_erase(struct mmc_card *card)
 {
-	printk("%s: called\n",__func__);
 	if ((card->host->caps & MMC_CAP_ERASE) &&
 	    (card->csd.cmdclass & CCC_ERASE) && card->erase_size)
 		return 1;
@@ -2434,7 +2440,7 @@ int mmc_suspend_host(struct mmc_host *host)
 	mmc_flush_scheduled_work();
 	if (mmc_try_claim_host(host)) {
 		u32 status;
-		u32 count = 300000; /* up to 300ms */
+		u32 count=300000; /* up to 300ms */
 
 		/* if a sdmmc card exists and the card is mmc */
 		if (((host->card) && mmc_card_mmc(host->card))) {
@@ -2444,7 +2450,7 @@ int mmc_suspend_host(struct mmc_host *host)
 			if (ret)
 				pr_err("%s: there is error %d while "
 				       "flushing emmc's cache\n",
-					mmc_hostname(host), ret);
+					mmc_hostname(host),ret);
 		}
 		err = mmc_cache_ctrl(host, 0);
 
@@ -2480,8 +2486,15 @@ int mmc_suspend_host(struct mmc_host *host)
 		 * pre-claim the host.
 		 */
 		if (mmc_try_claim_host(host)) {
-			if (host->bus_ops->suspend)
+			if (host->bus_ops->suspend) {
+				/*
+				 * For eMMC 4.5 device send notify command
+				 * before sleep, because in sleep state eMMC 4.5
+				 * devices respond to only RESET and AWAKE cmd
+				 */
+				mmc_poweroff_notify(host);
 				err = host->bus_ops->suspend(host);
+			}
 			if (err == -ENOSYS || !host->bus_ops->resume) {
 				/*
 				 * We simply "remove" the card in this case.
