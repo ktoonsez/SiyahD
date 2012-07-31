@@ -31,9 +31,7 @@
 #include <mach/sec_debug.h>
 #include <linux/bootmem.h>
 #include "s3cfb.h"
-#define CMA_REGION_FIMD  "fimd"
 #define NOT_DEFAULT_WINDOW 99
-#define CMA_REGION_FIMD  "fimd"
 extern struct s3cfb_fimd_desc    *fbfimd;
 inline struct s3cfb_global *get_fimd_global(int id)
 {
@@ -47,7 +45,7 @@ inline struct s3cfb_global *get_fimd_global(int id)
         return fbdev;
 }
 
-#define CMA_REGION_FIMD 	"fimd"
+#define CMA_REGION_FIMD		"fimd"
 #ifdef CONFIG_EXYNOS_CONTENT_PATH_PROTECTION
 #define CMA_REGION_VIDEO	"video"
 #else
