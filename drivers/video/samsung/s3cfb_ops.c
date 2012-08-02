@@ -1109,14 +1109,14 @@ int s3cfb_wait_for_vsync(struct s3cfb_global *fbdev)
 
 	prev_timestamp = fbdev->vsync_timestamp;
 
-	ret = wait_event_interruptible_timeout(fbdev->wq, 
-        s3cfb_vsync_timestamp_changed(fbdev, prev_timestamp),
-        msecs_to_jiffies(100));
+	ret = wait_event_interruptible_timeout(fbdev->wq,
+		s3cfb_vsync_timestamp_changed(fbdev, prev_timestamp),
+		msecs_to_jiffies(100));
 
 	if (ret == 0)
-	  return -ETIMEDOUT;
+		return -ETIMEDOUT;
 	if (ret < 0)
-	  return ret;
+		return ret;
 
 	dev_dbg(fbdev->dev, "got a VSYNC interrupt\n");
 
