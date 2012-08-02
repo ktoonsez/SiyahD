@@ -1710,7 +1710,7 @@ void srp_late_resume(struct early_suspend *h)
 /*
  * The functions for inserting/removing us as a module.
  */
-static int __init srp_probe(struct platform_device *pdev)
+static int srp_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	int ret;
