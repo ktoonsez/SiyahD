@@ -616,7 +616,7 @@ int arch_update_cpu_topology(void)
  * init_cpu_topology is called at boot when only one cpu is running
  * which prevent simultaneous write access to cpu_topology array
  */
-void init_cpu_topology(void)
+void __init init_cpu_topology(void)
 {
 	unsigned int cpu;
 
