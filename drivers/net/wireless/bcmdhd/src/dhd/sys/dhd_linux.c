@@ -609,11 +609,16 @@ static void dhd_set_packet_filter(int value, dhd_pub_t *dhd)
 }
 
 #if defined(CONFIG_HAS_EARLYSUSPEND)
+#ifdef CONFIG_BCMDHD_WIFI_PM
+static int wifi_pm = 0;
+/* /sys/module/bcmdhd/parameters/wifi_pm */
+module_param(wifi_pm, int, 0644);
+#endif
 static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 {
 	char iovbuf[32];
-#ifndef CUSTOMER_HW_SAMSUNG
 	int power_mode = PM_MAX;
+#ifndef CUSTOMER_HW_SAMSUNG
 	/* wl_pkt_filter_enable_t	enable_parm; */
 	int bcn_li_dtim = 3;
 	uint roamvar = 1;
@@ -628,6 +633,10 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 	DHD_ERROR(("%s: enter, value = %d in_suspend=%d\n",
 		__FUNCTION__, value, dhd->in_suspend));
 
+#ifdef CONFIG_BCMDHD_WIFI_PM
+	if (wifi_pm == 1)
+		power_mode = PM_FAST;
+#endif
 	if (dhd && dhd->up) {
 		if (value && dhd->in_suspend) {
 			if (wl_cfgp2p_p2p_listen_suspend())
@@ -639,10 +648,8 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 			/* Kernel suspended */
 			DHD_ERROR(("%s: force extra Suspend setting \n", __FUNCTION__));
 
-#ifndef CUSTOMER_HW_SAMSUNG
 			dhd_wl_ioctl_cmd(dhd, WLC_SET_PM, (char *)&power_mode,
 				sizeof(power_mode), TRUE, 0);
-#endif
 
 			/* Enable packet filter, only allow unicast packet to send up */
 			if (dhd_pkt_filter_enable && !dhd->dhcp_in_progress) {
@@ -687,11 +694,9 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 			/* Kernel resumed  */
 			DHD_ERROR(("%s: Remove extra suspend setting \n", __FUNCTION__));
 
-#ifndef CUSTOMER_HW_SAMSUNG
 			power_mode = PM_FAST;
 			dhd_wl_ioctl_cmd(dhd, WLC_SET_PM, (char *)&power_mode,
 				sizeof(power_mode), TRUE, 0);
-#endif
 
 			/* disable pkt filter */
 			if (dhd_pkt_filter_enable && !dhd->dhcp_in_progress) {
