@@ -44,8 +44,8 @@ config WLAN_REGION_CODE
 
 config BCMDHD_WIFI_PM
 	bool "Enable support for changing the WiFi power mode"
-	depends on BCMDHD
-	default n
+	depends on (BCM4330 || BCM4334 || BCM43241)
+	default y
 	---help---
 	  Enable support for changing the WiFi power mode for
 	  screen-off.
