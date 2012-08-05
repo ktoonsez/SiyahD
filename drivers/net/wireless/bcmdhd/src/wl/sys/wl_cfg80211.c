@@ -646,10 +646,10 @@ static const u32 __wl_cipher_suites[] = {
 	WLAN_CIPHER_SUITE_WEP104,
 	WLAN_CIPHER_SUITE_TKIP,
 	WLAN_CIPHER_SUITE_CCMP,
-	WLAN_CIPHER_SUITE_AES_CMAC,
 #ifdef BCMWAPI_WPI
-	WLAN_CIPHER_SUITE_SMS4
+	WLAN_CIPHER_SUITE_SMS4,
 #endif
+	WLAN_CIPHER_SUITE_AES_CMAC
 };
 
 #ifdef WL_CFG80211_GON_COLLISION
@@ -1154,6 +1154,8 @@ wl_cfg80211_add_virtual_iface(struct wiphy *wiphy, char *name,
 			wl_set_drv_status(wl, READY, _ndev);
 			wl->p2p->vif_created = true;
 			wl_set_mode_by_netdev(wl, _ndev, mode);
+			WL_DBG((" virtual interface(%s) wl->wdev %p wl->wdev->netdev %p vwdev %p vwdev->netdev %p\n",
+				wl->p2p->vir_ifname, wl->wdev, wl->wdev->netdev, vwdev, vwdev->netdev));
 			net_attach =  wl_to_p2p_bss_private(wl, P2PAPI_BSSCFG_CONNECTION);
 			if (rtnl_is_locked()) {
 				rtnl_unlock();
@@ -1258,7 +1260,9 @@ wl_cfg80211_del_virtual_iface(struct wiphy *wiphy, struct net_device *dev)
 					"HANG Notification sent to %s\n", ret, ndev->name));
 				wl_cfg80211_hang(ndev, WLAN_REASON_UNSPECIFIED);
 			}
-
+			else {
+				WL_ERR(("Firmware success from p2p_ifdel dev %p wdev %p ndev %p", dev, wl->wdev, wl_to_prmry_ndev(wl)));
+			}
 			/* Wait for any pending scan req to get aborted from the sysioc context */
 			timeout = wait_event_interruptible_timeout(wl->netif_change_event,
 				(wl_get_p2p_status(wl, IF_DELETING) == false),
