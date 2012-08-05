@@ -611,8 +611,8 @@ static void dhd_set_packet_filter(int value, dhd_pub_t *dhd)
 #if defined(CONFIG_HAS_EARLYSUSPEND)
 #ifdef CONFIG_BCMDHD_WIFI_PM
 static int wifi_pm = 0;
-/* /sys/module/bcmdhd/parameters/wifi_pm */
-module_param(wifi_pm, int, 0644);
+/* /sys/module/dhd/parameters/wifi_pm */
+module_param(wifi_pm, int, 0664);
 #endif
 static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 {
