@@ -45,17 +45,17 @@
 
 #define DEF_FREQUENCY_DOWN_DIFFERENTIAL         (25)
 #define MIN_FREQUENCY_DOWN_DIFFERENTIAL		(1)
-#define DEF_FREQUENCY_UP_THRESHOLD              (70)
+#define DEF_FREQUENCY_UP_THRESHOLD              (85)
 #define DEF_SAMPLING_DOWN_FACTOR                (2)
 #define MAX_SAMPLING_DOWN_FACTOR                (100000)
 #define MICRO_FREQUENCY_DOWN_DIFFERENTIAL       (3)
-#define MICRO_FREQUENCY_UP_THRESHOLD            (50)
+#define MICRO_FREQUENCY_UP_THRESHOLD            (60)
 #define MICRO_FREQUENCY_MIN_SAMPLE_RATE         (10000)
 #define MIN_FREQUENCY_UP_THRESHOLD              (11)
 #define MAX_FREQUENCY_UP_THRESHOLD              (100)
 #define FREQ_STEP                               (35)
-#define UP_THRESHOLD_AT_MIN_FREQ                (40)
-#define FREQ_FOR_RESPONSIVENESS                 (700000)
+#define UP_THRESHOLD_AT_MIN_FREQ                (50)
+#define FREQ_FOR_RESPONSIVENESS                 (200000)
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
 #ifdef SUSPEND_FREQ_ON
