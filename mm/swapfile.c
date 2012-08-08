@@ -848,13 +848,12 @@ unsigned int count_swap_pages(int type, int free)
 static int unuse_pte(struct vm_area_struct *vma, pmd_t *pmd,
 		unsigned long addr, swp_entry_t entry, struct page *page)
 {
-	struct mem_cgroup *memcg;
+	struct mem_cgroup *ptr;
 	spinlock_t *ptl;
 	pte_t *pte;
 	int ret = 1;
 
-	if (mem_cgroup_try_charge_swapin(vma->vm_mm, page,
-			    GFP_KERNEL, &memcg)) {
+	if (mem_cgroup_try_charge_swapin(vma->vm_mm, page, GFP_KERNEL, &ptr)) {
 		ret = -ENOMEM;
 		goto out_nolock;
 	}
@@ -862,7 +861,7 @@ static int unuse_pte(struct vm_area_struct *vma, pmd_t *pmd,
 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
 	if (unlikely(!pte_same(*pte, swp_entry_to_pte(entry)))) {
 		if (ret > 0)
-			mem_cgroup_cancel_charge_swapin(memcg);
+			mem_cgroup_cancel_charge_swapin(ptr);
 		ret = 0;
 		goto out;
 	}
@@ -873,7 +872,7 @@ static int unuse_pte(struct vm_area_struct *vma, pmd_t *pmd,
 	set_pte_at(vma->vm_mm, addr, pte,
 		   pte_mkold(mk_pte(page, vma->vm_page_prot)));
 	page_add_anon_rmap(page, vma, addr);
-	mem_cgroup_commit_charge_swapin(page, memcg);
+	mem_cgroup_commit_charge_swapin(page, ptr);
 	swap_free(entry);
 	/*
 	 * Move the page to the active list so it is not
@@ -1680,15 +1679,19 @@ out:
 }
 
 #ifdef CONFIG_PROC_FS
+struct proc_swaps {
+	struct seq_file seq;
+	int event;
+};
 
 static unsigned swaps_poll(struct file *file, poll_table *wait)
 {
-	struct seq_file *seq = file->private_data;
+	struct proc_swaps *s = file->private_data;
 
 	poll_wait(file, &proc_poll_wait, wait);
 
-	if (seq->poll_event != atomic_read(&proc_poll_event)) {
-		seq->poll_event = atomic_read(&proc_poll_event);
+	if (s->event != atomic_read(&proc_poll_event)) {
+		s->event = atomic_read(&proc_poll_event);
 		return POLLIN | POLLRDNORM | POLLERR | POLLPRI;
 	}
 
@@ -1778,16 +1781,24 @@ static const struct seq_operations swaps_op = {
 
 static int swaps_open(struct inode *inode, struct file *file)
 {
-	struct seq_file *seq;
+	struct proc_swaps *s;
 	int ret;
 
-	ret = seq_open(file, &swaps_op);
-	if (ret)
-		return ret;
+	s = kmalloc(sizeof(struct proc_swaps), GFP_KERNEL);
+	if (!s)
+		return -ENOMEM;
 
-	seq = file->private_data;
-	seq->poll_event = atomic_read(&proc_poll_event);
-	return 0;
+	file->private_data = s;
+
+	ret = seq_open(file, &swaps_op);
+	if (ret) {
+		kfree(s);
+		return ret;
+	}
+
+	s->seq.private = s;
+	s->event = atomic_read(&proc_poll_event);
+	return ret;
 }
 
 static const struct file_operations proc_swaps_operations = {
@@ -2000,6 +2011,159 @@ static int setup_swap_map_and_extents(struct swap_info_struct *p,
 
 	return nr_extents;
 }
+
+#ifdef CONFIG_ZRAM_FOR_ANDROID
+int swapon(char *name, int swap_flags)
+{
+	struct swap_info_struct *p;
+
+	struct file *swap_file = NULL;
+	struct address_space *mapping;
+	int i;
+	int prio;
+	int error;
+	union swap_header *swap_header;
+	int nr_extents;
+	sector_t span;
+	unsigned long maxpages;
+	unsigned char *swap_map = NULL;
+	struct page *page = NULL;
+	struct inode *inode = NULL;
+
+	p = alloc_swap_info();
+	if (IS_ERR(p))
+		return PTR_ERR(p);
+
+	swap_file = filp_open(name, O_RDWR | O_LARGEFILE, 0);
+	if (IS_ERR(swap_file)) {
+		error = PTR_ERR(swap_file);
+		swap_file = NULL;
+		printk("zfqin, filp_open failed\n");
+		goto bad_swap;
+	}
+
+	printk("zfqin, filp_open succeeded\n");
+	p->swap_file = swap_file;
+	mapping = swap_file->f_mapping;
+
+	for (i = 0; i < nr_swapfiles; i++) {
+		struct swap_info_struct *q = swap_info[i];
+
+		if (q == p || !q->swap_file)
+			continue;
+		if (mapping == q->swap_file->f_mapping) {
+			error = -EBUSY;
+			goto bad_swap;
+		}
+	}
+
+	inode = mapping->host;
+	/* If S_ISREG(inode->i_mode) will do mutex_lock(&inode->i_mutex); */
+	error = claim_swapfile(p, inode);
+	if (unlikely(error))
+		goto bad_swap;
+
+	/*
+	 * Read the swap header.
+	 */
+	if (!mapping->a_ops->readpage) {
+		error = -EINVAL;
+		goto bad_swap;
+	}
+	page = read_mapping_page(mapping, 0, swap_file);
+	if (IS_ERR(page)) {
+		error = PTR_ERR(page);
+		goto bad_swap;
+	}
+	swap_header = kmap(page);
+
+	maxpages = read_swap_header(p, swap_header, inode);
+	if (unlikely(!maxpages)) {
+		error = -EINVAL;
+		goto bad_swap;
+	}
+
+	/* OK, set up the swap map and apply the bad block list */
+	swap_map = vzalloc(maxpages);
+	if (!swap_map) {
+		error = -ENOMEM;
+		goto bad_swap;
+	}
+
+	error = swap_cgroup_swapon(p->type, maxpages);
+	if (error)
+		goto bad_swap;
+
+	nr_extents = setup_swap_map_and_extents(p, swap_header, swap_map,
+						maxpages, &span);
+	if (unlikely(nr_extents < 0)) {
+		error = nr_extents;
+		goto bad_swap;
+	}
+
+	if (p->bdev) {
+		if (blk_queue_nonrot(bdev_get_queue(p->bdev))) {
+			p->flags |= SWP_SOLIDSTATE;
+			p->cluster_next = 1 + (random32() % p->highest_bit);
+		}
+		if (discard_swap(p) == 0 && (swap_flags & SWAP_FLAG_DISCARD))
+			p->flags |= SWP_DISCARDABLE;
+	}
+
+	mutex_lock(&swapon_mutex);
+	prio = -1;
+	if (swap_flags & SWAP_FLAG_PREFER)
+		prio =
+		    (swap_flags & SWAP_FLAG_PRIO_MASK) >> SWAP_FLAG_PRIO_SHIFT;
+	enable_swap_info(p, prio, swap_map);
+
+	printk(KERN_INFO "Adding %uk swap on %s.  "
+	       "Priority:%d extents:%d across:%lluk %s%s\n",
+	       p->pages << (PAGE_SHIFT - 10), name, p->prio,
+	       nr_extents, (unsigned long long)span << (PAGE_SHIFT - 10),
+	       (p->flags & SWP_SOLIDSTATE) ? "SS" : "",
+	       (p->flags & SWP_DISCARDABLE) ? "D" : "");
+
+	mutex_unlock(&swapon_mutex);
+	atomic_inc(&proc_poll_event);
+	wake_up_interruptible(&proc_poll_wait);
+
+	if (S_ISREG(inode->i_mode))
+		inode->i_flags |= S_SWAPFILE;
+	error = 0;
+	goto out;
+ bad_swap:
+	if (inode && S_ISBLK(inode->i_mode) && p->bdev) {
+		set_blocksize(p->bdev, p->old_block_size);
+		blkdev_put(p->bdev, FMODE_READ | FMODE_WRITE | FMODE_EXCL);
+	}
+	destroy_swap_extents(p);
+	swap_cgroup_swapoff(p->type);
+	spin_lock(&swap_lock);
+	p->swap_file = NULL;
+	p->flags = 0;
+	spin_unlock(&swap_lock);
+	vfree(swap_map);
+	if (swap_file) {
+		if (inode && S_ISREG(inode->i_mode)) {
+			mutex_unlock(&inode->i_mutex);
+			inode = NULL;
+		}
+		filp_close(swap_file, NULL);
+	}
+ out:
+	if (page && !IS_ERR(page)) {
+		kunmap(page);
+		page_cache_release(page);
+	}
+
+	if (inode && S_ISREG(inode->i_mode))
+		mutex_unlock(&inode->i_mutex);
+	return error;
+}
+
+EXPORT_SYMBOL(swapon);
+#endif /* CONFIG_ZRAM_FOR_ANDROID */
 
 SYSCALL_DEFINE2(swapon, const char __user *, specialfile, int, swap_flags)
 {
