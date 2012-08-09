@@ -30,8 +30,8 @@
  */
 
 #define DEF_FREQUENCY_UP_THRESHOLD		(95)
-#define DEF_FREQUENCY_DOWN_THRESHOLD		(40)
-#define DEFAULT_FREQ_STEP			(20)
+#define DEF_FREQUENCY_DOWN_THRESHOLD		(80)
+#define DEFAULT_FREQ_STEP			(10)
 #define DEF_SAMPLING_DOWN_FACTOR                (1)
 #define MAX_SAMPLING_DOWN_FACTOR                (100000)
 #define DEF_SMOOTH_UI				(0)
@@ -910,7 +910,8 @@ static int __init cpufreq_gov_dbs_init(void)
 		printk(KERN_ERR "Creation of kconservative failed\n");
 		return -EFAULT;
 	}
-    register_early_suspend(&smartass_power_suspend);
+
+	register_early_suspend(&smartass_power_suspend);
 
 	err = pm_qos_add_notifier(PM_QOS_DVFS_RESPONSE_LATENCY,
 			    &scary_qos_dvfs_lat_nb);
@@ -924,7 +925,6 @@ static int __init cpufreq_gov_dbs_init(void)
 				       &scary_qos_dvfs_lat_nb);
 		destroy_workqueue(kconservative_wq);
 	}
-
 
 	return err;
 }
