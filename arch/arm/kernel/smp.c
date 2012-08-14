@@ -350,6 +350,11 @@ asmlinkage void __cpuinit secondary_start_kernel(void)
 	 */
 	percpu_timer_setup();
 
+	/*
+	 * cpu_active bit is set, so it's safe to enalbe interrupts
+	 * now.
+	 */
+
 	local_irq_enable();
 	local_fiq_enable();
 
