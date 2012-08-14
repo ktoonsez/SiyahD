@@ -33,6 +33,7 @@
 #include <linux/slab.h>
 
 #include <asm/irq.h>
+#include <asm/smp_plat.h>
 #include <asm/mach/irq.h>
 #include <asm/hardware/gic.h>
 
@@ -290,6 +291,7 @@ static void __init gic_dist_init(struct gic_chip_data *gic,
 	void __iomem *base = gic_data_dist_base(gic);
 	u32 cpumask = 1 << smp_processor_id();
 	u32 nrppis = 0, ppi_base = 0;
+	u32 cpu = cpu_logical_map(smp_processor_id());
 
 	cpumask |= cpumask << 8;
 	cpumask |= cpumask << 16;
