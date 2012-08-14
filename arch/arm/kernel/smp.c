@@ -361,6 +361,14 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
 		percpu_timer_setup();
 
 		/*
+		 * Initialise the present map, which describes the set of CPUs
+		 * actually populated at the present time. A platform should
+		 * re-initialize the map in platform_smp_prepare_cpus() if
+		 * present != possible (e.g. physical hotplug).
+		 */
+		init_cpu_present(cpu_possible_mask);
+
+		/*
 		 * Initialise the SCU if there are more than one CPU
 		 * and let them know where to start.
 		 */
@@ -641,8 +649,9 @@ void smp_send_stop(void)
 	unsigned long timeout;
 
 	if (num_online_cpus() > 1) {
-		cpumask_t mask = cpu_online_map;
-		cpu_clear(smp_processor_id(), mask);
+		struct cpumask mask;
+		cpumask_copy(&mask, cpu_online_mask);
+		cpumask_clear_cpu(smp_processor_id(), &mask);
 
 		smp_cross_call(&mask, IPI_CPU_STOP);
 	}
