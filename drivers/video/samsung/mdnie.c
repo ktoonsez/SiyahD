@@ -496,11 +496,11 @@ static ssize_t scenario_store(struct device *dev,
 	dev_info(dev, "%s :: value=%d\n", __func__, value);
 
 	if (!SCENARIO_IS_VALID(value))
-		value = CYANOGENMOD_MODE;
+		value = UI_MODE;
 
 #if defined(CONFIG_FB_MDNIE_PWM)
 	if (value >= SCENARIO_MAX)
-		value = CYANOGENMOD_MODE;
+		value = UI_MODE;
 #endif
 
 	mutex_lock(&mdnie->lock);
@@ -867,7 +867,7 @@ static int mdnie_probe(struct platform_device *pdev)
 	mdnie->lcd_pd = pdata->lcd_pd;
 #endif
 
-	mdnie->scenario = CYANOGENMOD_MODE;
+	mdnie->scenario = UI_MODE;
 	mdnie->mode = STANDARD;
 	mdnie->tone = TONE_NORMAL;
 	mdnie->outdoor = OUTDOOR_OFF;
