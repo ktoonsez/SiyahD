@@ -389,7 +389,6 @@ void rcu_idle_enter(void)
 	rdtp = &__get_cpu_var(rcu_dynticks);
 	rdtp->dynticks_nesting = 0;
 	rcu_idle_enter_common(rdtp);
-	trace_rcu_dyntick("Start");
 	local_irq_restore(flags);
 }
 
