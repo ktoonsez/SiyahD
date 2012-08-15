@@ -54,6 +54,8 @@
 #include "rcutree.h"
 #include <trace/events/rcu.h>
 
+#include "rcu.h"
+
 /* Data structures. */
 
 static struct lock_class_key rcu_node_class[NUM_RCU_LVLS];
@@ -1288,17 +1290,22 @@ static void rcu_do_batch(struct rcu_state *rsp, struct rcu_data *rdp)
 {
 	unsigned long flags;
 	struct rcu_head *next, *list, **tail;
-	int count;
+	int bl, count;
 
 	/* If no callbacks are ready, just return.*/
-	if (!cpu_has_callbacks_ready_to_invoke(rdp))
+	if (!cpu_has_callbacks_ready_to_invoke(rdp)) {
+		trace_rcu_batch_start(0, 0);
+		trace_rcu_batch_end(0);
 		return;
+	}
 
 	/*
 	 * Extract the list of ready callbacks, disabling to prevent
 	 * races with call_rcu() from interrupt handlers.
 	 */
 	local_irq_save(flags);
+	bl = rdp->blimit;
+	trace_rcu_batch_start(rdp->qlen, bl);
 	list = rdp->nxtlist;
 	rdp->nxtlist = *rdp->nxttail[RCU_DONE_TAIL];
 	*rdp->nxttail[RCU_DONE_TAIL] = NULL;
@@ -1316,11 +1323,12 @@ static void rcu_do_batch(struct rcu_state *rsp, struct rcu_data *rdp)
 		debug_rcu_head_unqueue(list);
 		__rcu_reclaim(list);
 		list = next;
-		if (++count >= rdp->blimit)
+		if (++count >= bl)
 			break;
 	}
 
 	local_irq_save(flags);
+	trace_rcu_batch_end(count);
 
 	/* Update count, and requeue any remaining callbacks. */
 	rdp->qlen -= count;
