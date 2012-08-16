@@ -281,16 +281,6 @@ static inline void rcu_lock_release(struct lockdep_map *map)
 	lock_release(map, 1, _THIS_IP_);
 }
 
-static inline void rcu_lock_acquire(struct lockdep_map *map)
-{
-	lock_acquire(map, 0, 0, 2, 1, NULL, _THIS_IP_);
-}
-
-static inline void rcu_lock_release(struct lockdep_map *map)
-{
-	lock_release(map, 1, _THIS_IP_);
-}
-
 extern struct lockdep_map rcu_lock_map;
 extern struct lockdep_map rcu_bh_lock_map;
 extern struct lockdep_map rcu_sched_lock_map;
@@ -364,7 +354,7 @@ extern int rcu_read_lock_bh_held(void);
  * Similarly, we avoid claiming an SRCU read lock held if the current
  * CPU is offline.
  */
-#ifdef CONFIG_PREEMPT
+#ifdef CONFIG_PREEMPT_COUNT
 static inline int rcu_read_lock_sched_held(void)
 {
 	int lockdep_opinion = 0;
@@ -379,12 +369,12 @@ static inline int rcu_read_lock_sched_held(void)
 		lockdep_opinion = lock_is_held(&rcu_sched_lock_map);
 	return lockdep_opinion || preempt_count() != 0 || irqs_disabled();
 }
-#else /* #ifdef CONFIG_PREEMPT */
+#else /* #ifdef CONFIG_PREEMPT_COUNT */
 static inline int rcu_read_lock_sched_held(void)
 {
 	return 1;
 }
-#endif /* #else #ifdef CONFIG_PREEMPT */
+#endif /* #else #ifdef CONFIG_PREEMPT_COUNT */
 
 #else /* #ifdef CONFIG_DEBUG_LOCK_ALLOC */
 
@@ -401,17 +391,17 @@ static inline int rcu_read_lock_bh_held(void)
 	return 1;
 }
 
-#ifdef CONFIG_PREEMPT
+#ifdef CONFIG_PREEMPT_COUNT
 static inline int rcu_read_lock_sched_held(void)
 {
 	return preempt_count() != 0 || irqs_disabled();
 }
-#else /* #ifdef CONFIG_PREEMPT */
+#else /* #ifdef CONFIG_PREEMPT_COUNT */
 static inline int rcu_read_lock_sched_held(void)
 {
 	return 1;
 }
-#endif /* #else #ifdef CONFIG_PREEMPT */
+#endif /* #else #ifdef CONFIG_PREEMPT_COUNT */
 
 #endif /* #else #ifdef CONFIG_DEBUG_LOCK_ALLOC */
 
@@ -459,6 +449,7 @@ static inline void rcu_preempt_sleep_check(void)
 #else /* #ifdef CONFIG_PROVE_RCU */
 
 #define rcu_lockdep_assert(c, s) do { } while (0)
+#define rcu_sleep_check() do { } while (0)
 
 #endif /* #else #ifdef CONFIG_PROVE_RCU */
 
@@ -521,13 +512,13 @@ static inline void rcu_preempt_sleep_check(void)
 		smp_wmb(); \
 		(p) = (typeof(*v) __force space *)(v); \
 	})
+
 #define rcu_assign_pointer_nonull(p, v) \
 	({ \
 		if (!__builtin_constant_p(v)) \
 			smp_wmb(); \
 		(p) = (v); \
 	})
-
 
 /**
  * rcu_access_pointer() - fetch RCU pointer with no dereferencing
@@ -861,7 +852,7 @@ static inline notrace void rcu_read_unlock_sched_notrace(void)
  *
  * Assigns the specified value to the specified RCU-protected
  * pointer, ensuring that any concurrent RCU readers will see
- * any prior initialization.  Returns the value assigned.
+ * any prior initialization.
  *
  * Inserts memory barriers on architectures that require them
  * (which is most of them), and also prevents the compiler from
