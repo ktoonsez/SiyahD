@@ -271,15 +271,6 @@ static inline bool rcu_lockdep_current_cpu_online(void)
 
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 
-#ifdef CONFIG_PROVE_RCU
-extern int rcu_is_cpu_idle(void);
-#else /* !CONFIG_PROVE_RCU */
-static inline int rcu_is_cpu_idle(void)
-{
-        return 0;
-}
-#endif /* else !CONFIG_PROVE_RCU */
-
 static inline void rcu_lock_acquire(struct lockdep_map *map)
 {
 	lock_acquire(map, 0, 0, 2, 1, NULL, _THIS_IP_);
