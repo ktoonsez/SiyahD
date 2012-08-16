@@ -268,6 +268,15 @@ static inline bool rcu_lockdep_current_cpu_online(void)
 
 #ifdef CONFIG_DEBUG_LOCK_ALLOC
 
+#ifdef CONFIG_PROVE_RCU
+extern int rcu_is_cpu_idle(void);
+#else /* !CONFIG_PROVE_RCU */
+static inline int rcu_is_cpu_idle(void)
+{
+        return 0;
+}
+#endif /* else !CONFIG_PROVE_RCU */
+
 static inline void rcu_lock_acquire(struct lockdep_map *map)
 {
 	lock_acquire(map, 0, 0, 2, 1, NULL, _THIS_IP_);
@@ -280,13 +289,11 @@ static inline void rcu_lock_release(struct lockdep_map *map)
 
 static inline void rcu_lock_acquire(struct lockdep_map *map)
 {
-	WARN_ON_ONCE(rcu_is_cpu_idle());
 	lock_acquire(map, 0, 0, 2, 1, NULL, _THIS_IP_);
 }
 
 static inline void rcu_lock_release(struct lockdep_map *map)
 {
-	WARN_ON_ONCE(rcu_is_cpu_idle());
 	lock_release(map, 1, _THIS_IP_);
 }
 
@@ -736,6 +743,8 @@ static inline void rcu_read_lock(void)
 	__rcu_read_lock();
 	__acquire(RCU);
 	rcu_lock_acquire(&rcu_lock_map);
+	rcu_lockdep_assert(!rcu_is_cpu_idle(),
+			   "rcu_read_lock() used illegally while idle");
 }
 
 /*
@@ -755,6 +764,8 @@ static inline void rcu_read_lock(void)
  */
 static inline void rcu_read_unlock(void)
 {
+	rcu_lockdep_assert(!rcu_is_cpu_idle(),
+			   "rcu_read_unlock() used illegally while idle");
 	rcu_lock_release(&rcu_lock_map);
 	__release(RCU);
 	__rcu_read_unlock();
@@ -782,6 +793,8 @@ static inline void rcu_read_lock_bh(void)
 	local_bh_disable();
 	__acquire(RCU_BH);
 	rcu_lock_acquire(&rcu_bh_lock_map);
+	rcu_lockdep_assert(!rcu_is_cpu_idle(),
+			   "rcu_read_lock_bh() used illegally while idle");
 }
 
 /*
@@ -791,6 +804,8 @@ static inline void rcu_read_lock_bh(void)
  */
 static inline void rcu_read_unlock_bh(void)
 {
+	rcu_lockdep_assert(!rcu_is_cpu_idle(),
+			   "rcu_read_unlock_bh() used illegally while idle");
 	rcu_lock_release(&rcu_bh_lock_map);
 	__release(RCU_BH);
 	local_bh_enable();
@@ -814,6 +829,8 @@ static inline void rcu_read_lock_sched(void)
 	preempt_disable();
 	__acquire(RCU_SCHED);
 	rcu_lock_acquire(&rcu_sched_lock_map);
+	rcu_lockdep_assert(!rcu_is_cpu_idle(),
+			   "rcu_read_lock_sched() used illegally while idle");
 }
 
 /* Used by lockdep and tracing: cannot be traced, cannot call lockdep. */
@@ -830,6 +847,8 @@ static inline notrace void rcu_read_lock_sched_notrace(void)
  */
 static inline void rcu_read_unlock_sched(void)
 {
+	rcu_lockdep_assert(!rcu_is_cpu_idle(),
+			   "rcu_read_unlock_sched() used illegally while idle");
 	rcu_lock_release(&rcu_sched_lock_map);
 	__release(RCU_SCHED);
 	preempt_enable();
