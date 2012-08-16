@@ -13,6 +13,9 @@
  * "Start <activity>" -- Mark the start of the specified activity,
  *			 such as "context switch".  Nesting is permitted.
  * "End <activity>" -- Mark the end of the specified activity.
+ *
+ * An "@" character within "<activity>" is a comment character: Data
+ * reduction scripts will ignore the "@" and the remainder of the line.
  */
 TRACE_EVENT(rcu_utilization,
 
@@ -238,8 +241,16 @@ TRACE_EVENT(rcu_fqs,
 
 /*
  * Tracepoint for dyntick-idle entry/exit events.  These take a string
- * as argument: "Start" for entering dyntick-idle mode and "End" for
- * leaving it.
+ * as argument: "Start" for entering dyntick-idle mode, "End" for
+ * leaving it, "--=" for events moving towards idle, and "++=" for events
+ * moving away from idle.  "Error on entry: not idle task" and "Error on
+ * exit: not idle task" indicate that a non-idle task is erroneously
+ * toying with the idle loop.
+ *
+ * These events also take a pair of numbers, which indicate the nesting
+ * depth before and after the event of interest.  Note that task-related
+ * events use the upper bits of each number, while interrupt-related
+ * events use the lower bits.
  */
 TRACE_EVENT(rcu_dyntick,
 
@@ -278,9 +289,12 @@ TRACE_EVENT(rcu_dyntick,
  *	"In holdoff": Nothing to do, holding off after unsuccessful attempt.
  *	"Begin holdoff": Attempt failed, don't retry until next jiffy.
  *	"Dyntick with callbacks": Entering dyntick-idle despite callbacks.
+ *	"Dyntick with lazy callbacks": Entering dyntick-idle w/lazy callbacks.
  *	"More callbacks": Still more callbacks, try again to clear them out.
  *	"Callbacks drained": All callbacks processed, off to dyntick idle!
  *	"Timer": Timer fired to cause CPU to continue processing callbacks.
+ *	"Demigrate": Timer fired on wrong CPU, woke up correct CPU.
+ *	"Cleanup after idle": Idle exited, timer canceled.
  */
 TRACE_EVENT(rcu_prep_idle,
 
@@ -569,31 +583,6 @@ TRACE_EVENT(rcu_barrier,
 	TP_printk("%s %s cpu %d remaining %d # %lu",
 		  __entry->rcuname, __entry->s, __entry->cpu, __entry->cnt,
 		  __entry->done)
-);
-
-/*
- * Tracepoint for rcutorture readers.  The first argument is the name
- * of the RCU flavor from rcutorture's viewpoint and the second argument
- * is the callback address.
- */
-TRACE_EVENT(rcu_torture_read,
-
-	TP_PROTO(char *rcutorturename, struct rcu_head *rhp),
-
-	TP_ARGS(rcutorturename, rhp),
-
-	TP_STRUCT__entry(
-		__field(char *, rcutorturename)
-		__field(struct rcu_head *, rhp)
-	),
-
-	TP_fast_assign(
-		__entry->rcutorturename = rcutorturename;
-		__entry->rhp = rhp;
-	),
-
-	TP_printk("%s torture read %p",
-		  __entry->rcutorturename, __entry->rhp)
 );
 
 #else /* #ifdef CONFIG_RCU_TRACE */
