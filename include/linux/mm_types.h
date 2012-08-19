@@ -32,36 +32,58 @@ struct address_space;
  * who is mapping it.
  */
 struct page {
+	/* First double word block */
 	unsigned long flags;		/* Atomic flags, some possibly
 					 * updated asynchronously */
-	atomic_t _count;		/* Usage count, see below. */
+	struct address_space *mapping;	/* If low bit clear, points to
+					 * inode address_space, or NULL.
+					 * If page mapped as anonymous
+					 * memory, low bit is set, and
+					 * it points to anon_vma object:
+					 * see PAGE_MAPPING_ANON below.
+					 */
+	/* Second double word */
 	union {
-		/*
-		 * Count of ptes mapped in
-		 * mms, to show when page is
-		 * mapped & limit reverse map
-		 * searches.
-		 *
-		 * Used also for tail pages
-		 * refcounting instead of
-		 * _count. Tail pages cannot
-		 * be mapped and keeping the
-		 * tail page _count zero at
-		 * all times guarantees
-		 * get_page_unless_zero() will
-		 * never succeed on tail
-		 * pages.
-		 */
-		atomic_t _mapcount;
+		struct {
+			pgoff_t index;		/* Our offset within mapping. */
+			atomic_t _mapcount;	/* Count of ptes mapped in mms,
+							 * to show when page is mapped
+							 * & limit reverse map searches.
+							 *
+							 * Used also for tail pages
+							 * refcounting instead of
+							 * _count. Tail pages cannot
+							 * be mapped and keeping the
+							 * tail page _count zero at
+							 * all times guarantees
+							 * get_page_unless_zero() will
+							 * never succeed on tail
+							 * pages.
+							 */
 
-		struct {		/* SLUB */
-			unsigned inuse:16;
-			unsigned objects:15;
-			unsigned frozen:1;
+			atomic_t _count;		/* Usage count, see below. */
+		};
+
+		struct {			/* SLUB cmpxchg_double area */
+			void *freelist;
+			union {
+				unsigned long counters;
+				struct {
+					unsigned inuse:16;
+					unsigned objects:15;
+					unsigned frozen:1;
+				};
+			};
 		};
 	};
+
+	/* Third double word block */
+	struct list_head lru;		/* Pageout list, eg. active_list
+					 * protected by zone->lru_lock !
+					 */
+
+	/* Remainder is not double word aligned */
 	union {
-	    struct {
 		unsigned long private;		/* Mapping-private opaque data:
 					 	 * usually used for buffer_heads
 						 * if PagePrivate set; used for
@@ -69,27 +91,13 @@ struct page {
 						 * indicates order in the buddy
 						 * system if PG_buddy is set.
 						 */
-		struct address_space *mapping;	/* If low bit clear, points to
-						 * inode address_space, or NULL.
-						 * If page mapped as anonymous
-						 * memory, low bit is set, and
-						 * it points to anon_vma object:
-						 * see PAGE_MAPPING_ANON below.
-						 */
-	    };
 #if USE_SPLIT_PTLOCKS
 	    spinlock_t ptl;
 #endif
 	    struct kmem_cache *slab;	/* SLUB: Pointer to slab */
 	    struct page *first_page;	/* Compound tail pages */
 	};
-	union {
-		pgoff_t index;		/* Our offset within mapping. */
-		void *freelist;		/* SLUB: freelist req. slab lock */
-	};
-	struct list_head lru;		/* Pageout list, eg. active_list
-					 * protected by zone->lru_lock !
-					 */
+
 	/*
 	 * On machines where all RAM is mapped into kernel address space,
 	 * we can simply calculate the virtual address. On machines with
