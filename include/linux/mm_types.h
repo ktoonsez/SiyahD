@@ -75,7 +75,6 @@ struct page {
 		};
 
 		struct {			/* SLUB cmpxchg_double area */
-			void *freelist;
 			union {
 				unsigned long counters;
 				struct {
