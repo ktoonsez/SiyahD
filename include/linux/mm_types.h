@@ -62,6 +62,16 @@ struct page {
 							 */
 
 			atomic_t _count;		/* Usage count, see below. */
+			void *freelist;		/* slub/slob first free object */
+			bool pfmemalloc;	/* If set by the page allocator,
+						 * ALLOC_PFMEMALLOC was set
+						 * and the low watermark was not
+						 * met implying that the system
+						 * is under some pressure. The
+						 * caller should try ensure
+						 * this page is only used to
+						 * free other pages.
+						 */
 		};
 
 		struct {			/* SLUB cmpxchg_double area */
