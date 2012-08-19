@@ -1597,7 +1597,7 @@ static struct page *get_any_partial(struct kmem_cache *s, gfp_t flags,
 	struct zoneref *z;
 	struct zone *zone;
 	enum zone_type high_zoneidx = gfp_zone(flags);
-	void *object;	
+	void *object;
 	unsigned int cpuset_mems_cookie;
 
 	/*
@@ -1632,7 +1632,7 @@ static struct page *get_any_partial(struct kmem_cache *s, gfp_t flags,
 
 			if (n && cpuset_zone_allowed_hardwall(zone, flags) &&
 					n->nr_partial > s->min_partial) {
-				object = get_partial_node(s, n, c);	
+				object = get_partial_node(s, n, c);
 				if (object) {
 					/*
 					 * Return the object even if
