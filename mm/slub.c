@@ -1467,8 +1467,8 @@ static inline void remove_partial(struct kmem_cache_node *n,
  *
  * Must hold list_lock.
  */
-static inline int lock_and_freeze_slab(struct kmem_cache_node *n,
-							struct page *page)
+static inline int lock_and_freeze_slab(struct kmem_cache *s,
+		struct kmem_cache_node *n, struct page *page)
 {
 	if (slab_trylock(page)) {
 		remove_partial(n, page);
@@ -1480,7 +1480,8 @@ static inline int lock_and_freeze_slab(struct kmem_cache_node *n,
 /*
  * Try to allocate a partial slab from a specific node.
  */
-static struct page *get_partial_node(struct kmem_cache_node *n)
+static struct page *get_partial_node(struct kmem_cache *s,
+					struct kmem_cache_node *n)
 {
 	struct page *page;
 
@@ -1495,7 +1496,7 @@ static struct page *get_partial_node(struct kmem_cache_node *n)
 
 	spin_lock(&n->list_lock);
 	list_for_each_entry(page, &n->partial, lru)
-		if (lock_and_freeze_slab(n, page))
+		if (lock_and_freeze_slab(s, n, page))
 			goto out;
 	page = NULL;
 out:
@@ -1548,7 +1549,7 @@ static struct page *get_any_partial(struct kmem_cache *s, gfp_t flags)
 
 			if (n && cpuset_zone_allowed_hardwall(zone, flags) &&
 					n->nr_partial > s->min_partial) {
-				page = get_partial_node(n);
+				page = get_partial_node(s, n);
 				if (page) {
 					/*
 					 * Return the object even if
@@ -1576,7 +1577,7 @@ static struct page *get_partial(struct kmem_cache *s, gfp_t flags, int node)
 	struct page *page;
 	int searchnode = (node == NUMA_NO_NODE) ? numa_node_id() : node;
 
-	page = get_partial_node(get_node(s, searchnode));
+	page = get_partial_node(s, get_node(s, searchnode));
 	if (page || node != NUMA_NO_NODE)
 		return page;
 
@@ -2107,7 +2108,7 @@ static void __slab_free(struct kmem_cache *s, struct page *page,
 {
 	void *prior;
 	void **object = (void *)x;
-	unsigned long flags;
+	unsigned long uninitialized_var(flags);
 
 	local_irq_save(flags);
 	slab_lock(page);
