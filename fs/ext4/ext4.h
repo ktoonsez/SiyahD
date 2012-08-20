@@ -261,6 +261,14 @@ struct ext4_io_submit {
 #endif
 #define EXT4_BLOCK_ALIGN(size, blkbits)		ALIGN((size), (1 << (blkbits)))
 
+/* Translate a block number to a cluster number */
+#define EXT4_B2C(sbi, blk)      ((blk) >> (sbi)->s_cluster_bits)
+/* Translate a cluster number to a block number */
+#define EXT4_C2B(sbi, cluster)  ((cluster) << (sbi)->s_cluster_bits)
+/* Translate # of blks to # of clusters */
+#define EXT4_NUM_B2C(sbi, blks) (((blks) + (sbi)->s_cluster_ratio - 1) >> \
+				(sbi)->s_cluster_bits)
+
 /*
  * Structure of a blocks group descriptor
  */
@@ -840,6 +848,7 @@ struct ext4_inode_info {
 	ext4_group_t	i_last_alloc_group;
 
 	/* allocation reservation info for delalloc */
+	/* In case of bigalloc, these refer to clusters rather than blocks */
 	unsigned int i_reserved_data_blocks;
 	unsigned int i_reserved_meta_blocks;
 	unsigned int i_allocated_meta_blocks;
@@ -1127,10 +1136,10 @@ struct ext4_sb_info {
 	u32 s_hash_seed[4];
 	int s_def_hash_version;
 	int s_hash_unsigned;	/* 3 if hash should be signed, 0 if not */
-	struct percpu_counter s_freeblocks_counter;
+	struct percpu_counter s_freeclusters_counter;
 	struct percpu_counter s_freeinodes_counter;
 	struct percpu_counter s_dirs_counter;
-	struct percpu_counter s_dirtyblocks_counter;
+	struct percpu_counter s_dirtyclusters_counter;
 	struct blockgroup_lock *s_blockgroup_lock;
 	struct proc_dir_entry *s_proc;
 	struct kobject s_kobj;

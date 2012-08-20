@@ -2724,7 +2724,7 @@ void ext4_exit_mballoc(void)
  */
 static noinline_for_stack int
 ext4_mb_mark_diskspace_used(struct ext4_allocation_context *ac,
-				handle_t *handle, unsigned int reserv_blks)
+				handle_t *handle, unsigned int reserv_clstrs)
 {
 	struct buffer_head *bitmap_bh = NULL;
 	struct ext4_group_desc *gdp;
@@ -2803,13 +2803,14 @@ ext4_mb_mark_diskspace_used(struct ext4_allocation_context *ac,
 	gdp->bg_checksum = ext4_group_desc_csum(sbi, ac->ac_b_ex.fe_group, gdp);
 
 	ext4_unlock_group(sb, ac->ac_b_ex.fe_group);
-	percpu_counter_sub(&sbi->s_freeblocks_counter, ac->ac_b_ex.fe_len);
+	percpu_counter_sub(&sbi->s_freeclusters_counter, ac->ac_b_ex.fe_len);
 	/*
 	 * Now reduce the dirty block count also. Should not go negative
 	 */
 	if (!(ac->ac_flags & EXT4_MB_DELALLOC_RESERVED))
 		/* release all the reserved blocks if non delalloc */
-		percpu_counter_sub(&sbi->s_dirtyblocks_counter, reserv_blks);
+		percpu_counter_sub(&sbi->s_dirtyclusters_counter,
+				   reserv_clstrs);
 
 	if (sbi->s_log_groups_per_flex) {
 		ext4_group_t flex_group = ext4_flex_group(sbi,
@@ -4218,7 +4219,7 @@ ext4_fsblk_t ext4_mb_new_blocks(handle_t *handle,
 	struct super_block *sb;
 	ext4_fsblk_t block = 0;
 	unsigned int inquota = 0;
-	unsigned int reserv_blks = 0;
+	unsigned int reserv_clstrs = 0;
 
 	sb = ar->inode->i_sb;
 	sbi = EXT4_SB(sb);
@@ -4248,7 +4249,7 @@ ext4_fsblk_t ext4_mb_new_blocks(handle_t *handle,
 			*errp = -ENOSPC;
 			return 0;
 		}
-		reserv_blks = ar->len;
+		reserv_clstrs = ar->len;
 		if (ar->flags & EXT4_MB_USE_ROOT_BLOCKS) {
 			dquot_alloc_block_nofail(ar->inode, ar->len);
 		} else {
@@ -4297,7 +4298,7 @@ repeat:
 			ext4_mb_new_preallocation(ac);
 	}
 	if (likely(ac->ac_status == AC_STATUS_FOUND)) {
-		*errp = ext4_mb_mark_diskspace_used(ac, handle, reserv_blks);
+		*errp = ext4_mb_mark_diskspace_used(ac, handle, reserv_clstrs);
 		if (*errp == -EAGAIN) {
 			/*
 			 * drop the reference that we took
@@ -4338,8 +4339,8 @@ out:
 		if (!ext4_test_inode_state(ar->inode,
 					   EXT4_STATE_DELALLOC_RESERVED))
 			/* release all the reserved blocks if non delalloc */
-			percpu_counter_sub(&sbi->s_dirtyblocks_counter,
-						reserv_blks);
+			percpu_counter_sub(&sbi->s_dirtyclusters_counter,
+						reserv_clstrs);
 	}
 
 	trace_ext4_allocate_blocks(ar, (unsigned long long)block);
@@ -4465,6 +4466,7 @@ void ext4_free_blocks(handle_t *handle, struct inode *inode,
 	ext4_group_t block_group;
 	struct ext4_sb_info *sbi;
 	struct ext4_buddy e4b;
+	unsigned int count_clusters;
 	int err = 0;
 	int ret;
 
@@ -4525,6 +4527,7 @@ do_more:
 		overflow = bit + count - EXT4_BLOCKS_PER_GROUP(sb);
 		count -= overflow;
 	}
+	count_clusters = EXT4_B2C(sbi, count);
 	bitmap_bh = ext4_read_block_bitmap(sb, block_group);
 	if (!bitmap_bh) {
 		err = -EIO;
@@ -4566,11 +4569,11 @@ do_more:
 #ifdef AGGRESSIVE_CHECK
 	{
 		int i;
-		for (i = 0; i < count; i++)
+		for (i = 0; i < count_clusters; i++)
 			BUG_ON(!mb_test_bit(bit + i, bitmap_bh->b_data));
 	}
 #endif
-	trace_ext4_mballoc_free(sb, inode, block_group, bit, count);
+	trace_ext4_mballoc_free(sb, inode, block_group, bit, count_clusters);
 
 	err = ext4_mb_load_buddy(sb, block_group, &e4b);
 	if (err)
@@ -4590,11 +4593,11 @@ do_more:
 		}
 		new_entry->start_blk = bit;
 		new_entry->group  = block_group;
-		new_entry->count = count;
+		new_entry->count = count_clusters;
 		new_entry->t_tid = handle->h_transaction->t_tid;
 
 		ext4_lock_group(sb, block_group);
-		mb_clear_bits(bitmap_bh->b_data, bit, count);
+		mb_clear_bits(bitmap_bh->b_data, bit, count_clusters);
 		ext4_mb_free_metadata(handle, &e4b, new_entry);
 	} else {
 		/* need to update group_info->bb_free and bitmap
@@ -4602,15 +4605,15 @@ do_more:
 		 * them with group lock_held
 		 */
 		ext4_lock_group(sb, block_group);
-		mb_clear_bits(bitmap_bh->b_data, bit, count);
-		mb_free_blocks(inode, &e4b, bit, count);
+		mb_clear_bits(bitmap_bh->b_data, bit, count_clusters);
+		mb_free_blocks(inode, &e4b, bit, count_clusters);
 	}
 
-	ret = ext4_free_blks_count(sb, gdp) + count;
+	ret = ext4_free_blks_count(sb, gdp) + count_clusters;
 	ext4_free_blks_set(sb, gdp, ret);
 	gdp->bg_checksum = ext4_group_desc_csum(sbi, block_group, gdp);
 	ext4_unlock_group(sb, block_group);
-	percpu_counter_add(&sbi->s_freeblocks_counter, count);
+	percpu_counter_add(&sbi->s_freeclusters_counter, count_clusters);
 
 	if (sbi->s_log_groups_per_flex) {
 		ext4_group_t flex_group = ext4_flex_group(sbi, block_group);
@@ -4741,7 +4744,8 @@ void ext4_add_groupblocks(handle_t *handle, struct super_block *sb,
 	ext4_free_blks_set(sb, desc, blk_free_count);
 	desc->bg_checksum = ext4_group_desc_csum(sbi, block_group, desc);
 	ext4_unlock_group(sb, block_group);
-	percpu_counter_add(&sbi->s_freeblocks_counter, blocks_freed);
+	percpu_counter_add(&sbi->s_freeclusters_counter,
+			   EXT4_B2C(sbi, blocks_freed));
 
 	if (sbi->s_log_groups_per_flex) {
 		ext4_group_t flex_group = ext4_flex_group(sbi, block_group);
