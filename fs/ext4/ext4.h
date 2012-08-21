@@ -144,9 +144,17 @@ struct ext4_allocation_request {
 #define EXT4_MAP_UNWRITTEN	(1 << BH_Unwritten)
 #define EXT4_MAP_BOUNDARY	(1 << BH_Boundary)
 #define EXT4_MAP_UNINIT		(1 << BH_Uninit)
+/* Sometimes (in the bigalloc case, from ext4_da_get_block_prep) the caller of
+ * ext4_map_blocks wants to know whether or not the underlying cluster has
+ * already been accounted for. EXT4_MAP_FROM_CLUSTER conveys to the caller that
+ * the requested mapping was from previously mapped (or delayed allocated)
+ * cluster. We use BH_AllocFromCluster only for this flag. BH_AllocFromCluster
+ * should never appear on buffer_head's state flags.
+ */
+#define EXT4_MAP_FROM_CLUSTER	(1 << BH_AllocFromCluster)
 #define EXT4_MAP_FLAGS		(EXT4_MAP_NEW | EXT4_MAP_MAPPED |\
 				 EXT4_MAP_UNWRITTEN | EXT4_MAP_BOUNDARY |\
-				 EXT4_MAP_UNINIT)
+				 EXT4_MAP_UNINIT | EXT4_MAP_FROM_CLUSTER)
 
 struct ext4_map_blocks {
 	ext4_fsblk_t m_pblk;
@@ -1886,6 +1894,8 @@ extern int ext4_page_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf);
 extern qsize_t *ext4_get_reserved_space(struct inode *inode);
 extern void ext4_da_update_reserve_space(struct inode *inode,
 					int used, int quota_claim);
+extern int ext4_da_reserve_space(struct inode *inode, ext4_lblk_t lblock);
+
 /* ioctl.c */
 extern long ext4_ioctl(struct file *, unsigned int, unsigned long);
 extern long ext4_compat_ioctl(struct file *, unsigned int, unsigned long);
@@ -2260,6 +2270,11 @@ extern int ext4_multi_mount_protect(struct super_block *, ext4_fsblk_t);
 enum ext4_state_bits {
 	BH_Uninit	/* blocks are allocated but uninitialized on disk */
 	  = BH_JBDPrivateStart,
+	BH_AllocFromCluster,	/* allocated blocks were part of already
+				 * allocated cluster. Note that this flag will
+				 * never, ever appear in a buffer_head's state
+				 * flag. See EXT4_MAP_FROM_CLUSTER to see where
+				 * this is used. */
 };
 
 BUFFER_FNS(Uninit, uninit)
