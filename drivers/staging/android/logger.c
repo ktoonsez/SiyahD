@@ -644,10 +644,4 @@ static int __init logger_init(void)
 out:
 	return ret;
 }
-
-static void __exit exit_logger(void)
-{
-}
-
 device_initcall(logger_init);
-module_exit(exit_logger)
