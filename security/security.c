@@ -16,7 +16,11 @@
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/security.h>
+#include <linux/integrity.h>
 #include <linux/ima.h>
+#include <linux/evm.h>
+
+#define MAX_LSM_EVM_XATTR	2
 
 #define MAX_LSM_XATTR	1
 
@@ -336,7 +340,7 @@ int security_inode_alloc(struct inode *inode)
 
 void security_inode_free(struct inode *inode)
 {
-	ima_inode_free(inode);
+	integrity_inode_free(inode);
 	security_ops->inode_free_security(inode);
 }
 
@@ -344,8 +348,8 @@ int security_inode_init_security(struct inode *inode, struct inode *dir,
 				 const struct qstr *qstr,
 				 const initxattrs initxattrs, void *fs_data)
 {
-	struct xattr new_xattrs[MAX_LSM_XATTR + 1];
-	struct xattr *lsm_xattr;
+	struct xattr new_xattrs[MAX_LSM_EVM_XATTR + 1];
+	struct xattr *lsm_xattr, *evm_xattr, *xattr;
 	int ret;
 
 	if (unlikely(IS_PRIVATE(inode)))
@@ -362,11 +366,17 @@ int security_inode_init_security(struct inode *inode, struct inode *dir,
 						&lsm_xattr->value_len);
 	if (ret)
 		goto out;
+
+	evm_xattr = lsm_xattr + 1;
+	ret = evm_inode_init_security(inode, lsm_xattr, evm_xattr);
+	if (ret)
+		goto out;
 	ret = initxattrs(inode, new_xattrs, fs_data);
 out:
-	kfree(lsm_xattr->name);
-	kfree(lsm_xattr->value);
-
+	for (xattr = new_xattrs; xattr->name != NULL; xattr++) {
+		kfree(xattr->name);
+		kfree(xattr->value);
+	}
 	return (ret == -EOPNOTSUPP) ? 0 : ret;
 }
 EXPORT_SYMBOL(security_inode_init_security);
@@ -563,9 +573,14 @@ int security_inode_exec_permission(struct inode *inode, unsigned int flags)
 
 int security_inode_setattr(struct dentry *dentry, struct iattr *attr)
 {
+	int ret;
+
 	if (unlikely(IS_PRIVATE(dentry->d_inode)))
 		return 0;
-	return security_ops->inode_setattr(dentry, attr);
+	ret = security_ops->inode_setattr(dentry, attr);
+	if (ret)
+		return ret;
+	return evm_inode_setattr(dentry, attr);
 }
 EXPORT_SYMBOL_GPL(security_inode_setattr);
 
@@ -579,9 +594,14 @@ int security_inode_getattr(struct vfsmount *mnt, struct dentry *dentry)
 int security_inode_setxattr(struct dentry *dentry, const char *name,
 			    const void *value, size_t size, int flags)
 {
+	int ret;
+
 	if (unlikely(IS_PRIVATE(dentry->d_inode)))
 		return 0;
-	return security_ops->inode_setxattr(dentry, name, value, size, flags);
+	ret = security_ops->inode_setxattr(dentry, name, value, size, flags);
+	if (ret)
+		return ret;
+	return evm_inode_setxattr(dentry, name, value, size);
 }
 
 void security_inode_post_setxattr(struct dentry *dentry, const char *name,
@@ -590,6 +610,7 @@ void security_inode_post_setxattr(struct dentry *dentry, const char *name,
 	if (unlikely(IS_PRIVATE(dentry->d_inode)))
 		return;
 	security_ops->inode_post_setxattr(dentry, name, value, size, flags);
+	evm_inode_post_setxattr(dentry, name, value, size);
 }
 
 int security_inode_getxattr(struct dentry *dentry, const char *name)
@@ -608,9 +629,14 @@ int security_inode_listxattr(struct dentry *dentry)
 
 int security_inode_removexattr(struct dentry *dentry, const char *name)
 {
+	int ret;
+
 	if (unlikely(IS_PRIVATE(dentry->d_inode)))
 		return 0;
-	return security_ops->inode_removexattr(dentry, name);
+	ret = security_ops->inode_removexattr(dentry, name);
+	if (ret)
+		return ret;
+	return evm_inode_removexattr(dentry, name);
 }
 
 int security_inode_need_killpriv(struct dentry *dentry)
