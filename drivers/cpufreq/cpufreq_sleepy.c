@@ -108,7 +108,6 @@ struct cpu_dbs_info_s {
         cputime64_t prev_cpu_iowait;
         cputime64_t prev_cpu_wall;
         cputime64_t prev_cpu_nice;
-	unsigned int prev_cpu_wall_delta;
         struct cpufreq_policy *cur_policy;
         struct delayed_work work;
         struct cpufreq_frequency_table *freq_table;
@@ -605,10 +604,6 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
                 unsigned int load, load_freq;
                 int freq_avg;
                 unsigned long start, end, delta, sampling_delta;
-		bool deep_sleep_detected = false;
-		/* the evil magic numbers, only 2 at least */
-		const unsigned int deep_sleep_backoff = 10;
-		const unsigned int deep_sleep_factor = 5;
 
                 j_dbs_info = &per_cpu(od_cpu_dbs_info, j);
                 
@@ -659,32 +654,6 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
                                 j_dbs_info->prev_cpu_wall);
                 j_dbs_info->prev_cpu_wall = cur_wall_time;
 
-		/*
-		 * Ignore wall delta jitters in both directions.  An
-		 * exceptionally long wall_time will likely result
-		 * idle but it was waken up to do work so the next
-		 * slice is less likely to want to run at low
-		 * frequency. Let's evaluate the next slice instead of
-		 * the idle long one that passed already and it's too
-		 * late to reduce in frequency.  As opposed an
-		 * exceptionally short slice that just run at low
-		 * frequency is unlikely to be idle, but we may go
-		 * back to idle pretty soon and that not idle slice
-		 * already passed. If short slices will keep coming
-		 * after a series of long slices the exponential
-		 * backoff will converge faster and we'll react faster
-		 * to high load. As opposed we'll decay slower
-		 * towards low load and long idle times.
-		 */
-		if (j_dbs_info->prev_cpu_wall_delta >
-			wall_time * deep_sleep_factor ||
-			j_dbs_info->prev_cpu_wall_delta * deep_sleep_factor <
-			wall_time)
-				deep_sleep_detected = true;
-		j_dbs_info->prev_cpu_wall_delta =
-			(j_dbs_info->prev_cpu_wall_delta * deep_sleep_backoff
-			+ wall_time) / (deep_sleep_backoff + 1);
-
                 idle_time = (unsigned int) cputime64_sub(cur_idle_time,
                                 j_dbs_info->prev_cpu_idle);
                 j_dbs_info->prev_cpu_idle = cur_idle_time;
@@ -711,9 +680,6 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
                         j_dbs_info->prev_cpu_nice = kstat_cpu(j).cpustat.nice;
                         idle_time += jiffies_to_usecs(cur_nice_jiffies);
                 }
-
-		if (deep_sleep_detected)
-			continue;
 
                 /*
                  * For the purpose of sleepy, waiting for disk IO is an
@@ -864,15 +830,6 @@ static inline void dbs_timer_exit(struct cpu_dbs_info_s *dbs_info)
  */
 static int should_io_be_busy(void)
 {
-#if defined(CONFIG_X86)
-        /*
-         * For Intel, Core 2 (model 15) andl later have an efficient idle.
-         */
-        if (boot_cpu_data.x86_vendor == X86_VENDOR_INTEL &&
-            boot_cpu_data.x86 == 6 &&
-            boot_cpu_data.x86_model >= 15)
-                return 1;
-#endif
         return 0;
 }
 
