@@ -163,9 +163,15 @@ void migrate_irqs(void)
 		bool affinity_broken = false;
 
 		raw_spin_lock(&desc->lock);
-		if (desc->action != NULL &&
-		    cpumask_test_cpu(smp_processor_id(), d->affinity))
+		do {
+			if (desc->action == NULL)
+				break;
+
+			if (d->node != cpu)
+				break;
+
 			affinity_broken = migrate_one_irq(d);
+		} while (0);
 		raw_spin_unlock(&desc->lock);
 
 		if (affinity_broken && printk_ratelimit())
