@@ -126,42 +126,73 @@ void irq_dispose_mapping(unsigned int irq)
 }
 EXPORT_SYMBOL_GPL(irq_dispose_mapping);
 
-int irq_domain_simple_dt_translate(struct irq_domain *d,
-			    struct device_node *controller,
-			    const u32 *intspec, unsigned int intsize,
-			    unsigned long *out_hwirq, unsigned int *out_type)
+/**
+ * irq_domain_xlate_onecell() - Generic xlate for direct one cell bindings
+ *
+ * Device Tree IRQ specifier translation function which works with one cell
+ * bindings where the cell value maps directly to the hwirq number.
+ */
+int irq_domain_xlate_onecell(struct irq_domain *d, struct device_node *ctrlr,
+			     const u32 *intspec, unsigned int intsize,
+			     unsigned long *out_hwirq, unsigned int *out_type)
 {
-	if (d->of_node != controller)
-		return -EINVAL;
-	if (intsize < 1)
+	if (WARN_ON(intsize < 1))
 		return -EINVAL;
 
 	*out_hwirq = intspec[0];
 	*out_type = IRQ_TYPE_NONE;
-	if (intsize > 1)
-		*out_type = intspec[1] & IRQ_TYPE_SENSE_MASK;
 	return 0;
 }
+EXPORT_SYMBOL_GPL(irq_domain_xlate_onecell);
 
 /**
- * irq_domain_create_simple() - Set up a 'simple' translation range
+ * irq_domain_xlate_twocell() - Generic xlate for direct two cell bindings
+ *
+ * Device Tree IRQ specifier translation function which works with two cell
+ * bindings where the cell values map directly to the hwirq number
+ * and linux irq flags.
  */
-void irq_domain_add_simple(struct device_node *controller, int irq_base)
+int irq_domain_xlate_twocell(struct irq_domain *d, struct device_node *ctrlr,
+			const u32 *intspec, unsigned int intsize,
+			irq_hw_number_t *out_hwirq, unsigned int *out_type)
 {
-	struct irq_domain *domain;
-
-	domain = kzalloc(sizeof(*domain), GFP_KERNEL);
-	if (!domain) {
-		WARN_ON(1);
-		return;
-	}
-
-	domain->irq_base = irq_base;
-	domain->of_node = of_node_get(controller);
-	domain->ops = &irq_domain_simple_ops;
-	irq_domain_add(domain);
+	if (WARN_ON(intsize < 2))
+		return -EINVAL;
+	*out_hwirq = intspec[0];
+	*out_type = intspec[1] & IRQ_TYPE_SENSE_MASK;
+	return 0;
 }
-EXPORT_SYMBOL_GPL(irq_domain_add_simple);
+EXPORT_SYMBOL_GPL(irq_domain_xlate_twocell);
+
+/**
+ * irq_domain_xlate_onetwocell() - Generic xlate for one or two cell bindings
+ *
+ * Device Tree IRQ specifier translation function which works with either one
+ * or two cell bindings where the cell values map directly to the hwirq number
+ * and linux irq flags.
+ *
+ * Note: don't use this function unless your interrupt controller explicitly
+ * supports both one and two cell bindings.  For the majority of controllers
+ * the _onecell() or _twocell() variants above should be used.
+ */
+int irq_domain_xlate_onetwocell(struct irq_domain *d,
+				struct device_node *ctrlr,
+				const u32 *intspec, unsigned int intsize,
+				unsigned long *out_hwirq, unsigned int *out_type)
+{
+	if (WARN_ON(intsize < 1))
+		return -EINVAL;
+	*out_hwirq = intspec[0];
+	*out_type = (intsize > 1) ? intspec[1] : IRQ_TYPE_NONE;
+	return 0;
+}
+EXPORT_SYMBOL_GPL(irq_domain_xlate_onetwocell);
+
+struct irq_domain_ops irq_domain_simple_ops = {
+	.map = irq_domain_simple_map,
+	.xlate = irq_domain_xlate_onetwocell,
+};
+EXPORT_SYMBOL_GPL(irq_domain_simple_ops);
 
 void irq_domain_generate_simple(const struct of_device_id *match,
 				u64 phys_base, unsigned int irq_start)
