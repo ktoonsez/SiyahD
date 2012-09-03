@@ -111,6 +111,10 @@ extern void irq_domain_generate_simple(const struct of_device_id *match,
 #else /* CONFIG_IRQ_DOMAIN && CONFIG_OF_IRQ */
 static inline void irq_domain_generate_simple(const struct of_device_id *match,
 					u64 phys_base, unsigned int irq_start) { }
-#endif /* CONFIG_IRQ_DOMAIN && CONFIG_OF_IRQ */
+#endif /* !CONFIG_OF_IRQ */
+
+#else /* CONFIG_IRQ_DOMAIN */
+static inline void irq_dispose_mapping(unsigned int virq) { }
+#endif /* !CONFIG_IRQ_DOMAIN */
 
 #endif /* _LINUX_IRQDOMAIN_H */
