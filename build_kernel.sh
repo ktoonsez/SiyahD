@@ -114,6 +114,9 @@ if [ -e $INITRAMFS_TMP/res/STweaks.apk ]; then
 	rm -f  $INITRAMFS_TMP/res/STweaks.apk
 fi;
 
+rm -f $INITRAMFS_TMP/compress-sql.sh
+rm -f $INITRAMFS_TMP/update*
+
 # copy modules into initramfs
 mkdir -p $INITRAMFS/lib/modules
 mkdir -p $INITRAMFS_TMP/lib/modules
