@@ -1462,22 +1462,10 @@ static void dw_mci_read_data_pio(struct dw_mci *host)
 			offset += len;
 			remain -= len;
 		} while (remain);
-		sg_miter->consumed = offset;
 
+		sg_miter->consumed = offset;
 		status = mci_readl(host, MINTSTS);
 		mci_writel(host, RINTSTS, SDMMC_INT_RXDR);
-		if (status & DW_MCI_DATA_ERROR_FLAGS) {
-			host->data_status = status;
-			data->bytes_xfered += nbytes;
-			sg_miter_stop(sg_miter);
-			host->sg  = NULL;
-			smp_wmb();
-
-			set_bit(EVENT_DATA_ERROR, &host->pending_events);
-
-			tasklet_schedule(&host->tasklet);
-			return;
-		}
 	} while (status & SDMMC_INT_RXDR); /*if the RXDR is ready read again*/
 	data->bytes_xfered += nbytes;
 
@@ -1528,23 +1516,10 @@ static void dw_mci_write_data_pio(struct dw_mci *host)
 			offset += len;
 			remain -= len;
 		} while (remain);
-		sg_miter->consumed = offset;
 
+		sg_miter->consumed = offset;
 		status = mci_readl(host, MINTSTS);
 		mci_writel(host, RINTSTS, SDMMC_INT_TXDR);
-		if (status & DW_MCI_DATA_ERROR_FLAGS) {
-			host->data_status = status;
-			data->bytes_xfered += nbytes;
-			sg_miter_stop(sg_miter);
-			host->sg = NULL;
-
-			smp_wmb();
-
-			set_bit(EVENT_DATA_ERROR, &host->pending_events);
-
-			tasklet_schedule(&host->tasklet);
-			return;
-		}
 	} while (status & SDMMC_INT_TXDR); /* if TXDR write again */
 	data->bytes_xfered += nbytes;
 
