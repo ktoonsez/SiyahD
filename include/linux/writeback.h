@@ -57,6 +57,7 @@ struct writeback_control {
 	loff_t range_start;
 	loff_t range_end;
 
+	unsigned nonblocking:1;		/* Don't get stuck on request queues */
 	unsigned for_kupdate:1;		/* A kupdate writeback */
 	unsigned for_background:1;	/* A background writeback */
 	unsigned tagged_writepages:1;	/* tag-and-write to avoid livelock */
