@@ -439,7 +439,10 @@
 
 #define GFX_MODE	0x02520
 #define GFX_MODE_GEN7	0x0229c
+<<<<<<< HEAD
 #define RING_MODE_GEN7(ring)	((ring)->mmio_base+0x29c)
+=======
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 #define   GFX_RUN_LIST_ENABLE		(1<<15)
 #define   GFX_TLB_INVALIDATE_ALWAYS	(1<<13)
 #define   GFX_SURFACE_FAULT_ENABLE	(1<<12)
@@ -3565,10 +3568,17 @@
 /* or SDVOB */
 #define HDMIB   0xe1140
 #define  PORT_ENABLE    (1 << 31)
+<<<<<<< HEAD
 #define  TRANSCODER(pipe)       ((pipe) << 30)
 #define  TRANSCODER_CPT(pipe)   ((pipe) << 29)
 #define  TRANSCODER_MASK        (1 << 30)
 #define  TRANSCODER_MASK_CPT    (3 << 29)
+=======
+#define  TRANSCODER_A   (0)
+#define  TRANSCODER_B   (1 << 30)
+#define  TRANSCODER(pipe)	((pipe) << 30)
+#define  TRANSCODER_MASK   (1 << 30)
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 #define  COLOR_FORMAT_8bpc      (0)
 #define  COLOR_FORMAT_12bpc     (3 << 26)
 #define  SDVOB_HOTPLUG_ENABLE   (1 << 23)

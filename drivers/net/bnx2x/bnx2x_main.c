@@ -4991,13 +4991,32 @@ static int bnx2x_init_hw_common(struct bnx2x *bp, u32 load_code)
 
 	DP(BNX2X_MSG_MCP, "starting common init  func %d\n", BP_ABS_FUNC(bp));
 
+	/*
+	 * take the UNDI lock to protect undi_unload flow from accessing
+	 * registers while we're resetting the chip
+	 */
+	bnx2x_acquire_hw_lock(bp, HW_LOCK_RESOURCE_UNDI);
+
 	bnx2x_reset_common(bp);
 	REG_WR(bp, GRCBASE_MISC + MISC_REGISTERS_RESET_REG_1_SET, 0xffffffff);
 	REG_WR(bp, GRCBASE_MISC + MISC_REGISTERS_RESET_REG_2_SET, 0xfffc);
 
+<<<<<<< HEAD
 	bnx2x_init_block(bp, MISC_BLOCK, COMMON_STAGE);
 	if (!CHIP_IS_E1(bp))
 		REG_WR(bp, MISC_REG_E1HMF_MODE, IS_MF(bp));
+=======
+	val = 0xfffc;
+	if (CHIP_IS_E3(bp)) {
+		val |= MISC_REGISTERS_RESET_REG_2_MSTAT0;
+		val |= MISC_REGISTERS_RESET_REG_2_MSTAT1;
+	}
+	REG_WR(bp, GRCBASE_MISC + MISC_REGISTERS_RESET_REG_2_SET, val);
+
+	bnx2x_release_hw_lock(bp, HW_LOCK_RESOURCE_UNDI);
+
+	bnx2x_init_block(bp, BLOCK_MISC, PHASE_COMMON);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 	if (CHIP_IS_E2(bp)) {
 		u8 fid;
@@ -9234,10 +9253,17 @@ static int __devinit bnx2x_init_dev(struct pci_dev *pdev,
 	/* clean indirect addresses */
 	pci_write_config_dword(bp->pdev, PCICFG_GRC_ADDRESS,
 			       PCICFG_VENDOR_ID_OFFSET);
-	REG_WR(bp, PXP2_REG_PGL_ADDR_88_F0 + BP_PORT(bp)*16, 0);
-	REG_WR(bp, PXP2_REG_PGL_ADDR_8C_F0 + BP_PORT(bp)*16, 0);
-	REG_WR(bp, PXP2_REG_PGL_ADDR_90_F0 + BP_PORT(bp)*16, 0);
-	REG_WR(bp, PXP2_REG_PGL_ADDR_94_F0 + BP_PORT(bp)*16, 0);
+	/* Clean the following indirect addresses for all functions since it
+	 * is not used by the driver.
+	 */
+	REG_WR(bp, PXP2_REG_PGL_ADDR_88_F0, 0);
+	REG_WR(bp, PXP2_REG_PGL_ADDR_8C_F0, 0);
+	REG_WR(bp, PXP2_REG_PGL_ADDR_90_F0, 0);
+	REG_WR(bp, PXP2_REG_PGL_ADDR_94_F0, 0);
+	REG_WR(bp, PXP2_REG_PGL_ADDR_88_F1, 0);
+	REG_WR(bp, PXP2_REG_PGL_ADDR_8C_F1, 0);
+	REG_WR(bp, PXP2_REG_PGL_ADDR_90_F1, 0);
+	REG_WR(bp, PXP2_REG_PGL_ADDR_94_F1, 0);
 
 	/* Reset the load counter */
 	bnx2x_clear_load_cnt(bp);

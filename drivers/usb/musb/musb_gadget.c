@@ -1865,16 +1865,33 @@ int __init musb_gadget_setup(struct musb *musb)
 		put_device(&musb->g.dev);
 		the_gadget = NULL;
 	}
+<<<<<<< HEAD
+=======
+	status = usb_add_gadget_udc(musb->controller, &musb->g);
+	if (status)
+		goto err;
+
+	return 0;
+err:
+	musb->g.dev.parent = NULL;
+	device_unregister(&musb->g.dev);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	return status;
 }
 
 void musb_gadget_cleanup(struct musb *musb)
 {
+<<<<<<< HEAD
 	if (musb != the_gadget)
 		return;
 
 	device_unregister(&musb->g.dev);
 	the_gadget = NULL;
+=======
+	usb_del_gadget_udc(&musb->g);
+	if (musb->g.dev.parent)
+		device_unregister(&musb->g.dev);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 }
 
 /*

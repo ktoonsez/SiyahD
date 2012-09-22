@@ -46,6 +46,29 @@ static inline void bnx2x_bz_fp(struct bnx2x *bp, int index)
 
 	/* Restore the NAPI object as it has been already initialized */
 	fp->napi = orig_napi;
+<<<<<<< HEAD
+=======
+
+	fp->bp = bp;
+	fp->index = index;
+	if (IS_ETH_FP(fp))
+		fp->max_cos = bp->max_cos;
+	else
+		/* Special queues support only one CoS */
+		fp->max_cos = 1;
+
+	/*
+	 * set the tpa flag for each queue. The tpa flag determines the queue
+	 * minimal size so it must be set prior to queue memory allocation
+	 */
+	fp->disable_tpa = ((bp->flags & TPA_ENABLE_FLAG) == 0);
+
+#ifdef BCM_CNIC
+	/* We don't want TPA on an FCoE L2 ring */
+	if (IS_FCOE_FP(fp))
+		fp->disable_tpa = 1;
+#endif
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 }
 
 /**
@@ -1312,11 +1335,18 @@ void bnx2x_netif_stop(struct bnx2x *bp, int disable_hw)
 
 u16 bnx2x_select_queue(struct net_device *dev, struct sk_buff *skb)
 {
+<<<<<<< HEAD
 #ifdef BCM_CNIC
 	struct bnx2x *bp = netdev_priv(dev);
 	if (NO_FCOE(bp))
 		return skb_tx_hash(dev, skb);
 	else {
+=======
+	struct bnx2x *bp = netdev_priv(dev);
+
+#ifdef BCM_CNIC
+	if (!NO_FCOE(bp)) {
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 		struct ethhdr *hdr = (struct ethhdr *)skb->data;
 		u16 ether_type = ntohs(hdr->h_proto);
 
@@ -1333,10 +1363,15 @@ u16 bnx2x_select_queue(struct net_device *dev, struct sk_buff *skb)
 			return bnx2x_fcoe(bp, index);
 	}
 #endif
+<<<<<<< HEAD
 	/* Select a none-FCoE queue:  if FCoE is enabled, exclude FCoE L2 ring
 	 */
 	return __skb_tx_hash(dev, skb,
 			dev->real_num_tx_queues - FCOE_CONTEXT_USE);
+=======
+	/* select a non-FCoE queue */
+	return __skb_tx_hash(dev, skb, BNX2X_NUM_ETH_QUEUES(bp));
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 }
 
 void bnx2x_set_num_queues(struct bnx2x *bp)
@@ -1358,6 +1393,39 @@ void bnx2x_set_num_queues(struct bnx2x *bp)
 	bp->num_queues += NONE_ETH_CONTEXT_USE;
 }
 
+<<<<<<< HEAD
+=======
+/**
+ * bnx2x_set_real_num_queues - configure netdev->real_num_[tx,rx]_queues
+ *
+ * @bp:		Driver handle
+ *
+ * We currently support for at most 16 Tx queues for each CoS thus we will
+ * allocate a multiple of 16 for ETH L2 rings according to the value of the
+ * bp->max_cos.
+ *
+ * If there is an FCoE L2 queue the appropriate Tx queue will have the next
+ * index after all ETH L2 indices.
+ *
+ * If the actual number of Tx queues (for each CoS) is less than 16 then there
+ * will be the holes at the end of each group of 16 ETh L2 indices (0..15,
+ * 16..31,...) with indicies that are not coupled with any real Tx queue.
+ *
+ * The proper configuration of skb->queue_mapping is handled by
+ * bnx2x_select_queue() and __skb_tx_hash().
+ *
+ * bnx2x_setup_tc() takes care of the proper TC mappings so that __skb_tx_hash()
+ * will return a proper Tx index if TC is enabled (netdev->num_tc > 0).
+ */
+static inline int bnx2x_set_real_num_queues(struct bnx2x *bp)
+{
+	int rc, tx, rx;
+
+	tx = MAX_TXQS_PER_COS * bp->max_cos;
+	rx = BNX2X_NUM_ETH_QUEUES(bp);
+
+/* account for fcoe queue */
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 #ifdef BCM_CNIC
 static inline void bnx2x_set_fcoe_eth_macs(struct bnx2x *bp)
 {

@@ -1114,6 +1114,10 @@ zeroentry spurious_interrupt_bug do_spurious_interrupt_bug
 zeroentry coprocessor_error do_coprocessor_error
 errorentry alignment_check do_alignment_check
 zeroentry simd_coprocessor_error do_simd_coprocessor_error
+<<<<<<< HEAD
+=======
+
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 	/* Reload gs selector with exception handling */
 	/* edi:  new selector */

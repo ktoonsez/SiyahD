@@ -3718,9 +3718,30 @@ static void ar9003_hw_internal_regulator_apply(struct ath_hw *ah)
 			if (!is_pmu_set(ah, AR_PHY_PMU2, reg_pmu_set))
 				return;
 
+<<<<<<< HEAD
 			reg_pmu_set = (5 << 1) | (7 << 4) | (1 << 8) |
 				      (2 << 14) | (6 << 17) | (1 << 20) |
 				      (3 << 24) | (1 << 28);
+=======
+			if (AR_SREV_9330(ah)) {
+				if (ah->is_clk_25mhz) {
+					reg_pmu_set = (3 << 1) | (8 << 4) |
+						      (3 << 8) | (1 << 14) |
+						      (6 << 17) | (1 << 20) |
+						      (3 << 24);
+				} else {
+					reg_pmu_set = (4 << 1)  | (7 << 4) |
+						      (3 << 8)  | (1 << 14) |
+						      (6 << 17) | (1 << 20) |
+						      (3 << 24);
+				}
+			} else {
+				reg_pmu_set = (5 << 1) | (7 << 4) |
+					      (2 << 8) | (2 << 14) |
+					      (6 << 17) | (1 << 20) |
+					      (3 << 24) | (1 << 28);
+			}
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 			REG_WRITE(ah, AR_PHY_PMU1, reg_pmu_set);
 			if (!is_pmu_set(ah, AR_PHY_PMU1, reg_pmu_set))

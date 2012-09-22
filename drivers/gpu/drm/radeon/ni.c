@@ -41,7 +41,10 @@ extern void evergreen_mc_program(struct radeon_device *rdev);
 extern void evergreen_irq_suspend(struct radeon_device *rdev);
 extern int evergreen_mc_init(struct radeon_device *rdev);
 extern void evergreen_fix_pci_max_read_req_size(struct radeon_device *rdev);
+<<<<<<< HEAD
 extern void evergreen_pcie_gen2_enable(struct radeon_device *rdev);
+=======
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 #define EVERGREEN_PFP_UCODE_SIZE 1120
 #define EVERGREEN_PM4_UCODE_SIZE 1376

@@ -17,9 +17,6 @@
  *  want per guest time just set the kernel.vsyscall64 sysctl to 0.
  */
 
-/* Disable profiling for userspace code: */
-#define DISABLE_BRANCH_PROFILING
-
 #include <linux/time.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -49,12 +46,36 @@
 		__attribute__ ((unused, __section__(".vsyscall_" #nr))) notrace
 #define __syscall_clobber "r11","cx","memory"
 
+#define CREATE_TRACE_POINTS
+#include "vsyscall_trace.h"
+
 DEFINE_VVAR(int, vgetcpu_mode);
 DEFINE_VVAR(struct vsyscall_gtod_data, vsyscall_gtod_data) =
 {
 	.lock = __SEQLOCK_UNLOCKED(__vsyscall_gtod_data.lock),
 	.sysctl_enabled = 1,
 };
+
+static enum { EMULATE, NATIVE, NONE } vsyscall_mode = EMULATE;
+
+static int __init vsyscall_setup(char *str)
+{
+	if (str) {
+		if (!strcmp("emulate", str))
+			vsyscall_mode = EMULATE;
+		else if (!strcmp("native", str))
+			vsyscall_mode = NATIVE;
+		else if (!strcmp("none", str))
+			vsyscall_mode = NONE;
+		else
+			return -EINVAL;
+
+		return 0;
+	}
+
+	return -EINVAL;
+}
+early_param("vsyscall", vsyscall_setup);
 
 void update_vsyscall_tz(void)
 {
@@ -112,6 +133,7 @@ static __always_inline long time_syscall(long *t)
 	return secs;
 }
 
+<<<<<<< HEAD
 static __always_inline void do_vgettimeofday(struct timeval * tv)
 {
 	cycle_t now, base, mask, cycle_delta;
@@ -148,6 +170,12 @@ static __always_inline void do_vgettimeofday(struct timeval * tv)
 		nsec -= NSEC_PER_SEC;
 	}
 	tv->tv_usec = nsec / NSEC_PER_USEC;
+=======
+	printk("%s%s[%d] %s ip:%lx cs:%lx sp:%lx ax:%lx si:%lx di:%lx\n",
+	       level, tsk->comm, task_pid_nr(tsk),
+	       message, regs->ip, regs->cs,
+	       regs->sp, regs->ax, regs->si, regs->di);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 }
 
 int __vsyscall(0) vgettimeofday(struct timeval * tv, struct timezone * tz)
@@ -173,6 +201,7 @@ time_t __vsyscall(1) vtime(time_t *t)
 
 		result = VVAR(vsyscall_gtod_data).wall_time_sec;
 
+<<<<<<< HEAD
 	} while (read_seqretry(&VVAR(vsyscall_gtod_data).lock, seq));
 
 	if (t)
@@ -185,6 +214,43 @@ time_t __vsyscall(1) vtime(time_t *t)
    The result is not guaranteed without CPU affinity, but usually
    works out because the scheduler tries to keep a thread on the same
    CPU.
+=======
+bool emulate_vsyscall(struct pt_regs *regs, unsigned long address)
+{
+	struct task_struct *tsk;
+	unsigned long caller;
+	int vsyscall_nr;
+	long ret;
+
+	/*
+	 * No point in checking CS -- the only way to get here is a user mode
+	 * trap to a high address, which means that we're in 64-bit user code.
+	 */
+
+	WARN_ON_ONCE(address != regs->ip);
+
+	if (vsyscall_mode == NONE) {
+		warn_bad_vsyscall(KERN_INFO, regs,
+				  "vsyscall attempted with vsyscall=none");
+		return false;
+	}
+
+	vsyscall_nr = addr_to_vsyscall_nr(address);
+
+	trace_emulate_vsyscall(vsyscall_nr);
+
+	if (vsyscall_nr < 0) {
+		warn_bad_vsyscall(KERN_WARNING, regs,
+				  "misaligned vsyscall (exploit attempt or buggy program) -- look up the vsyscall kernel parameter if you need a workaround");
+		goto sigsegv;
+	}
+
+	if (get_user(caller, (unsigned long __user *)regs->sp) != 0) {
+		warn_bad_vsyscall(KERN_WARNING, regs,
+				  "vsyscall with bad stack (exploit attempt?)");
+		goto sigsegv;
+	}
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
    tcache must point to a two element sized long array.
    All arguments can be NULL. */
@@ -227,6 +293,7 @@ static long __vsyscall(3) venosys_1(void)
 	return -ENOSYS;
 }
 
+<<<<<<< HEAD
 #ifdef CONFIG_SYSCTL
 static ctl_table kernel_table2[] = {
 	{ .procname = "vsyscall64",
@@ -242,6 +309,14 @@ static ctl_table kernel_root_table2[] = {
 	{}
 };
 #endif
+=======
+	return true;
+
+sigsegv:
+	force_sig(SIGSEGV, current);
+	return true;
+}
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 /* Assume __initcall executes before all user space. Hopefully kmod
    doesn't violate that. We'll find out if it does. */
@@ -282,11 +357,29 @@ cpu_vsyscall_notifier(struct notifier_block *n, unsigned long action, void *arg)
 
 void __init map_vsyscall(void)
 {
+<<<<<<< HEAD
 	extern char __vsyscall_0;
 	unsigned long physaddr_page0 = __pa_symbol(&__vsyscall_0);
 
 	/* Note that VSYSCALL_MAPPED_PAGES must agree with the code below. */
 	__set_fixmap(VSYSCALL_FIRST_PAGE, physaddr_page0, PAGE_KERNEL_VSYSCALL);
+=======
+	extern char __vsyscall_page;
+	unsigned long physaddr_vsyscall = __pa_symbol(&__vsyscall_page);
+	extern char __vvar_page;
+	unsigned long physaddr_vvar_page = __pa_symbol(&__vvar_page);
+
+	__set_fixmap(VSYSCALL_FIRST_PAGE, physaddr_vsyscall,
+		     vsyscall_mode == NATIVE
+		     ? PAGE_KERNEL_VSYSCALL
+		     : PAGE_KERNEL_VVAR);
+	BUILD_BUG_ON((unsigned long)__fix_to_virt(VSYSCALL_FIRST_PAGE) !=
+		     (unsigned long)VSYSCALL_START);
+
+	__set_fixmap(VVAR_PAGE, physaddr_vvar_page, PAGE_KERNEL_VVAR);
+	BUILD_BUG_ON((unsigned long)__fix_to_virt(VVAR_PAGE) !=
+		     (unsigned long)VVAR_ADDRESS);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 }
 
 static int __init vsyscall_init(void)

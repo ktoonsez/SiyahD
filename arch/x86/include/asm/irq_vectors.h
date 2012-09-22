@@ -17,7 +17,11 @@
  *  Vectors   0 ...  31 : system traps and exceptions - hardcoded events
  *  Vectors  32 ... 127 : device interrupts
  *  Vector  128         : legacy int80 syscall interface
+<<<<<<< HEAD
  *  Vectors 129 ... INVALIDATE_TLB_VECTOR_START-1 : device interrupts
+=======
+ *  Vectors 129 ... INVALIDATE_TLB_VECTOR_START-1 except 204 : device interrupts
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
  *  Vectors INVALIDATE_TLB_VECTOR_START ... 255 : special interrupts
  *
  * 64-bit x86 has per CPU IDT tables, 32-bit has one shared IDT table.

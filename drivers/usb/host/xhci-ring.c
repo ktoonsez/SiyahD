@@ -3311,8 +3311,12 @@ static int xhci_queue_isoc_tx(struct xhci_hcd *xhci, gfp_t mem_flags,
 		trbs_per_td = count_isoc_trbs_needed(xhci, urb, i);
 
 		ret = prepare_transfer(xhci, xhci->devs[slot_id], ep_index,
+<<<<<<< HEAD
 				urb->stream_id, trbs_per_td, urb, i, true,
 				mem_flags);
+=======
+				urb->stream_id, trbs_per_td, urb, i, mem_flags);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 		if (ret < 0) {
 			if (i == 0)
 				return ret;

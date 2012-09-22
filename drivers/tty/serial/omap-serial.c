@@ -957,12 +957,15 @@ serial_omap_set_termios(struct uart_port *port, struct ktermios *termios,
 	serial_omap_set_mctrl(&up->port, up->port.mctrl);
 	/* Software Flow Control Configuration */
 	serial_omap_configure_xonxoff(up, termios);
+<<<<<<< HEAD
 
 	/* Now we are ready for RX data: enable rts line */
 	if (up->rts_mux_driver_control && up->rts_pullup_in_suspend) {
 		omap_rts_mux_write(0, up->port.line);
 		up->rts_pullup_in_suspend = 0;
 	}
+=======
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 	spin_unlock_irqrestore(&up->port.lock, flags);
 	serial_omap_port_disable(up);

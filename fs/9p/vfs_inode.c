@@ -552,6 +552,19 @@ v9fs_inode_from_fid(struct v9fs_session_info *v9ses, struct p9_fid *fid,
 }
 
 /**
+ * v9fs_at_to_dotl_flags- convert Linux specific AT flags to
+ * plan 9 AT flag.
+ * @flags: flags to convert
+ */
+static int v9fs_at_to_dotl_flags(int flags)
+{
+	int rflags = 0;
+	if (flags & AT_REMOVEDIR)
+		rflags |= P9_DOTL_AT_REMOVEDIR;
+	return rflags;
+}
+
+/**
  * v9fs_remove - helper function to remove files and directories
  * @dir: directory inode that is being deleted
  * @file:  dentry that is being deleted
@@ -568,12 +581,33 @@ static int v9fs_remove(struct inode *dir, struct dentry *file, int rmdir)
 	P9_DPRINTK(P9_DEBUG_VFS, "inode: %p dentry: %p rmdir: %d\n", dir, file,
 		rmdir);
 
+<<<<<<< HEAD
 	file_inode = file->d_inode;
 	v9fid = v9fs_fid_clone(file);
 	if (IS_ERR(v9fid))
 		return PTR_ERR(v9fid);
 
 	retval = p9_client_remove(v9fid);
+=======
+	v9ses = v9fs_inode2v9ses(dir);
+	inode = dentry->d_inode;
+	dfid = v9fs_fid_lookup(dentry->d_parent);
+	if (IS_ERR(dfid)) {
+		retval = PTR_ERR(dfid);
+		P9_DPRINTK(P9_DEBUG_VFS, "fid lookup failed %d\n", retval);
+		return retval;
+	}
+	if (v9fs_proto_dotl(v9ses))
+		retval = p9_client_unlinkat(dfid, dentry->d_name.name,
+					    v9fs_at_to_dotl_flags(flags));
+	if (retval == -EOPNOTSUPP) {
+		/* Try the one based on path */
+		v9fid = v9fs_fid_clone(dentry);
+		if (IS_ERR(v9fid))
+			return PTR_ERR(v9fid);
+		retval = p9_client_remove(v9fid);
+	}
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	if (!retval) {
 		/*
 		 * directories on unlink should have zero

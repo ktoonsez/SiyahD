@@ -13,6 +13,12 @@ config ACPI_APEI_GHES
 	tristate "APEI Generic Hardware Error Source"
 	depends on ACPI_APEI && X86
 	select ACPI_HED
+<<<<<<< HEAD
+=======
+	select IRQ_WORK
+	select LLIST
+	select GENERIC_ALLOCATOR
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	help
 	  Generic Hardware Error Source provides a way to report
 	  platform hardware errors (such as that from chipset). It

@@ -436,8 +436,8 @@ config USB_PXA_U2O
 
 # musb builds in ../musb along with host support
 config USB_GADGET_MUSB_HDRC
-	boolean "Inventra HDRC USB Peripheral (TI, ADI, ...)"
-	depends on USB_MUSB_HDRC && (USB_MUSB_PERIPHERAL || USB_MUSB_OTG)
+	tristate "Inventra HDRC USB Peripheral (TI, ADI, ...)"
+	depends on USB_MUSB_HDRC
 	select USB_GADGET_DUALSPEED
 	select USB_GADGET_SELECTED
 	help

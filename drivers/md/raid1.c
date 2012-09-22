@@ -947,6 +947,26 @@ static void make_request(mddev_t *mddev, struct bio * bio)
 		bio_list_add(&conf->pending_bio_list, mbio);
 		spin_unlock_irqrestore(&conf->device_lock, flags);
 	}
+<<<<<<< HEAD
+=======
+	/* Mustn't call r1_bio_write_done before this next test,
+	 * as it could result in the bio being freed.
+	 */
+	if (sectors_handled < (bio->bi_size >> 9)) {
+		r1_bio_write_done(r1_bio);
+		/* We need another r1_bio.  It has already been counted
+		 * in bio->bi_phys_segments
+		 */
+		r1_bio = mempool_alloc(conf->r1bio_pool, GFP_NOIO);
+		r1_bio->master_bio = bio;
+		r1_bio->sectors = (bio->bi_size >> 9) - sectors_handled;
+		r1_bio->state = 0;
+		r1_bio->mddev = mddev;
+		r1_bio->sector = bio->bi_sector + sectors_handled;
+		goto retry_write;
+	}
+
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	r1_bio_write_done(r1_bio);
 
 	/* In case raid1d snuck in to freeze_array */

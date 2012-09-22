@@ -1176,11 +1176,11 @@ static void alc_hp_automute(struct hda_codec *codec)
 {
 	struct alc_spec *spec = codec->spec;
 
-	if (!spec->automute)
-		return;
 	spec->jack_present =
 		detect_jacks(codec, ARRAY_SIZE(spec->autocfg.hp_pins),
 			     spec->autocfg.hp_pins);
+	if (!spec->automute)
+		return;
 	update_speakers(codec);
 }
 
@@ -1188,11 +1188,11 @@ static void alc_line_automute(struct hda_codec *codec)
 {
 	struct alc_spec *spec = codec->spec;
 
-	if (!spec->automute || !spec->detect_line)
-		return;
 	spec->line_jack_present =
 		detect_jacks(codec, ARRAY_SIZE(spec->autocfg.line_out_pins),
 			     spec->autocfg.line_out_pins);
+	if (!spec->automute || !spec->detect_line)
+		return;
 	update_speakers(codec);
 }
 
@@ -2400,6 +2400,7 @@ static const struct hda_verb alc889_acer_aspire_8930g_verbs[] = {
  * codec replicate the sum signal to both channels, turning it into a
  * normal mono mic.
  */
+<<<<<<< HEAD
 /*  DMIC_CONTROL? Init value = 0x0001 */
 	{0x20, AC_VERB_SET_COEF_INDEX, 0x0b},
 	{0x20, AC_VERB_SET_PROC_COEF, 0x0003},
@@ -2425,6 +2426,35 @@ static const struct hda_input_mux alc888_2_capture_sources[2] = {
 			{ "CD", 0x4 },
 		},
 	}
+=======
+static const char * const alc_slave_vols[] = {
+	"Front Playback Volume",
+	"Surround Playback Volume",
+	"Center Playback Volume",
+	"LFE Playback Volume",
+	"Side Playback Volume",
+	"Headphone Playback Volume",
+	"Speaker Playback Volume",
+	"Mono Playback Volume",
+	"Line-Out Playback Volume",
+	"PCM Playback Volume",
+	NULL,
+};
+
+static const char * const alc_slave_sws[] = {
+	"Front Playback Switch",
+	"Surround Playback Switch",
+	"Center Playback Switch",
+	"LFE Playback Switch",
+	"Side Playback Switch",
+	"Headphone Playback Switch",
+	"Speaker Playback Switch",
+	"Mono Playback Switch",
+	"IEC958 Playback Switch",
+	"Line-Out Playback Switch",
+	"PCM Playback Switch",
+	NULL,
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 };
 
 static const struct hda_input_mux alc888_acer_aspire_6530_sources[2] = {
@@ -15570,6 +15600,7 @@ static const struct snd_kcontrol_new alc861_uniwill_m31_mixer[] = {
 	HDA_CODEC_MUTE("Front Mic Playback Switch", 0x10, 0x01, HDA_OUTPUT),
 	HDA_CODEC_MUTE("Headphone Playback Switch", 0x1a, 0x03, HDA_INPUT),
 
+<<<<<<< HEAD
 	{
 		.iface = SNDRV_CTL_ELEM_IFACE_MIXER,
 		.name = "Channel Mode",
@@ -15618,6 +15649,28 @@ static const struct snd_kcontrol_new alc861_asus_laptop_mixer[] = {
 	HDA_CODEC_MUTE("CD Playback Switch", 0x15, 0x0, HDA_INPUT),
 	{ }
 };
+=======
+static void alc_auto_init_extra_out(struct hda_codec *codec)
+{
+	struct alc_spec *spec = codec->spec;
+	hda_nid_t pin, dac;
+
+	pin = spec->autocfg.hp_pins[0];
+	if (pin) {
+		dac = spec->multiout.hp_nid;
+		if (!dac)
+			dac = spec->multiout.dac_nids[0];
+		alc_auto_set_output_and_unmute(codec, pin, PIN_HP, dac);
+	}
+	pin = spec->autocfg.speaker_pins[0];
+	if (pin) {
+		dac = spec->multiout.extra_out_nid[0];
+		if (!dac)
+			dac = spec->multiout.dac_nids[0];
+		alc_auto_set_output_and_unmute(codec, pin, PIN_OUT, dac);
+	}
+}
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 /*
  * generic initialization of ADC, input mixers and output mixers

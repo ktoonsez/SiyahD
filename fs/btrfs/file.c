@@ -150,7 +150,13 @@ int btrfs_add_inode_defrag(struct btrfs_trans_handle *trans,
 
 	spin_lock(&root->fs_info->defrag_inodes_lock);
 	if (!BTRFS_I(inode)->in_defrag)
+<<<<<<< HEAD
 		ret = __btrfs_add_inode_defrag(inode, defrag);
+=======
+		__btrfs_add_inode_defrag(inode, defrag);
+	else
+		kfree(defrag);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	spin_unlock(&root->fs_info->defrag_inodes_lock);
 	return ret;
 }
@@ -1073,12 +1079,6 @@ static noinline int prepare_pages(struct btrfs_root *root, struct file *file,
 	start_pos = pos & ~((u64)root->sectorsize - 1);
 	last_pos = ((u64)index + num_pages) << PAGE_CACHE_SHIFT;
 
-	if (start_pos > inode->i_size) {
-		err = btrfs_cont_expand(inode, i_size_read(inode), start_pos);
-		if (err)
-			return err;
-	}
-
 again:
 	for (i = 0; i < num_pages; i++) {
 		pages[i] = grab_cache_page(inode->i_mapping, index + i);
@@ -1336,6 +1336,7 @@ static ssize_t btrfs_file_aio_write(struct kiocb *iocb,
 	struct inode *inode = fdentry(file)->d_inode;
 	struct btrfs_root *root = BTRFS_I(inode)->root;
 	loff_t *ppos = &iocb->ki_pos;
+	u64 start_pos;
 	ssize_t num_written = 0;
 	ssize_t err = 0;
 	size_t count, ocount;
@@ -1383,6 +1384,15 @@ static ssize_t btrfs_file_aio_write(struct kiocb *iocb,
 
 	file_update_time(file);
 	BTRFS_I(inode)->sequence++;
+
+	start_pos = round_down(pos, root->sectorsize);
+	if (start_pos > i_size_read(inode)) {
+		err = btrfs_cont_expand(inode, i_size_read(inode), start_pos);
+		if (err) {
+			mutex_unlock(&inode->i_mutex);
+			goto out;
+		}
+	}
 
 	if (unlikely(file->f_flags & O_DIRECT)) {
 		num_written = __btrfs_direct_write(iocb, iov, nr_segs,
@@ -1629,11 +1639,15 @@ static long btrfs_fallocate(struct file *file, int mode,
 
 	cur_offset = alloc_start;
 	while (1) {
+		u64 actual_end;
+
 		em = btrfs_get_extent(inode, NULL, 0, cur_offset,
 				      alloc_end - cur_offset, 0);
 		BUG_ON(IS_ERR_OR_NULL(em));
 		last_byte = min(extent_map_end(em), alloc_end);
+		actual_end = min_t(u64, extent_map_end(em), offset + len);
 		last_byte = (last_byte + mask) & ~mask;
+
 		if (em->block_start == EXTENT_MAP_HOLE ||
 		    (cur_offset >= inode->i_size &&
 		     !test_bit(EXTENT_FLAG_PREALLOC, &em->flags))) {
@@ -1646,6 +1660,16 @@ static long btrfs_fallocate(struct file *file, int mode,
 				free_extent_map(em);
 				break;
 			}
+		} else if (actual_end > inode->i_size &&
+			   !(mode & FALLOC_FL_KEEP_SIZE)) {
+			/*
+			 * We didn't need to allocate any more space, but we
+			 * still extended the size of the file so we need to
+			 * update i_size.
+			 */
+			inode->i_ctime = CURRENT_TIME;
+			i_size_write(inode, actual_end);
+			btrfs_ordered_update_i_size(inode, actual_end, NULL);
 		}
 		free_extent_map(em);
 
@@ -1664,6 +1688,159 @@ out:
 	return ret;
 }
 
+<<<<<<< HEAD
+=======
+static int find_desired_extent(struct inode *inode, loff_t *offset, int origin)
+{
+	struct btrfs_root *root = BTRFS_I(inode)->root;
+	struct extent_map *em;
+	struct extent_state *cached_state = NULL;
+	u64 lockstart = *offset;
+	u64 lockend = i_size_read(inode);
+	u64 start = *offset;
+	u64 orig_start = *offset;
+	u64 len = i_size_read(inode);
+	u64 last_end = 0;
+	int ret = 0;
+
+	lockend = max_t(u64, root->sectorsize, lockend);
+	if (lockend <= lockstart)
+		lockend = lockstart + root->sectorsize;
+
+	len = lockend - lockstart + 1;
+
+	len = max_t(u64, len, root->sectorsize);
+	if (inode->i_size == 0)
+		return -ENXIO;
+
+	lock_extent_bits(&BTRFS_I(inode)->io_tree, lockstart, lockend, 0,
+			 &cached_state, GFP_NOFS);
+
+	/*
+	 * Delalloc is such a pain.  If we have a hole and we have pending
+	 * delalloc for a portion of the hole we will get back a hole that
+	 * exists for the entire range since it hasn't been actually written
+	 * yet.  So to take care of this case we need to look for an extent just
+	 * before the position we want in case there is outstanding delalloc
+	 * going on here.
+	 */
+	if (origin == SEEK_HOLE && start != 0) {
+		if (start <= root->sectorsize)
+			em = btrfs_get_extent_fiemap(inode, NULL, 0, 0,
+						     root->sectorsize, 0);
+		else
+			em = btrfs_get_extent_fiemap(inode, NULL, 0,
+						     start - root->sectorsize,
+						     root->sectorsize, 0);
+		if (IS_ERR(em)) {
+			ret = -ENXIO;
+			goto out;
+		}
+		last_end = em->start + em->len;
+		if (em->block_start == EXTENT_MAP_DELALLOC)
+			last_end = min_t(u64, last_end, inode->i_size);
+		free_extent_map(em);
+	}
+
+	while (1) {
+		em = btrfs_get_extent_fiemap(inode, NULL, 0, start, len, 0);
+		if (IS_ERR(em)) {
+			ret = -ENXIO;
+			break;
+		}
+
+		if (em->block_start == EXTENT_MAP_HOLE) {
+			if (test_bit(EXTENT_FLAG_VACANCY, &em->flags)) {
+				if (last_end <= orig_start) {
+					free_extent_map(em);
+					ret = -ENXIO;
+					break;
+				}
+			}
+
+			if (origin == SEEK_HOLE) {
+				*offset = start;
+				free_extent_map(em);
+				break;
+			}
+		} else {
+			if (origin == SEEK_DATA) {
+				if (em->block_start == EXTENT_MAP_DELALLOC) {
+					if (start >= inode->i_size) {
+						free_extent_map(em);
+						ret = -ENXIO;
+						break;
+					}
+				}
+
+				*offset = start;
+				free_extent_map(em);
+				break;
+			}
+		}
+
+		start = em->start + em->len;
+		last_end = em->start + em->len;
+
+		if (em->block_start == EXTENT_MAP_DELALLOC)
+			last_end = min_t(u64, last_end, inode->i_size);
+
+		if (test_bit(EXTENT_FLAG_VACANCY, &em->flags)) {
+			free_extent_map(em);
+			ret = -ENXIO;
+			break;
+		}
+		free_extent_map(em);
+		cond_resched();
+	}
+	if (!ret)
+		*offset = min(*offset, inode->i_size);
+out:
+	unlock_extent_cached(&BTRFS_I(inode)->io_tree, lockstart, lockend,
+			     &cached_state, GFP_NOFS);
+	return ret;
+}
+
+static loff_t btrfs_file_llseek(struct file *file, loff_t offset, int origin)
+{
+	struct inode *inode = file->f_mapping->host;
+	int ret;
+
+	mutex_lock(&inode->i_mutex);
+	switch (origin) {
+	case SEEK_END:
+	case SEEK_CUR:
+		offset = generic_file_llseek_unlocked(file, offset, origin);
+		goto out;
+	case SEEK_DATA:
+	case SEEK_HOLE:
+		ret = find_desired_extent(inode, &offset, origin);
+		if (ret) {
+			mutex_unlock(&inode->i_mutex);
+			return ret;
+		}
+	}
+
+	if (offset < 0 && !(file->f_mode & FMODE_UNSIGNED_OFFSET)) {
+		ret = -EINVAL;
+		goto out;
+	}
+	if (offset > inode->i_sb->s_maxbytes) {
+		ret = -EINVAL;
+		goto out;
+	}
+
+	/* Special lock needed here? */
+	if (offset != file->f_pos) {
+		file->f_pos = offset;
+		file->f_version = 0;
+	}
+out:
+	mutex_unlock(&inode->i_mutex);
+	return offset;
+}
+
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 const struct file_operations btrfs_file_operations = {
 	.llseek		= generic_file_llseek,
 	.read		= do_sync_read,

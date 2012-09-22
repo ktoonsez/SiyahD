@@ -786,6 +786,7 @@ sys32_poll_wrapper:
 	lgfr	%r4,%r4			# long
 	jg	sys_poll		# branch to system call
 
+<<<<<<< HEAD
 	.globl	compat_sys_nfsservctl_wrapper
 compat_sys_nfsservctl_wrapper:
 	lgfr	%r2,%r2			# int
@@ -795,6 +796,9 @@ compat_sys_nfsservctl_wrapper:
 
 	.globl	sys32_setresgid16_wrapper
 sys32_setresgid16_wrapper:
+=======
+ENTRY(sys32_setresgid16_wrapper)
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	llgfr	%r2,%r2			# __kernel_old_gid_emu31_t
 	llgfr	%r3,%r3			# __kernel_old_gid_emu31_t
 	llgfr	%r4,%r4			# __kernel_old_gid_emu31_t

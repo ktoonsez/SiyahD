@@ -16,6 +16,84 @@ struct nouveau_sgdma_be {
 	u64 offset;
 };
 
+<<<<<<< HEAD
+=======
+static int
+nouveau_sgdma_populate(struct ttm_backend *be, unsigned long num_pages,
+		       struct page **pages, struct page *dummy_read_page,
+		       dma_addr_t *dma_addrs)
+{
+	struct nouveau_sgdma_be *nvbe = (struct nouveau_sgdma_be *)be;
+	struct drm_device *dev = nvbe->dev;
+
+	NV_DEBUG(nvbe->dev, "num_pages = %ld\n", num_pages);
+
+	if (nvbe->pages)
+		return -EINVAL;
+
+	nvbe->pages = kmalloc(sizeof(dma_addr_t) * num_pages, GFP_KERNEL);
+	if (!nvbe->pages)
+		return -ENOMEM;
+
+	nvbe->ttm_alloced = kmalloc(sizeof(bool) * num_pages, GFP_KERNEL);
+	if (!nvbe->ttm_alloced) {
+		kfree(nvbe->pages);
+		nvbe->pages = NULL;
+		return -ENOMEM;
+	}
+
+	nvbe->nr_pages = 0;
+	while (num_pages--) {
+		/* this code path isn't called and is incorrect anyways */
+		if (0) { /*dma_addrs[nvbe->nr_pages] != DMA_ERROR_CODE)*/
+			nvbe->pages[nvbe->nr_pages] =
+					dma_addrs[nvbe->nr_pages];
+		 	nvbe->ttm_alloced[nvbe->nr_pages] = true;
+		} else {
+			nvbe->pages[nvbe->nr_pages] =
+				pci_map_page(dev->pdev, pages[nvbe->nr_pages], 0,
+				     PAGE_SIZE, PCI_DMA_BIDIRECTIONAL);
+			if (pci_dma_mapping_error(dev->pdev,
+						  nvbe->pages[nvbe->nr_pages])) {
+				be->func->clear(be);
+				return -EFAULT;
+			}
+			nvbe->ttm_alloced[nvbe->nr_pages] = false;
+		}
+
+		nvbe->nr_pages++;
+	}
+
+	return 0;
+}
+
+static void
+nouveau_sgdma_clear(struct ttm_backend *be)
+{
+	struct nouveau_sgdma_be *nvbe = (struct nouveau_sgdma_be *)be;
+	struct drm_device *dev;
+
+	if (nvbe && nvbe->pages) {
+		dev = nvbe->dev;
+		NV_DEBUG(dev, "\n");
+
+		if (nvbe->bound)
+			be->func->unbind(be);
+
+		while (nvbe->nr_pages--) {
+			if (!nvbe->ttm_alloced[nvbe->nr_pages])
+				pci_unmap_page(dev->pdev, nvbe->pages[nvbe->nr_pages],
+				       PAGE_SIZE, PCI_DMA_BIDIRECTIONAL);
+		}
+		kfree(nvbe->pages);
+		kfree(nvbe->ttm_alloced);
+		nvbe->pages = NULL;
+		nvbe->ttm_alloced = NULL;
+		nvbe->nr_pages = 0;
+	}
+}
+
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 static void
 nouveau_sgdma_destroy(struct ttm_tt *ttm)
 {

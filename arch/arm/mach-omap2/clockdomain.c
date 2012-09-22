@@ -732,7 +732,16 @@ int clkdm_wakeup(struct clockdomain *clkdm)
 
 	pr_debug("clockdomain: forcing wakeup on %s\n", clkdm->name);
 
+<<<<<<< HEAD
 	return arch_clkdm->clkdm_wakeup(clkdm);
+=======
+	spin_lock_irqsave(&clkdm->lock, flags);
+	clkdm->_flags &= ~_CLKDM_FLAG_HWSUP_ENABLED;
+	ret = arch_clkdm->clkdm_wakeup(clkdm);
+	ret |= pwrdm_state_switch(clkdm->pwrdm.ptr);
+	spin_unlock_irqrestore(&clkdm->lock, flags);
+	return ret;
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 }
 
 /**
@@ -793,6 +802,65 @@ void clkdm_deny_idle(struct clockdomain *clkdm)
 		 clkdm->name);
 
 	arch_clkdm->clkdm_deny_idle(clkdm);
+<<<<<<< HEAD
+=======
+	pwrdm_state_switch(clkdm->pwrdm.ptr);
+	spin_unlock_irqrestore(&clkdm->lock, flags);
+}
+
+/**
+ * clkdm_in_hwsup - is clockdomain @clkdm have hardware-supervised idle enabled?
+ * @clkdm: struct clockdomain *
+ *
+ * Returns true if clockdomain @clkdm currently has
+ * hardware-supervised idle enabled, or false if it does not or if
+ * @clkdm is NULL.  It is only valid to call this function after
+ * clkdm_init() has been called.  This function does not actually read
+ * bits from the hardware; it instead tests an in-memory flag that is
+ * changed whenever the clockdomain code changes the auto-idle mode.
+ */
+bool clkdm_in_hwsup(struct clockdomain *clkdm)
+{
+	bool ret;
+	unsigned long flags;
+
+	if (!clkdm)
+		return false;
+
+	spin_lock_irqsave(&clkdm->lock, flags);
+	ret = (clkdm->_flags & _CLKDM_FLAG_HWSUP_ENABLED) ? true : false;
+	spin_unlock_irqrestore(&clkdm->lock, flags);
+
+	return ret;
+}
+
+/* Clockdomain-to-clock/hwmod framework interface code */
+
+static int _clkdm_clk_hwmod_enable(struct clockdomain *clkdm)
+{
+	unsigned long flags;
+
+	if (!clkdm || !arch_clkdm || !arch_clkdm->clkdm_clk_enable)
+		return -EINVAL;
+
+	/*
+	 * For arch's with no autodeps, clkcm_clk_enable
+	 * should be called for every clock instance or hwmod that is
+	 * enabled, so the clkdm can be force woken up.
+	 */
+	if ((atomic_inc_return(&clkdm->usecount) > 1) && autodeps)
+		return 0;
+
+	spin_lock_irqsave(&clkdm->lock, flags);
+	arch_clkdm->clkdm_clk_enable(clkdm);
+	pwrdm_wait_transition(clkdm->pwrdm.ptr);
+	pwrdm_clkdm_state_switch(clkdm);
+	spin_unlock_irqrestore(&clkdm->lock, flags);
+
+	pr_debug("clockdomain: clkdm %s: enabled\n", clkdm->name);
+
+	return 0;
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 }
 
 

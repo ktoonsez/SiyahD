@@ -430,6 +430,7 @@ static int pn_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 			struct usb_endpoint_descriptor *out, *in;
 			int i;
 
+<<<<<<< HEAD
 			out = ep_choose(gadget,
 					&pn_hs_sink_desc,
 					&pn_fs_sink_desc);
@@ -438,6 +439,17 @@ static int pn_set_alt(struct usb_function *f, unsigned intf, unsigned alt)
 					&pn_fs_source_desc);
 			usb_ep_enable(fp->out_ep, out);
 			usb_ep_enable(fp->in_ep, in);
+=======
+			if (config_ep_by_speed(gadget, f, fp->in_ep) ||
+			    config_ep_by_speed(gadget, f, fp->out_ep)) {
+				fp->in_ep->desc = NULL;
+				fp->out_ep->desc = NULL;
+				spin_unlock(&port->lock);
+				return -EINVAL;
+			}
+			usb_ep_enable(fp->out_ep);
+			usb_ep_enable(fp->in_ep);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 			port->usb = fp;
 			fp->out_ep->driver_data = fp;

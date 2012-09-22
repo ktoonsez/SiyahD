@@ -718,7 +718,10 @@ static int ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	struct neighbour *n = NULL;
 	unsigned long flags;
 
+<<<<<<< HEAD
 	rcu_read_lock();
+=======
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	if (likely(skb_dst(skb)))
 		n = dst_get_neighbour(skb_dst(skb));
 

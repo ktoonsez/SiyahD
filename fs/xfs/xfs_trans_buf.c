@@ -54,7 +54,7 @@ xfs_trans_buf_item_match(
 	list_for_each_entry(lidp, &tp->t_items, lid_trans) {
 		blip = (struct xfs_buf_log_item *)lidp->lid_item;
 		if (blip->bli_item.li_type == XFS_LI_BUF &&
-		    XFS_BUF_TARGET(blip->bli_buf) == target &&
+		    blip->bli_buf->b_target == target &&
 		    XFS_BUF_ADDR(blip->bli_buf) == blkno &&
 		    XFS_BUF_COUNT(blip->bli_buf) == len)
 			return blip->bli_buf;
@@ -80,8 +80,12 @@ _xfs_trans_bjoin(
 {
 	struct xfs_buf_log_item	*bip;
 
+<<<<<<< HEAD
 	ASSERT(XFS_BUF_ISBUSY(bp));
 	ASSERT(XFS_BUF_FSPRIVATE2(bp, void *) == NULL);
+=======
+	ASSERT(bp->b_transp == NULL);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 	/*
 	 * The xfs_buf_log_item pointer is stored in b_fsprivate.  If
@@ -194,7 +198,7 @@ xfs_trans_get_buf(xfs_trans_t	*tp,
 		return NULL;
 	}
 
-	ASSERT(!XFS_BUF_GETERROR(bp));
+	ASSERT(!bp->b_error);
 
 	_xfs_trans_bjoin(tp, bp, 1);
 	trace_xfs_trans_get_buf(bp->b_fspriv);
@@ -293,10 +297,10 @@ xfs_trans_read_buf(
 			return (flags & XBF_TRYLOCK) ?
 					EAGAIN : XFS_ERROR(ENOMEM);
 
-		if (XFS_BUF_GETERROR(bp) != 0) {
+		if (bp->b_error) {
+			error = bp->b_error;
 			xfs_ioerror_alert("xfs_trans_read_buf", mp,
 					  bp, blkno);
-			error = XFS_BUF_GETERROR(bp);
 			xfs_buf_relse(bp);
 			return error;
 		}
@@ -327,10 +331,17 @@ xfs_trans_read_buf(
 	 */
 	bp = xfs_trans_buf_item_match(tp, target, blkno, len);
 	if (bp != NULL) {
+<<<<<<< HEAD
 		ASSERT(XFS_BUF_VALUSEMA(bp) <= 0);
 		ASSERT(XFS_BUF_FSPRIVATE2(bp, xfs_trans_t *) == tp);
 		ASSERT(XFS_BUF_FSPRIVATE(bp, void *) != NULL);
 		ASSERT((XFS_BUF_ISERROR(bp)) == 0);
+=======
+		ASSERT(xfs_buf_islocked(bp));
+		ASSERT(bp->b_transp == tp);
+		ASSERT(bp->b_fspriv != NULL);
+		ASSERT(!bp->b_error);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 		if (!(XFS_BUF_ISDONE(bp))) {
 			trace_xfs_trans_read_buf_io(bp, _RET_IP_);
 			ASSERT(!XFS_BUF_ISASYNC(bp));
@@ -386,10 +397,9 @@ xfs_trans_read_buf(
 		return (flags & XBF_TRYLOCK) ?
 					0 : XFS_ERROR(ENOMEM);
 	}
-	if (XFS_BUF_GETERROR(bp) != 0) {
-	    XFS_BUF_SUPER_STALE(bp);
-		error = XFS_BUF_GETERROR(bp);
-
+	if (bp->b_error) {
+		error = bp->b_error;
+		XFS_BUF_SUPER_STALE(bp);
 		xfs_ioerror_alert("xfs_trans_read_buf", mp,
 				  bp, blkno);
 		if (tp->t_flags & XFS_TRANS_DIRTY)
@@ -430,7 +440,7 @@ shutdown_abort:
 	if (XFS_BUF_ISSTALE(bp) && XFS_BUF_ISDELAYWRITE(bp))
 		xfs_notice(mp, "about to pop assert, bp == 0x%p", bp);
 #endif
-	ASSERT((XFS_BUF_BFLAGS(bp) & (XBF_STALE|XBF_DELWRI)) !=
+	ASSERT((bp->b_flags & (XBF_STALE|XBF_DELWRI)) !=
 				     (XBF_STALE|XBF_DELWRI));
 
 	trace_xfs_trans_read_buf_shut(bp, _RET_IP_);
@@ -583,11 +593,16 @@ xfs_trans_bhold(xfs_trans_t	*tp,
 {
 	xfs_buf_log_item_t	*bip;
 
+<<<<<<< HEAD
 	ASSERT(XFS_BUF_ISBUSY(bp));
 	ASSERT(XFS_BUF_FSPRIVATE2(bp, xfs_trans_t *) == tp);
 	ASSERT(XFS_BUF_FSPRIVATE(bp, void *) != NULL);
 
 	bip = XFS_BUF_FSPRIVATE(bp, xfs_buf_log_item_t *);
+=======
+	ASSERT(bp->b_transp == tp);
+	ASSERT(bip != NULL);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	ASSERT(!(bip->bli_flags & XFS_BLI_STALE));
 	ASSERT(!(bip->bli_format.blf_flags & XFS_BLF_CANCEL));
 	ASSERT(atomic_read(&bip->bli_refcount) > 0);
@@ -605,11 +620,16 @@ xfs_trans_bhold_release(xfs_trans_t	*tp,
 {
 	xfs_buf_log_item_t	*bip;
 
+<<<<<<< HEAD
 	ASSERT(XFS_BUF_ISBUSY(bp));
 	ASSERT(XFS_BUF_FSPRIVATE2(bp, xfs_trans_t *) == tp);
 	ASSERT(XFS_BUF_FSPRIVATE(bp, void *) != NULL);
 
 	bip = XFS_BUF_FSPRIVATE(bp, xfs_buf_log_item_t *);
+=======
+	ASSERT(bp->b_transp == tp);
+	ASSERT(bip != NULL);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	ASSERT(!(bip->bli_flags & XFS_BLI_STALE));
 	ASSERT(!(bip->bli_format.blf_flags & XFS_BLF_CANCEL));
 	ASSERT(atomic_read(&bip->bli_refcount) > 0);
@@ -636,9 +656,14 @@ xfs_trans_log_buf(xfs_trans_t	*tp,
 {
 	xfs_buf_log_item_t	*bip;
 
+<<<<<<< HEAD
 	ASSERT(XFS_BUF_ISBUSY(bp));
 	ASSERT(XFS_BUF_FSPRIVATE2(bp, xfs_trans_t *) == tp);
 	ASSERT(XFS_BUF_FSPRIVATE(bp, void *) != NULL);
+=======
+	ASSERT(bp->b_transp == tp);
+	ASSERT(bip != NULL);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	ASSERT((first <= last) && (last < XFS_BUF_COUNT(bp)));
 	ASSERT((XFS_BUF_IODONE_FUNC(bp) == NULL) ||
 	       (XFS_BUF_IODONE_FUNC(bp) == xfs_buf_iodone_callbacks));
@@ -708,11 +733,16 @@ xfs_trans_binval(
 {
 	xfs_buf_log_item_t	*bip;
 
+<<<<<<< HEAD
 	ASSERT(XFS_BUF_ISBUSY(bp));
 	ASSERT(XFS_BUF_FSPRIVATE2(bp, xfs_trans_t *) == tp);
 	ASSERT(XFS_BUF_FSPRIVATE(bp, void *) != NULL);
 
 	bip = XFS_BUF_FSPRIVATE(bp, xfs_buf_log_item_t *);
+=======
+	ASSERT(bp->b_transp == tp);
+	ASSERT(bip != NULL);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	ASSERT(atomic_read(&bip->bli_refcount) > 0);
 
 	trace_xfs_trans_binval(bip);
@@ -782,11 +812,16 @@ xfs_trans_inode_buf(
 {
 	xfs_buf_log_item_t	*bip;
 
+<<<<<<< HEAD
 	ASSERT(XFS_BUF_ISBUSY(bp));
 	ASSERT(XFS_BUF_FSPRIVATE2(bp, xfs_trans_t *) == tp);
 	ASSERT(XFS_BUF_FSPRIVATE(bp, void *) != NULL);
 
 	bip = XFS_BUF_FSPRIVATE(bp, xfs_buf_log_item_t *);
+=======
+	ASSERT(bp->b_transp == tp);
+	ASSERT(bip != NULL);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	ASSERT(atomic_read(&bip->bli_refcount) > 0);
 
 	bip->bli_flags |= XFS_BLI_INODE_BUF;
@@ -808,11 +843,16 @@ xfs_trans_stale_inode_buf(
 {
 	xfs_buf_log_item_t	*bip;
 
+<<<<<<< HEAD
 	ASSERT(XFS_BUF_ISBUSY(bp));
 	ASSERT(XFS_BUF_FSPRIVATE2(bp, xfs_trans_t *) == tp);
 	ASSERT(XFS_BUF_FSPRIVATE(bp, void *) != NULL);
 
 	bip = XFS_BUF_FSPRIVATE(bp, xfs_buf_log_item_t *);
+=======
+	ASSERT(bp->b_transp == tp);
+	ASSERT(bip != NULL);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	ASSERT(atomic_read(&bip->bli_refcount) > 0);
 
 	bip->bli_flags |= XFS_BLI_STALE_INODE;
@@ -835,11 +875,16 @@ xfs_trans_inode_alloc_buf(
 {
 	xfs_buf_log_item_t	*bip;
 
+<<<<<<< HEAD
 	ASSERT(XFS_BUF_ISBUSY(bp));
 	ASSERT(XFS_BUF_FSPRIVATE2(bp, xfs_trans_t *) == tp);
 	ASSERT(XFS_BUF_FSPRIVATE(bp, void *) != NULL);
 
 	bip = XFS_BUF_FSPRIVATE(bp, xfs_buf_log_item_t *);
+=======
+	ASSERT(bp->b_transp == tp);
+	ASSERT(bip != NULL);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	ASSERT(atomic_read(&bip->bli_refcount) > 0);
 
 	bip->bli_flags |= XFS_BLI_INODE_ALLOC_BUF;
@@ -865,9 +910,14 @@ xfs_trans_dquot_buf(
 {
 	xfs_buf_log_item_t	*bip;
 
+<<<<<<< HEAD
 	ASSERT(XFS_BUF_ISBUSY(bp));
 	ASSERT(XFS_BUF_FSPRIVATE2(bp, xfs_trans_t *) == tp);
 	ASSERT(XFS_BUF_FSPRIVATE(bp, void *) != NULL);
+=======
+	ASSERT(bp->b_transp == tp);
+	ASSERT(bip != NULL);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	ASSERT(type == XFS_BLF_UDQUOT_BUF ||
 	       type == XFS_BLF_PDQUOT_BUF ||
 	       type == XFS_BLF_GDQUOT_BUF);

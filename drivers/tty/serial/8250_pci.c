@@ -1509,12 +1509,15 @@ static struct pci_serial_quirk pci_serial_quirks[] __refdata = {
 		.init		= pci_eg20t_init,
 		.setup		= pci_default_setup,
 	},
+<<<<<<< HEAD
 	{
 		.vendor         = 0x10DB,
 		.device         = 0x800D,
 		.init		= pci_eg20t_init,
 		.setup		= pci_default_setup,
 	},
+=======
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	/*
 	 * Cronyx Omega PCI (PLX-chip based)
 	 */

@@ -1,8 +1,8 @@
 VERSION = 3
-PATCHLEVEL = 0
-SUBLEVEL = 43
-EXTRAVERSION = -rc1
-NAME = Sneaky Weasel
+PATCHLEVEL = 1
+SUBLEVEL = 0
+EXTRAVERSION = -rc6
+NAME = "Divemaster Edition"
 
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"

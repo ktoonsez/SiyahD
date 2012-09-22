@@ -341,7 +341,7 @@ static int is_ext_mic(struct hda_codec *codec, unsigned int idx)
 static hda_nid_t get_adc(struct hda_codec *codec, hda_nid_t pin,
 			 unsigned int *idxp)
 {
-	int i;
+	int i, idx;
 	hda_nid_t nid;
 
 	nid = codec->start_nid;
@@ -352,6 +352,7 @@ static hda_nid_t get_adc(struct hda_codec *codec, hda_nid_t pin,
 		type = get_wcaps_type(get_wcaps(codec, nid));
 		if (type != AC_WID_AUD_IN)
 			continue;
+<<<<<<< HEAD
 		nums = snd_hda_get_connections(codec, nid, pins,
 					       ARRAY_SIZE(pins));
 		if (nums <= 0)
@@ -361,6 +362,12 @@ static hda_nid_t get_adc(struct hda_codec *codec, hda_nid_t pin,
 				*idxp = j;
 				return nid;
 			}
+=======
+		idx = snd_hda_get_conn_index(codec, nid, pin, false);
+		if (idx >= 0) {
+			*idxp = idx;
+			return nid;
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 		}
 	}
 	return 0;

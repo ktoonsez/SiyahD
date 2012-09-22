@@ -121,6 +121,16 @@ static int do_setxattr(struct btrfs_trans_handle *trans,
 		ret = btrfs_delete_one_dir_name(trans, root, path, di);
 		BUG_ON(ret);
 		btrfs_release_path(path);
+<<<<<<< HEAD
+=======
+
+		/*
+		 * remove the attribute
+		 */
+		if (!value)
+			goto out;
+	}
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 		/* if we don't have a value then we are removing the xattr */
 		if (!value)
@@ -144,6 +154,9 @@ out:
 	return ret;
 }
 
+/*
+ * @value: "" makes the attribute to empty, NULL removes it
+ */
 int __btrfs_setxattr(struct btrfs_trans_handle *trans,
 		     struct inode *inode, const char *name,
 		     const void *value, size_t size, int flags)

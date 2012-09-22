@@ -64,9 +64,16 @@ target_fill_alua_data(struct se_port *port, unsigned char *buf)
 static int
 target_emulate_inquiry_std(struct se_cmd *cmd)
 {
+<<<<<<< HEAD
 	struct se_lun *lun = SE_LUN(cmd);
 	struct se_device *dev = SE_DEV(cmd);
 	unsigned char *buf = cmd->t_task->t_task_buf;
+=======
+	struct se_lun *lun = cmd->se_lun;
+	struct se_device *dev = cmd->se_dev;
+	struct se_portal_group *tpg = lun->lun_sep->sep_tpg;
+	unsigned char *buf;
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 	/*
 	 * Make sure we at least have 6 bytes of INQUIRY response
@@ -78,9 +85,21 @@ target_emulate_inquiry_std(struct se_cmd *cmd)
 		return -1;
 	}
 
+<<<<<<< HEAD
 	buf[0] = dev->transport->get_device_type(dev);
 	if (buf[0] == TYPE_TAPE)
 		buf[1] = 0x80;
+=======
+	buf = transport_kmap_first_data_page(cmd);
+
+	if (dev == tpg->tpg_virt_lun0.lun_se_dev) {
+		buf[0] = 0x3f; /* Not connected */
+	} else {
+		buf[0] = dev->transport->get_device_type(dev);
+		if (buf[0] == TYPE_TAPE)
+			buf[1] = 0x80;
+	}
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	buf[2] = dev->transport->get_device_rev(dev);
 
 	/*
@@ -868,8 +887,13 @@ target_emulate_modesense(struct se_cmd *cmd, int ten)
 		length += target_modesense_control(dev, &buf[offset+length]);
 		break;
 	default:
+<<<<<<< HEAD
 		printk(KERN_ERR "Got Unknown Mode Page: 0x%02x\n",
 				cdb[2] & 0x3f);
+=======
+		pr_err("MODE SENSE: unimplemented page/subpage: 0x%02x/0x%02x\n",
+		       cdb[2] & 0x3f, cdb[3]);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 		return PYX_TRANSPORT_UNKNOWN_MODE_PAGE;
 	}
 	offset += length;
@@ -1010,9 +1034,16 @@ target_emulate_unmap(struct se_task *task)
 		size -= 16;
 	}
 
+<<<<<<< HEAD
 	task->task_scsi_status = GOOD;
 	transport_complete_task(task, 1);
 	return 0;
+=======
+err:
+	transport_kunmap_first_data_page(cmd);
+
+	return ret;
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 }
 
 /*
@@ -1020,6 +1051,7 @@ target_emulate_unmap(struct se_task *task)
  * Note this is not used for TCM/pSCSI passthrough
  */
 static int
+<<<<<<< HEAD
 target_emulate_write_same(struct se_task *task)
 {
 	struct se_cmd *cmd = TASK_CMD(task);
@@ -1029,6 +1061,23 @@ target_emulate_write_same(struct se_task *task)
 	int ret;
 
 	range = (cmd->data_length / DEV_ATTRIB(dev)->block_size);
+=======
+target_emulate_write_same(struct se_task *task, u32 num_blocks)
+{
+	struct se_cmd *cmd = task->task_se_cmd;
+	struct se_device *dev = cmd->se_dev;
+	sector_t range;
+	sector_t lba = cmd->t_task_lba;
+	int ret;
+	/*
+	 * Use the explicit range when non zero is supplied, otherwise calculate
+	 * the remaining range based on ->get_blocks() - starting LBA.
+	 */
+	if (num_blocks != 0)
+		range = num_blocks;
+	else
+		range = (dev->transport->get_blocks(dev) - lba);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 	printk(KERN_INFO "WRITE_SAME UNMAP: LBA: %llu Range: %u\n",
 			 (unsigned long long)lba, range);
@@ -1039,8 +1088,6 @@ target_emulate_write_same(struct se_task *task)
 		return -1;
 	}
 
-	task->task_scsi_status = GOOD;
-	transport_complete_task(task, 1);
 	return 0;
 }
 
@@ -1087,13 +1134,27 @@ transport_emulate_control_cdb(struct se_task *task)
 		}
 		ret = target_emulate_unmap(task);
 		break;
+	case WRITE_SAME:
+		if (!dev->transport->do_discard) {
+			pr_err("WRITE_SAME emulation not supported"
+					" for: %s\n", dev->transport->name);
+			return PYX_TRANSPORT_UNKNOWN_SAM_OPCODE;
+		}
+		ret = target_emulate_write_same(task,
+				get_unaligned_be16(&cmd->t_task_cdb[7]));
+		break;
 	case WRITE_SAME_16:
 		if (!dev->transport->do_discard) {
 			printk(KERN_ERR "WRITE_SAME_16 emulation not supported"
 					" for: %s\n", dev->transport->name);
 			return PYX_TRANSPORT_UNKNOWN_SAM_OPCODE;
 		}
+<<<<<<< HEAD
 		ret = target_emulate_write_same(task);
+=======
+		ret = target_emulate_write_same(task,
+				get_unaligned_be32(&cmd->t_task_cdb[10]));
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 		break;
 	case VARIABLE_LENGTH_CMD:
 		service_action =
@@ -1106,7 +1167,12 @@ transport_emulate_control_cdb(struct se_task *task)
 					dev->transport->name);
 				return PYX_TRANSPORT_UNKNOWN_SAM_OPCODE;
 			}
+<<<<<<< HEAD
 			ret = target_emulate_write_same(task);
+=======
+			ret = target_emulate_write_same(task,
+				get_unaligned_be32(&cmd->t_task_cdb[28]));
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 			break;
 		default:
 			printk(KERN_ERR "Unsupported VARIABLE_LENGTH_CMD SA:"
@@ -1142,8 +1208,14 @@ transport_emulate_control_cdb(struct se_task *task)
 
 	if (ret < 0)
 		return ret;
-	task->task_scsi_status = GOOD;
-	transport_complete_task(task, 1);
+	/*
+	 * Handle the successful completion here unless a caller
+	 * has explictly requested an asychronous completion.
+	 */
+	if (!(cmd->se_cmd_flags & SCF_EMULATE_CDB_ASYNC)) {
+		task->task_scsi_status = GOOD;
+		transport_complete_task(task, 1);
+	}
 
 	return PYX_TRANSPORT_SENT_TO_TRANSPORT;
 }

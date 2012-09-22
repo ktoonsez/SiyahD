@@ -1503,10 +1503,19 @@ static void ixgbe_clean_rx_irq(struct ixgbe_q_vector *q_vector,
 		skb->protocol = eth_type_trans(skb, rx_ring->netdev);
 #ifdef IXGBE_FCOE
 		/* if ddp, not passing to ULD unless for FCP_RSP or error */
+<<<<<<< HEAD
 		if (adapter->flags & IXGBE_FLAG_FCOE_ENABLED) {
 			ddp_bytes = ixgbe_fcoe_ddp(adapter, rx_desc, skb);
 			if (!ddp_bytes)
+=======
+		if (ixgbe_rx_is_fcoe(adapter, rx_desc)) {
+			ddp_bytes = ixgbe_fcoe_ddp(adapter, rx_desc, skb,
+						   staterr);
+			if (!ddp_bytes) {
+				dev_kfree_skb_any(skb);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 				goto next_desc;
+			}
 		}
 #endif /* IXGBE_FCOE */
 		ixgbe_receive_skb(q_vector, skb, staterr, rx_ring, rx_desc);

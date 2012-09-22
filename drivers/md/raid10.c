@@ -285,6 +285,34 @@ static void raid10_end_read_request(struct bio *bio, int error)
 	}
 }
 
+<<<<<<< HEAD
+=======
+static void close_write(r10bio_t *r10_bio)
+{
+	/* clear the bitmap if all writes complete successfully */
+	bitmap_endwrite(r10_bio->mddev->bitmap, r10_bio->sector,
+			r10_bio->sectors,
+			!test_bit(R10BIO_Degraded, &r10_bio->state),
+			0);
+	md_write_end(r10_bio->mddev);
+}
+
+static void one_write_done(r10bio_t *r10_bio)
+{
+	if (atomic_dec_and_test(&r10_bio->remaining)) {
+		if (test_bit(R10BIO_WriteError, &r10_bio->state))
+			reschedule_retry(r10_bio);
+		else {
+			close_write(r10_bio);
+			if (test_bit(R10BIO_MadeGood, &r10_bio->state))
+				reschedule_retry(r10_bio);
+			else
+				raid_end_bio_io(r10_bio);
+		}
+	}
+}
+
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 static void raid10_end_write_request(struct bio *bio, int error)
 {
 	int uptodate = test_bit(BIO_UPTODATE, &bio->bi_flags);
@@ -323,6 +351,7 @@ static void raid10_end_write_request(struct bio *bio, int error)
 	 * Let's see if all mirrored write operations have finished
 	 * already.
 	 */
+<<<<<<< HEAD
 	if (atomic_dec_and_test(&r10_bio->remaining)) {
 		/* clear the bitmap if all writes complete successfully */
 		bitmap_endwrite(r10_bio->mddev->bitmap, r10_bio->sector,
@@ -334,6 +363,11 @@ static void raid10_end_write_request(struct bio *bio, int error)
 	}
 
 	rdev_dec_pending(conf->mirrors[dev].rdev, conf->mddev);
+=======
+	one_write_done(r10_bio);
+	if (dec_rdev)
+		rdev_dec_pending(conf->mirrors[dev].rdev, conf->mddev);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 }
 
 
@@ -948,19 +982,33 @@ static void make_request(mddev_t *mddev, struct bio * bio)
 		spin_unlock_irqrestore(&conf->device_lock, flags);
 	}
 
-	if (atomic_dec_and_test(&r10_bio->remaining)) {
-		/* This matches the end of raid10_end_write_request() */
-		bitmap_endwrite(r10_bio->mddev->bitmap, r10_bio->sector,
-				r10_bio->sectors,
-				!test_bit(R10BIO_Degraded, &r10_bio->state),
-				0);
-		md_write_end(mddev);
-		raid_end_bio_io(r10_bio);
+	/* Don't remove the bias on 'remaining' (one_write_done) until
+	 * after checking if we need to go around again.
+	 */
+
+<<<<<<< HEAD
+=======
+	if (sectors_handled < (bio->bi_size >> 9)) {
+		one_write_done(r10_bio);
+		/* We need another r10_bio.  It has already been counted
+		 * in bio->bi_phys_segments.
+		 */
+		r10_bio = mempool_alloc(conf->r10bio_pool, GFP_NOIO);
+
+		r10_bio->master_bio = bio;
+		r10_bio->sectors = (bio->bi_size >> 9) - sectors_handled;
+
+		r10_bio->mddev = mddev;
+		r10_bio->sector = bio->bi_sector + sectors_handled;
+		r10_bio->state = 0;
+		goto retry_write;
 	}
+	one_write_done(r10_bio);
 
 	/* In case raid10d snuck in to freeze_array */
 	wake_up(&conf->wait_barrier);
 
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	if (do_sync || !mddev->bitmap || !plugged)
 		md_wakeup_thread(mddev->thread);
 }

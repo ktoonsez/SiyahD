@@ -17,6 +17,7 @@ CFLAGS_REMOVE_ftrace.o = -pg
 CFLAGS_REMOVE_early_printk.o = -pg
 endif
 
+<<<<<<< HEAD
 #
 # vsyscalls (which work on the user stack) should have
 # no stack-protector checks:
@@ -35,6 +36,8 @@ GCOV_PROFILE_paravirt.o		:= n
 # vread_tsc_64 is hot and should be fully optimized:
 CFLAGS_REMOVE_vread_tsc_64.o = -pg -fno-optimize-sibling-calls
 
+=======
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 obj-y			:= process_$(BITS).o signal.o entry_$(BITS).o
 obj-y			+= traps.o irq.o irq_$(BITS).o dumpstack_$(BITS).o
 obj-y			+= time.o ioport.o ldt.o dumpstack.o

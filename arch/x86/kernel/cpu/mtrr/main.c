@@ -155,7 +155,6 @@ static DEFINE_PER_CPU(struct cpu_stop_work, mtrr_work);
  */
 static int mtrr_work_handler(void *info)
 {
-#ifdef CONFIG_SMP
 	struct set_mtrr_data *data = info;
 	unsigned long flags;
 
@@ -179,6 +178,7 @@ static int mtrr_work_handler(void *info)
 		 */
 		mtrr_if->set_all();
 	}
+<<<<<<< HEAD
 
 	atomic_dec(&data->count);
 	while (!atomic_read(&data->gate))
@@ -187,6 +187,8 @@ static int mtrr_work_handler(void *info)
 	atomic_dec(&data->count);
 	local_irq_restore(flags);
 #endif
+=======
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	return 0;
 }
 

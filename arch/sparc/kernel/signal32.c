@@ -583,7 +583,11 @@ static int setup_frame32(struct k_sigaction *ka, struct pt_regs *regs,
 			err |= __put_user(rp->ins[i], &sf->ss.ins[i]);
 		err |= __put_user(rp->ins[6], &sf->ss.fp);
 		err |= __put_user(rp->ins[7], &sf->ss.callers_pc);
+<<<<<<< HEAD
 	}
+=======
+	}	
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	if (err)
 		goto sigsegv;
 

@@ -192,6 +192,7 @@ static unsigned long __init xen_get_max_pages(void)
 	domid_t domid = DOMID_SELF;
 	int ret;
 
+<<<<<<< HEAD
 	/*
 	 * For the initial domain we use the maximum reservation as
 	 * the maximum page.
@@ -207,6 +208,11 @@ static unsigned long __init xen_get_max_pages(void)
 			max_pages = ret;
 	}
 
+=======
+	ret = HYPERVISOR_memory_op(XENMEM_maximum_reservation, &domid);
+	if (ret > 0)
+		max_pages = ret;
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	return min(max_pages, MAX_DOMAIN_PAGES);
 }
 
@@ -319,12 +325,19 @@ char * __init xen_memory_setup(void)
 	sanitize_e820_map(e820.map, ARRAY_SIZE(e820.map), &e820.nr_map);
 
 	extra_limit = xen_get_max_pages();
+<<<<<<< HEAD
 	if (max_pfn + extra_pages > extra_limit) {
 		if (extra_limit > max_pfn)
 			extra_pages = extra_limit - max_pfn;
 		else
 			extra_pages = 0;
 	}
+=======
+	if (extra_limit >= max_pfn)
+		extra_pages = extra_limit - max_pfn;
+	else
+		extra_pages = 0;
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 	extra_pages += xen_return_unused_memory(xen_start_info->nr_pages, &e820);
 

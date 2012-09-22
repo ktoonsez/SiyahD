@@ -1746,8 +1746,13 @@ ath5k_beacon_setup(struct ath5k_softc *sc, struct ath5k_buf *bf)
 			"skbaddr %llx\n", skb, skb->data, skb->len,
 			(unsigned long long)bf->skbaddr);
 
+<<<<<<< HEAD
 	if (dma_mapping_error(sc->dev, bf->skbaddr)) {
 		ATH5K_ERR(sc, "beacon DMA mapping failed\n");
+=======
+	if (dma_mapping_error(ah->dev, bf->skbaddr)) {
+		ATH5K_ERR(ah, "beacon DMA mapping failed\n");
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 		dev_kfree_skb_any(skb);
 		bf->skb = NULL;
 		return -EIO;
@@ -1833,7 +1838,11 @@ ath5k_beacon_update(struct ieee80211_hw *hw, struct ieee80211_vif *vif)
 
 	ath5k_txbuf_free_skb(sc, avf->bbuf);
 	avf->bbuf->skb = skb;
+<<<<<<< HEAD
 	ret = ath5k_beacon_setup(sc, avf->bbuf);
+=======
+	ret = ath5k_beacon_setup(ah, avf->bbuf);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 out:
 	return ret;
 }
@@ -1915,12 +1924,29 @@ ath5k_beacon_send(struct ath5k_softc *sc)
 	}
 
 	/* refresh the beacon for AP or MESH mode */
+<<<<<<< HEAD
 	if (sc->opmode == NL80211_IFTYPE_AP ||
 			sc->opmode == NL80211_IFTYPE_MESH_POINT) {
 		err = ath5k_beacon_update(sc->hw, vif);
 		if (err)
 			return;
 	}
+=======
+	if (ah->opmode == NL80211_IFTYPE_AP ||
+	    ah->opmode == NL80211_IFTYPE_MESH_POINT) {
+		err = ath5k_beacon_update(ah->hw, vif);
+		if (err)
+			return;
+	}
+
+	if (unlikely(bf->skb == NULL || ah->opmode == NL80211_IFTYPE_STATION ||
+		     ah->opmode == NL80211_IFTYPE_MONITOR)) {
+		ATH5K_WARN(ah, "bf=%p bf_skb=%p\n", bf, bf->skb);
+		return;
+	}
+
+	trace_ath5k_tx(ah, bf->skb, &ah->txqs[ah->bhalq]);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 	if (unlikely(bf->skb == NULL || sc->opmode == NL80211_IFTYPE_STATION ||
 			sc->opmode == NL80211_IFTYPE_MONITOR)) {

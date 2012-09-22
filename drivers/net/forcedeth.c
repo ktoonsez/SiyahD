@@ -5615,6 +5615,12 @@ static int __devinit nv_probe(struct pci_dev *pci_dev, const struct pci_device_i
 		goto out_error;
 	}
 
+<<<<<<< HEAD
+=======
+	if (id->driver_data & DEV_HAS_VLAN)
+		nv_vlan_mode(dev, dev->features);
+
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	netif_carrier_off(dev);
 
 	dev_info(&pci_dev->dev, "ifname %s, PHY OUI 0x%x @ %d, addr %pM\n",

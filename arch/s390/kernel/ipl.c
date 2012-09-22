@@ -1218,7 +1218,7 @@ static int __init reipl_fcp_init(void)
 	/* sysfs: create fcp kset for mixing attr group and bin attrs */
 	reipl_fcp_kset = kset_create_and_add(IPL_FCP_STR, NULL,
 					     &reipl_kset->kobj);
-	if (!reipl_kset) {
+	if (!reipl_fcp_kset) {
 		free_page((unsigned long) reipl_block_fcp);
 		return -ENOMEM;
 	}
@@ -1611,7 +1611,8 @@ static struct shutdown_action vmcmd_action = {SHUTDOWN_ACTION_VMCMD_STR,
 
 static void stop_run(struct shutdown_trigger *trigger)
 {
-	if (strcmp(trigger->name, ON_PANIC_STR) == 0)
+	if (strcmp(trigger->name, ON_PANIC_STR) == 0 ||
+	    strcmp(trigger->name, ON_RESTART_STR) == 0)
 		disabled_wait((unsigned long) __builtin_return_address(0));
 	while (sigp(smp_processor_id(), sigp_stop) == sigp_busy)
 		cpu_relax();
@@ -1707,6 +1708,37 @@ static void do_panic(void)
 	stop_run(&on_panic_trigger);
 }
 
+<<<<<<< HEAD
+=======
+/* on restart */
+
+static struct shutdown_trigger on_restart_trigger = {ON_RESTART_STR,
+	&stop_action};
+
+static ssize_t on_restart_show(struct kobject *kobj,
+			       struct kobj_attribute *attr, char *page)
+{
+	return sprintf(page, "%s\n", on_restart_trigger.action->name);
+}
+
+static ssize_t on_restart_store(struct kobject *kobj,
+				struct kobj_attribute *attr,
+				const char *buf, size_t len)
+{
+	return set_trigger(buf, &on_restart_trigger, len);
+}
+
+static struct kobj_attribute on_restart_attr =
+	__ATTR(on_restart, 0644, on_restart_show, on_restart_store);
+
+void do_restart(void)
+{
+	smp_send_stop();
+	on_restart_trigger.action->fn(&on_restart_trigger);
+	stop_run(&on_restart_trigger);
+}
+
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 /* on halt */
 
 static struct shutdown_trigger on_halt_trigger = {ON_HALT_STR, &stop_action};

@@ -513,6 +513,7 @@ static void velocity_init_cam_filter(struct velocity_info *vptr)
 	mac_set_cam_mask(regs, vptr->mCAMmask);
 
 	/* Enable VCAMs */
+<<<<<<< HEAD
 	if (vptr->vlgrp) {
 		unsigned int vid, i = 0;
 
@@ -537,6 +538,15 @@ static void velocity_vlan_rx_register(struct net_device *dev,
 	struct velocity_info *vptr = netdev_priv(dev);
 
 	vptr->vlgrp = grp;
+=======
+	for_each_set_bit(vid, vptr->active_vlans, VLAN_N_VID) {
+		mac_set_vlan_cam(regs, i, (u8 *) &vid);
+		vptr->vCAMmask[i / 8] |= 0x1 << (i % 8);
+		if (++i >= VCAM_SIZE)
+			break;
+	}
+	mac_set_vlan_cam_mask(regs, vptr->vCAMmask);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 }
 
 static void velocity_vlan_rx_add_vid(struct net_device *dev, unsigned short vid)

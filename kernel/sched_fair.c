@@ -1671,7 +1671,7 @@ out_unlock:
 
 	return idle;
 }
-#else
+
 static void account_cfs_rq_runtime(struct cfs_rq *cfs_rq,
 				     unsigned long delta_exec) {}
 
@@ -1819,7 +1819,6 @@ static void account_cfs_rq_runtime(struct cfs_rq *cfs_rq,
 static void check_cfs_rq_runtime(struct cfs_rq *cfs_rq) {}
 static void check_enqueue_throttle(struct cfs_rq *cfs_rq) {}
 static void return_cfs_rq_runtime(struct cfs_rq *cfs_rq) {}
->>>>>>> d8b4986... sched: Return unused runtime on group dequeue
 
 static inline int cfs_rq_throttled(struct cfs_rq *cfs_rq)
 {

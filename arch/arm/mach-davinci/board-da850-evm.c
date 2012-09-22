@@ -1264,6 +1264,14 @@ static __init void da850_evm_init(void)
 		pr_warning("da850_evm_init: spi 1 registration failed: %d\n",
 				ret);
 
+<<<<<<< HEAD
+=======
+	ret = da850_register_sata(DA850EVM_SATA_REFCLKPN_RATE);
+	if (ret)
+		pr_warning("da850_evm_init: sata registration failed: %d\n",
+				ret);
+
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	da850_evm_setup_mac_addr();
 }
 

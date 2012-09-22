@@ -369,7 +369,11 @@ static unsigned long via_mode_filter(struct ata_device *dev, unsigned long mask)
 
 	if (dev->class == ATA_DEV_ATAPI &&
 	    dmi_check_system(no_atapi_dma_dmi_table)) {
+<<<<<<< HEAD
 		ata_dev_printk(dev, KERN_WARNING, "controller locks up on ATAPI DMA, forcing PIO\n");
+=======
+		ata_dev_warn(dev, "controller locks up on ATAPI DMA, forcing PIO\n");
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 		mask &= ATA_MASK_PIO;
 	}
 

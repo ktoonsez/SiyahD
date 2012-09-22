@@ -671,6 +671,35 @@ static int stac92xx_smux_enum_put(struct snd_kcontrol *kcontrol,
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_SND_HDA_POWER_SAVE
+static int stac_vrefout_set(struct hda_codec *codec,
+					hda_nid_t nid, unsigned int new_vref)
+{
+	int error, pinctl;
+
+	snd_printdd("%s, nid %x ctl %x\n", __func__, nid, new_vref);
+	pinctl = snd_hda_codec_read(codec, nid, 0,
+				AC_VERB_GET_PIN_WIDGET_CONTROL, 0);
+
+	if (pinctl < 0)
+		return pinctl;
+
+	pinctl &= 0xff;
+	pinctl &= ~AC_PINCTL_VREFEN;
+	pinctl |= (new_vref & AC_PINCTL_VREFEN);
+
+	error = snd_hda_codec_write_cache(codec, nid, 0,
+					AC_VERB_SET_PIN_WIDGET_CONTROL, pinctl);
+	if (error < 0)
+		return error;
+
+	return 1;
+}
+#endif
+
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 static unsigned int stac92xx_vref_set(struct hda_codec *codec,
 					hda_nid_t nid, unsigned int new_vref)
 {

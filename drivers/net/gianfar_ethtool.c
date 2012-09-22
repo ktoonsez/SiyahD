@@ -681,10 +681,21 @@ static int gfar_ethflow_to_filer_table(struct gfar_private *priv, u64 ethflow, u
 {
 	unsigned int last_rule_idx = priv->cur_filer_idx;
 	unsigned int cmp_rqfpr;
-	unsigned int local_rqfpr[MAX_FILER_IDX + 1];
-	unsigned int local_rqfcr[MAX_FILER_IDX + 1];
+	unsigned int *local_rqfpr;
+	unsigned int *local_rqfcr;
 	int i = 0x0, k = 0x0;
 	int j = MAX_FILER_IDX, l = 0x0;
+	int ret = 1;
+
+	local_rqfpr = kmalloc(sizeof(unsigned int) * (MAX_FILER_IDX + 1),
+		GFP_KERNEL);
+	local_rqfcr = kmalloc(sizeof(unsigned int) * (MAX_FILER_IDX + 1),
+		GFP_KERNEL);
+	if (!local_rqfpr || !local_rqfcr) {
+		pr_err("Out of memory\n");
+		ret = 0;
+		goto err;
+	}
 
 	switch (class) {
 	case TCP_V4_FLOW:
@@ -700,8 +711,14 @@ static int gfar_ethflow_to_filer_table(struct gfar_private *priv, u64 ethflow, u
 		cmp_rqfpr = RQFPR_IPV6 |RQFPR_UDP;
 		break;
 	default:
+<<<<<<< HEAD
 		printk(KERN_ERR "Right now this class is not supported\n");
 		return 0;
+=======
+		pr_err("Right now this class is not supported\n");
+		ret = 0;
+		goto err;
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	}
 
 	for (i = 0; i < MAX_FILER_IDX + 1; i++) {
@@ -715,9 +732,15 @@ static int gfar_ethflow_to_filer_table(struct gfar_private *priv, u64 ethflow, u
 	}
 
 	if (i == MAX_FILER_IDX + 1) {
+<<<<<<< HEAD
 		printk(KERN_ERR "No parse rule found, ");
 		printk(KERN_ERR "can't create hash rules\n");
 		return 0;
+=======
+		pr_err("No parse rule found, can't create hash rules\n");
+		ret = 0;
+		goto err;
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	}
 
 	/* If a match was found, then it begins the starting of a cluster rule
@@ -761,7 +784,10 @@ static int gfar_ethflow_to_filer_table(struct gfar_private *priv, u64 ethflow, u
 		priv->cur_filer_idx = priv->cur_filer_idx - 1;
 	}
 
-	return 1;
+err:
+	kfree(local_rqfcr);
+	kfree(local_rqfpr);
+	return ret;
 }
 
 static int gfar_set_hash_opts(struct gfar_private *priv, struct ethtool_rxnfc *cmd)

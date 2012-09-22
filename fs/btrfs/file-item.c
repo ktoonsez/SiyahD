@@ -177,6 +177,20 @@ static int __btrfs_lookup_bio_sums(struct btrfs_root *root,
 
 	WARN_ON(bio->bi_vcnt <= 0);
 
+<<<<<<< HEAD
+=======
+	/*
+	 * the free space stuff is only read when it hasn't been
+	 * updated in the current transaction.  So, we can safely
+	 * read from the commit root and sidestep a nasty deadlock
+	 * between reading the free space cache and updating the csum tree.
+	 */
+	if (btrfs_is_free_space_inode(root, inode)) {
+		path->search_commit_root = 1;
+		path->skip_locking = 1;
+	}
+
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	disk_bytenr = (u64)bio->bi_sector << 9;
 	if (dio)
 		offset = logical_offset;

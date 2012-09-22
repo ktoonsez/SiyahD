@@ -2716,6 +2716,18 @@ static int gfar_process_frame(struct net_device *dev, struct sk_buff *skb,
 	/* Tell the skb what kind of packet this is */
 	skb->protocol = eth_type_trans(skb, dev);
 
+<<<<<<< HEAD
+=======
+	/*
+	 * There's need to check for NETIF_F_HW_VLAN_RX here.
+	 * Even if vlan rx accel is disabled, on some chips
+	 * RXFCB_VLN is pseudo randomly set.
+	 */
+	if (dev->features & NETIF_F_HW_VLAN_RX &&
+	    fcb->flags & RXFCB_VLN)
+		__vlan_hwaccel_put_tag(skb, fcb->vlctl);
+
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	/* Send the packet up the stack */
 	if (unlikely(priv->vlgrp && (fcb->flags & RXFCB_VLN)))
 		ret = vlan_hwaccel_receive_skb(skb, priv->vlgrp, fcb->vlctl);

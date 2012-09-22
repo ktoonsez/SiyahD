@@ -32,8 +32,13 @@
 #include "psb_powermgmt.h"
 #include "mrst.h"
 
+<<<<<<< HEAD
 /*Append new drm mode definition here, align with libdrm definition*/
 #define DRM_MODE_SCALE_NO_SCALE   2
+=======
+/* Append new drm mode definition here, align with libdrm definition */
+#define DRM_MODE_SCALE_NO_SCALE   	2
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 enum {
 	CHIP_PSB_8108 = 0,

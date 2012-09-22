@@ -2048,6 +2048,7 @@ static int s3c2410_udc_resume(struct platform_device *pdev)
 #define s3c2410_udc_resume	NULL
 #endif
 
+<<<<<<< HEAD
 static struct platform_driver udc_driver_2410 = {
 	.driver		= {
 		.name	= "s3c2410-usbgadget",
@@ -2057,6 +2058,12 @@ static struct platform_driver udc_driver_2410 = {
 	.remove		= s3c2410_udc_remove,
 	.suspend	= s3c2410_udc_suspend,
 	.resume		= s3c2410_udc_resume,
+=======
+static const struct platform_device_id s3c_udc_ids[] = {
+	{ "s3c2410-usbgadget", },
+	{ "s3c2440-usbgadget", },
+	{ }
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 };
 
 static struct platform_driver udc_driver_2440 = {

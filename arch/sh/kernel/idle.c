@@ -21,7 +21,11 @@
 #include <linux/atomic.h>
 #include <asm/smp.h>
 
+<<<<<<< HEAD
 void (*pm_idle)(void) = NULL;
+=======
+void (*pm_idle)(void);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 static int hlt_counter;
 

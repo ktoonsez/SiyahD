@@ -1622,7 +1622,7 @@ xfs_unmountfs_writesb(xfs_mount_t *mp)
 		XFS_BUF_UNDELAYWRITE(sbp);
 		XFS_BUF_WRITE(sbp);
 		XFS_BUF_UNASYNC(sbp);
-		ASSERT(XFS_BUF_TARGET(sbp) == mp->m_ddev_targp);
+		ASSERT(sbp->b_target == mp->m_ddev_targp);
 		xfsbdstrat(mp, sbp);
 		error = xfs_buf_iowait(sbp);
 		if (error)
@@ -1948,7 +1948,12 @@ xfs_getsb(
 	} else {
 		XFS_BUF_PSEMA(bp, PRIBIO);
 	}
+<<<<<<< HEAD
 	XFS_BUF_HOLD(bp);
+=======
+
+	xfs_buf_hold(bp);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	ASSERT(XFS_BUF_ISDONE(bp));
 	return bp;
 }

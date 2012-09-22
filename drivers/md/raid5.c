@@ -3581,8 +3581,15 @@ static void handle_stripe6(struct stripe_head *sh)
 	    !test_bit(STRIPE_COMPUTE_RUN, &sh->state))
 		handle_stripe_expansion(conf, sh, &r6s);
 
+<<<<<<< HEAD
  unlock:
 	spin_unlock(&sh->lock);
+=======
+finish:
+	/* wait for this device to become unblocked */
+	if (conf->mddev->external && unlikely(s.blocked_rdev))
+		md_wait_for_blocked_rdev(s.blocked_rdev, conf->mddev);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 	/* wait for this device to become unblocked */
 	if (unlikely(blocked_rdev))

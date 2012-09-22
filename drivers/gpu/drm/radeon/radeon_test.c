@@ -42,9 +42,13 @@ void radeon_test_moves(struct radeon_device *rdev)
 	/* Number of tests =
 	 * (Total GTT - IB pool - writeback page - ring buffers) / test size
 	 */
+<<<<<<< HEAD
 	n = rdev->mc.gtt_size - RADEON_IB_POOL_SIZE*64*1024;
 	for (i = 0; i < RADEON_NUM_RINGS; ++i)
 		n -= rdev->ring[i].ring_size;
+=======
+	n = rdev->mc.gtt_size - RADEON_IB_POOL_SIZE*64*1024 - rdev->cp.ring_size;
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	if (rdev->wb.wb_obj)
 		n -= RADEON_GPU_PAGE_SIZE;
 	if (rdev->ih.ring_obj)

@@ -2211,7 +2211,13 @@ static int sysclk_event(struct snd_soc_dapm_widget *w,
 
 	switch (event) {
 	case SND_SOC_DAPM_PRE_PMU:
+<<<<<<< HEAD
 		if (fll)
+=======
+		if (fll) {
+			try_wait_for_completion(&wm8962->fll_lock);
+
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 			snd_soc_update_bits(codec, WM8962_FLL_CONTROL_1,
 					    WM8962_FLL_ENA, WM8962_FLL_ENA);
 		break;
@@ -2879,12 +2885,15 @@ static int wm8962_set_bias_level(struct snd_soc_codec *codec,
 					    WM8962_BIAS_ENA | 0x180);
 
 			msleep(5);
+<<<<<<< HEAD
 
 			snd_soc_update_bits(codec, WM8962_CLOCKING2,
 					    WM8962_CLKREG_OVD,
 					    WM8962_CLKREG_OVD);
 
 			wm8962_configure_bclk(codec);
+=======
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 		}
 
 		/* VMID 2*250k */
@@ -3264,6 +3273,8 @@ static int wm8962_set_fll(struct snd_soc_codec *codec, int fll_id, int source,
 	snd_soc_write(codec, WM8962_FLL_CONTROL_6, fll_div.theta);
 	snd_soc_write(codec, WM8962_FLL_CONTROL_7, fll_div.lambda);
 	snd_soc_write(codec, WM8962_FLL_CONTROL_8, fll_div.n);
+
+	try_wait_for_completion(&wm8962->fll_lock);
 
 	snd_soc_update_bits(codec, WM8962_FLL_CONTROL_1,
 			    WM8962_FLL_FRAC | WM8962_FLL_REFCLK_SRC_MASK |
@@ -3832,10 +3843,16 @@ static int wm8962_probe(struct snd_soc_codec *codec)
 	 */
 	snd_soc_update_bits(codec, WM8962_CLOCKING2, WM8962_SYSCLK_ENA, 0);
 
+<<<<<<< HEAD
 	/* Ensure that the oscillator and PLLs are disabled */
 	snd_soc_update_bits(codec, WM8962_PLL2,
 			    WM8962_OSC_ENA | WM8962_PLL2_ENA | WM8962_PLL3_ENA,
 			    0);
+=======
+	/* Ensure we have soft control over all registers */
+	snd_soc_update_bits(codec, WM8962_CLOCKING2,
+			    WM8962_CLKREG_OVD, WM8962_CLKREG_OVD);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 	regulator_bulk_disable(ARRAY_SIZE(wm8962->supplies), wm8962->supplies);
 

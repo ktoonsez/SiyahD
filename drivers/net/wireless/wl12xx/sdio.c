@@ -170,6 +170,7 @@ static int wl1271_sdio_power_on(struct wl1271 *wl)
 	struct sdio_func *func = wl_to_func(wl);
 	int ret;
 
+<<<<<<< HEAD
 	/* Make sure the card will not be powered off by runtime PM */
 	ret = pm_runtime_get_sync(&func->dev);
 	if (ret < 0)
@@ -179,6 +180,19 @@ static int wl1271_sdio_power_on(struct wl1271 *wl)
 	ret = mmc_power_restore_host(func->card->host);
 	if (ret < 0)
 		goto out;
+=======
+	/* If enabled, tell runtime PM not to power off the card */
+	if (pm_runtime_enabled(&func->dev)) {
+		ret = pm_runtime_get_sync(&func->dev);
+		if (ret < 0)
+			goto out;
+	} else {
+		/* Runtime PM is disabled: power up the card manually */
+		ret = mmc_power_restore_host(func->card->host);
+		if (ret < 0)
+			goto out;
+	}
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 	sdio_claim_host(func);
 	sdio_enable_func(func);

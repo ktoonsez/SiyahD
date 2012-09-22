@@ -690,9 +690,15 @@ static int __init sfi_parse_devs(struct sfi_table_header *table)
 			irq_attr.ioapic_pin = irq;
 			irq_attr.trigger = 1;
 			irq_attr.polarity = 1;
+<<<<<<< HEAD
 			io_apic_set_pci_routing(NULL, irq, &irq_attr);
 		} else
 			irq = 0; /* No irq */
+=======
+			io_apic_set_pci_routing(NULL, pentry->irq, &irq_attr);
+		} else
+			pentry->irq = 0; /* No irq */
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 		switch (pentry->type) {
 		case SFI_DEV_TYPE_IPC:

@@ -343,6 +343,25 @@ static int ttm_bo_add_ttm(struct ttm_buffer_object *bo, bool zero_alloc)
 		if (unlikely(bo->ttm == NULL))
 			ret = -ENOMEM;
 		break;
+<<<<<<< HEAD
+=======
+	case ttm_bo_type_user:
+		bo->ttm = ttm_tt_create(bdev, bo->num_pages << PAGE_SHIFT,
+					page_flags | TTM_PAGE_FLAG_USER,
+					glob->dummy_read_page);
+		if (unlikely(bo->ttm == NULL)) {
+			ret = -ENOMEM;
+			break;
+		}
+
+		ret = ttm_tt_set_user(bo->ttm, current,
+				      bo->buffer_start, bo->num_pages);
+		if (unlikely(ret != 0)) {
+			ttm_tt_destroy(bo->ttm);
+			bo->ttm = NULL;
+		}
+		break;
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	default:
 		pr_err("Illegal buffer object type\n");
 		ret = -EINVAL;
@@ -379,8 +398,12 @@ static int ttm_bo_handle_move_mem(struct ttm_buffer_object *bo,
 
 	if (!(new_man->flags & TTM_MEMTYPE_FLAG_FIXED)) {
 		if (bo->ttm == NULL) {
+<<<<<<< HEAD
 			bool zero = !(old_man->flags & TTM_MEMTYPE_FLAG_FIXED);
 			ret = ttm_bo_add_ttm(bo, zero);
+=======
+			ret = ttm_bo_add_ttm(bo, false);
+>>>>>>> bfa322c... Merge branch 'linus' into sched/core
 			if (ret)
 				goto out_err;
 		}
