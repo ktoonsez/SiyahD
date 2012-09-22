@@ -134,15 +134,9 @@ struct se_node_acl *core_tpg_get_initiator_node_acl(
 
 	spin_lock_irq(&tpg->acl_node_lock);
 	list_for_each_entry(acl, &tpg->acl_node_list, acl_list) {
-<<<<<<< HEAD
-		if (!(strcmp(acl->initiatorname, initiatorname)) &&
-		   (!(acl->dynamic_node_acl))) {
-			spin_unlock_bh(&tpg->acl_node_lock);
-=======
 		if (!strcmp(acl->initiatorname, initiatorname) &&
 		    !acl->dynamic_node_acl) {
 			spin_unlock_irq(&tpg->acl_node_lock);
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 			return acl;
 		}
 	}
@@ -368,17 +362,10 @@ struct se_node_acl *core_tpg_add_initiator_node_acl(
 	if ((acl)) {
 		if (acl->dynamic_node_acl) {
 			acl->dynamic_node_acl = 0;
-<<<<<<< HEAD
-			printk(KERN_INFO "%s_TPG[%u] - Replacing dynamic ACL"
-				" for %s\n", TPG_TFO(tpg)->get_fabric_name(),
-				TPG_TFO(tpg)->tpg_get_tag(tpg), initiatorname);
-			spin_unlock_bh(&tpg->acl_node_lock);
-=======
 			pr_debug("%s_TPG[%u] - Replacing dynamic ACL"
 				" for %s\n", tpg->se_tpg_tfo->get_fabric_name(),
 				tpg->se_tpg_tfo->tpg_get_tag(tpg), initiatorname);
 			spin_unlock_irq(&tpg->acl_node_lock);
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 			/*
 			 * Release the locally allocated struct se_node_acl
 			 * because * core_tpg_add_initiator_node_acl() returned
@@ -392,15 +379,9 @@ struct se_node_acl *core_tpg_add_initiator_node_acl(
 
 		printk(KERN_ERR "ACL entry for %s Initiator"
 			" Node %s already exists for TPG %u, ignoring"
-<<<<<<< HEAD
-			" request.\n",  TPG_TFO(tpg)->get_fabric_name(),
-			initiatorname, TPG_TFO(tpg)->tpg_get_tag(tpg));
-		spin_unlock_bh(&tpg->acl_node_lock);
-=======
 			" request.\n",  tpg->se_tpg_tfo->get_fabric_name(),
 			initiatorname, tpg->se_tpg_tfo->tpg_get_tag(tpg));
 		spin_unlock_irq(&tpg->acl_node_lock);
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 		return ERR_PTR(-EEXIST);
 	}
 	spin_unlock_irq(&tpg->acl_node_lock);
@@ -530,15 +511,9 @@ int core_tpg_set_initiator_node_queue_depth(
 	if (!(acl)) {
 		printk(KERN_ERR "Access Control List entry for %s Initiator"
 			" Node %s does not exists for TPG %hu, ignoring"
-<<<<<<< HEAD
-			" request.\n", TPG_TFO(tpg)->get_fabric_name(),
-			initiatorname, TPG_TFO(tpg)->tpg_get_tag(tpg));
-		spin_unlock_bh(&tpg->acl_node_lock);
-=======
 			" request.\n", tpg->se_tpg_tfo->get_fabric_name(),
 			initiatorname, tpg->se_tpg_tfo->tpg_get_tag(tpg));
 		spin_unlock_irq(&tpg->acl_node_lock);
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 		return -ENODEV;
 	}
 	if (acl->dynamic_node_acl) {
@@ -613,7 +588,7 @@ int core_tpg_set_initiator_node_queue_depth(
 	if (init_sess)
 		TPG_TFO(tpg)->close_session(init_sess);
 
-	printk(KERN_INFO "Successfuly changed queue depth to: %d for Initiator"
+	pr_debug("Successfully changed queue depth to: %d for Initiator"
 		" Node: %s on %s Target Portal Group: %u\n", queue_depth,
 		initiatorname, TPG_TFO(tpg)->get_fabric_name(),
 		TPG_TFO(tpg)->tpg_get_tag(tpg));
