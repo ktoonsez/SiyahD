@@ -445,6 +445,8 @@ void fcoe_interface_cleanup(struct fcoe_interface *fcoe)
 	/* Free existing transmit skbs */
 	fcoe_clean_pending_queue(fcoe->ctlr.lp);
 
+	rtnl_lock();
+
 	/*
 	 * Don't listen for Ethernet packets anymore.
 	 * synchronize_net() ensures that the packet handlers are not running
@@ -476,6 +478,13 @@ void fcoe_interface_cleanup(struct fcoe_interface *fcoe)
 			FCOE_NETDEV_DBG(netdev, "Failed to disable FCoE"
 					" specific feature for LLD.\n");
 	}
+<<<<<<< HEAD
+=======
+
+	rtnl_unlock();
+
+	/* Release the self-reference taken during fcoe_interface_create() */
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 	fcoe_interface_put(fcoe);
 }
 
@@ -1874,6 +1883,14 @@ static void fcoe_destroy_work(struct work_struct *work)
 	port = container_of(work, struct fcoe_port, destroy_work);
 	mutex_lock(&fcoe_config_mutex);
 	fcoe_if_destroy(port->lport);
+<<<<<<< HEAD
+=======
+
+	/* Do not tear down the fcoe interface for NPIV port */
+	if (!npiv)
+		fcoe_interface_cleanup(fcoe);
+
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 	mutex_unlock(&fcoe_config_mutex);
 }
 
@@ -1926,8 +1943,13 @@ static int fcoe_create(struct net_device *netdev, enum fip_state fip_mode)
 		printk(KERN_ERR "fcoe: Failed to create interface (%s)\n",
 		       netdev->name);
 		rc = -EIO;
+		rtnl_unlock();
 		fcoe_interface_cleanup(fcoe);
+<<<<<<< HEAD
 		goto out_free;
+=======
+		goto out_nortnl;
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 	}
 
 	/* Make this the "master" N_Port */
@@ -1955,6 +1977,7 @@ out_free:
 	fcoe_interface_put(fcoe);
 out_nodev:
 	rtnl_unlock();
+out_nortnl:
 	mutex_unlock(&fcoe_config_mutex);
 	return rc;
 }

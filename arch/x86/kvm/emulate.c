@@ -3683,8 +3683,13 @@ done_prefixes:
 	case Src2None:
 		break;
 	case Src2CL:
+<<<<<<< HEAD
 		c->src2.bytes = 1;
 		c->src2.val = c->regs[VCPU_REGS_RCX] & 0x8;
+=======
+		ctxt->src2.bytes = 1;
+		ctxt->src2.val = ctxt->regs[VCPU_REGS_RCX] & 0xff;
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 		break;
 	case Src2ImmByte:
 		rc = decode_imm(ctxt, &c->src2, 1, true);

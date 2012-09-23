@@ -16,9 +16,14 @@
 #endif
 
 .macro altinstruction_entry orig alt feature orig_len alt_len
+<<<<<<< HEAD
 	.align 8
 	.quad \orig
 	.quad \alt
+=======
+	.long \orig - .
+	.long \alt - .
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 	.word \feature
 	.byte \orig_len
 	.byte \alt_len

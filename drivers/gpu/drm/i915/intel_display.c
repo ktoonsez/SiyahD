@@ -1775,6 +1775,7 @@ static void intel_update_fbc(struct drm_device *dev)
 	struct drm_framebuffer *fb;
 	struct intel_framebuffer *intel_fb;
 	struct drm_i915_gem_object *obj;
+	int enable_fbc;
 
 	DRM_DEBUG_KMS("\n");
 
@@ -1815,8 +1816,15 @@ static void intel_update_fbc(struct drm_device *dev)
 	intel_fb = to_intel_framebuffer(fb);
 	obj = intel_fb->obj;
 
-	if (!i915_enable_fbc) {
-		DRM_DEBUG_KMS("fbc disabled per module param (default off)\n");
+	enable_fbc = i915_enable_fbc;
+	if (enable_fbc < 0) {
+		DRM_DEBUG_KMS("fbc set to per-chip default\n");
+		enable_fbc = 1;
+		if (INTEL_INFO(dev)->gen <= 5)
+			enable_fbc = 0;
+	}
+	if (!enable_fbc) {
+		DRM_DEBUG_KMS("fbc disabled per module param\n");
 		dev_priv->no_fbc_reason = FBC_MODULE_PARAM;
 		goto out_disable;
 	}
@@ -4399,6 +4407,140 @@ static inline bool intel_panel_use_ssc(struct drm_i915_private *dev_priv)
 		&& !(dev_priv->quirks & QUIRK_LVDS_SSC_DISABLE);
 }
 
+<<<<<<< HEAD
+=======
+/**
+ * intel_choose_pipe_bpp_dither - figure out what color depth the pipe should send
+ * @crtc: CRTC structure
+ *
+ * A pipe may be connected to one or more outputs.  Based on the depth of the
+ * attached framebuffer, choose a good color depth to use on the pipe.
+ *
+ * If possible, match the pipe depth to the fb depth.  In some cases, this
+ * isn't ideal, because the connected output supports a lesser or restricted
+ * set of depths.  Resolve that here:
+ *    LVDS typically supports only 6bpc, so clamp down in that case
+ *    HDMI supports only 8bpc or 12bpc, so clamp to 8bpc with dither for 10bpc
+ *    Displays may support a restricted set as well, check EDID and clamp as
+ *      appropriate.
+ *
+ * RETURNS:
+ * Dithering requirement (i.e. false if display bpc and pipe bpc match,
+ * true if they don't match).
+ */
+static bool intel_choose_pipe_bpp_dither(struct drm_crtc *crtc,
+					 unsigned int *pipe_bpp)
+{
+	struct drm_device *dev = crtc->dev;
+	struct drm_i915_private *dev_priv = dev->dev_private;
+	struct drm_encoder *encoder;
+	struct drm_connector *connector;
+	unsigned int display_bpc = UINT_MAX, bpc;
+
+	/* Walk the encoders & connectors on this crtc, get min bpc */
+	list_for_each_entry(encoder, &dev->mode_config.encoder_list, head) {
+		struct intel_encoder *intel_encoder = to_intel_encoder(encoder);
+
+		if (encoder->crtc != crtc)
+			continue;
+
+		if (intel_encoder->type == INTEL_OUTPUT_LVDS) {
+			unsigned int lvds_bpc;
+
+			if ((I915_READ(PCH_LVDS) & LVDS_A3_POWER_MASK) ==
+			    LVDS_A3_POWER_UP)
+				lvds_bpc = 8;
+			else
+				lvds_bpc = 6;
+
+			if (lvds_bpc < display_bpc) {
+				DRM_DEBUG_DRIVER("clamping display bpc (was %d) to LVDS (%d)\n", display_bpc, lvds_bpc);
+				display_bpc = lvds_bpc;
+			}
+			continue;
+		}
+
+		if (intel_encoder->type == INTEL_OUTPUT_EDP) {
+			/* Use VBT settings if we have an eDP panel */
+			unsigned int edp_bpc = dev_priv->edp.bpp / 3;
+
+			if (edp_bpc < display_bpc) {
+				DRM_DEBUG_DRIVER("clamping display bpc (was %d) to eDP (%d)\n", display_bpc, edp_bpc);
+				display_bpc = edp_bpc;
+			}
+			continue;
+		}
+
+		/* Not one of the known troublemakers, check the EDID */
+		list_for_each_entry(connector, &dev->mode_config.connector_list,
+				    head) {
+			if (connector->encoder != encoder)
+				continue;
+
+			/* Don't use an invalid EDID bpc value */
+			if (connector->display_info.bpc &&
+			    connector->display_info.bpc < display_bpc) {
+				DRM_DEBUG_DRIVER("clamping display bpc (was %d) to EDID reported max of %d\n", display_bpc, connector->display_info.bpc);
+				display_bpc = connector->display_info.bpc;
+			}
+		}
+
+		/*
+		 * HDMI is either 12 or 8, so if the display lets 10bpc sneak
+		 * through, clamp it down.  (Note: >12bpc will be caught below.)
+		 */
+		if (intel_encoder->type == INTEL_OUTPUT_HDMI) {
+			if (display_bpc > 8 && display_bpc < 12) {
+				DRM_DEBUG_DRIVER("forcing bpc to 12 for HDMI\n");
+				display_bpc = 12;
+			} else {
+				DRM_DEBUG_DRIVER("forcing bpc to 8 for HDMI\n");
+				display_bpc = 8;
+			}
+		}
+	}
+
+	/*
+	 * We could just drive the pipe at the highest bpc all the time and
+	 * enable dithering as needed, but that costs bandwidth.  So choose
+	 * the minimum value that expresses the full color range of the fb but
+	 * also stays within the max display bpc discovered above.
+	 */
+
+	switch (crtc->fb->depth) {
+	case 8:
+		bpc = 8; /* since we go through a colormap */
+		break;
+	case 15:
+	case 16:
+		bpc = 6; /* min is 18bpp */
+		break;
+	case 24:
+		bpc = 8;
+		break;
+	case 30:
+		bpc = 10;
+		break;
+	case 48:
+		bpc = 12;
+		break;
+	default:
+		DRM_DEBUG("unsupported depth, assuming 24 bits\n");
+		bpc = min((unsigned int)8, display_bpc);
+		break;
+	}
+
+	display_bpc = min(display_bpc, bpc);
+
+	DRM_DEBUG_DRIVER("setting pipe bpc to %d (max display bpc %d)\n",
+			 bpc, display_bpc);
+
+	*pipe_bpp = display_bpc * 3;
+
+	return display_bpc != bpc;
+}
+
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 static int i9xx_crtc_mode_set(struct drm_crtc *crtc,
 			      struct drm_display_mode *mode,
 			      struct drm_display_mode *adjusted_mode,

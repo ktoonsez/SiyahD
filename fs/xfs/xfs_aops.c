@@ -1310,6 +1310,7 @@ xfs_end_io_direct_write(
 	bool			is_async)
 {
 	struct xfs_ioend	*ioend = iocb->private;
+	struct inode		*inode = ioend->io_inode;
 
 	/*
 	 * blockdev_direct_IO can return an error even after the I/O
@@ -1339,6 +1340,12 @@ xfs_end_io_direct_write(
 	} else {
 		xfs_finish_ioend_sync(ioend);
 	}
+<<<<<<< HEAD
+=======
+
+	/* XXX: probably should move into the real I/O completion handler */
+	inode_dio_done(inode);
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 }
 
 STATIC ssize_t

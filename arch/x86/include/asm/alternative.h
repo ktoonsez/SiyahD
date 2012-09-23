@@ -48,9 +48,6 @@ struct alt_instr {
 	u16 cpuid;		/* cpuid bit set for replacement */
 	u8  instrlen;		/* length of original instruction */
 	u8  replacementlen;	/* length of new instruction, <= instrlen */
-#ifdef CONFIG_X86_64
-	u32 pad2;
-#endif
 };
 
 extern void alternative_instructions(void);
@@ -83,9 +80,14 @@ static inline int alternatives_text_reserved(void *start, void *end)
 									\
       "661:\n\t" oldinstr "\n662:\n"					\
       ".section .altinstructions,\"a\"\n"				\
+<<<<<<< HEAD
       _ASM_ALIGN "\n"							\
       _ASM_PTR "661b\n"				/* label           */	\
       _ASM_PTR "663f\n"				/* new instruction */	\
+=======
+      "	 .long 661b - .\n"			/* label           */	\
+      "	 .long 663f - .\n"			/* new instruction */	\
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
       "	 .word " __stringify(feature) "\n"	/* feature bit     */	\
       "	 .byte 662b-661b\n"			/* sourcelen       */	\
       "	 .byte 664f-663f\n"			/* replacementlen  */	\

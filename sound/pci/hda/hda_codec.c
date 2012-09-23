@@ -479,8 +479,20 @@ static int copy_conn_list(hda_nid_t nid, hda_nid_t *dst, int max_dst,
 			   len, nid);
 		return -EINVAL;
 	}
+<<<<<<< HEAD
 	memcpy(dst, src, len * sizeof(hda_nid_t));
 	return len;
+=======
+	recursive++;
+	for (i = 0; i < nums; i++) {
+		unsigned int type = get_wcaps_type(get_wcaps(codec, conn[i]));
+		if (type == AC_WID_PIN || type == AC_WID_AUD_OUT)
+			continue;
+		if (snd_hda_get_conn_index(codec, conn[i], nid, recursive) >= 0)
+			return i;
+	}
+	return -1;
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 }
 
 /**

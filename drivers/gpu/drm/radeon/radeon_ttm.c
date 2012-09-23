@@ -262,6 +262,7 @@ static int radeon_move_blit(struct ttm_buffer_object *bo,
 
 	BUILD_BUG_ON((PAGE_SIZE % RADEON_GPU_PAGE_SIZE) != 0);
 
+<<<<<<< HEAD
 	/* sync other rings */
 	if (rdev->family >= CHIP_R600) {
 		for (i = 0; i < RADEON_NUM_RINGS; ++i) {
@@ -292,6 +293,8 @@ static int radeon_move_blit(struct ttm_buffer_object *bo,
 		}
 	}
 
+=======
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 	r = radeon_copy(rdev, old_start, new_start,
 			new_mem->num_pages * (PAGE_SIZE / RADEON_GPU_PAGE_SIZE), /* GPU pages */
 			fence);

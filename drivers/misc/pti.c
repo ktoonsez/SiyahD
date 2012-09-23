@@ -162,11 +162,17 @@ static void pti_write_to_aperture(struct pti_masterchannel *mc,
 
 static void pti_control_frame_built_and_sent(struct pti_masterchannel *mc)
 {
+	/*
+	 * Since we access the comm member in current's task_struct, we only
+	 * need to be as large as what 'comm' in that structure is.
+	 */
+	char comm[TASK_COMM_LEN];
 	struct pti_masterchannel mccontrol = {.master = CONTROL_ID,
 					      .channel = 0};
 	const char *control_format = "%3d %3d %s";
 	u8 control_frame[CONTROL_FRAME_LEN];
 
+<<<<<<< HEAD
 	/*
 	 * Since we access the comm member in current's task_struct,
 	 * we only need to be as large as what 'comm' in that
@@ -178,6 +184,13 @@ static void pti_control_frame_built_and_sent(struct pti_masterchannel *mc)
 		get_task_comm(comm, current);
 	else
 		strncpy(comm, "Interrupt", TASK_COMM_LEN);
+=======
+	if (!thread_name) {
+		if (!in_interrupt())
+			get_task_comm(comm, current);
+		else
+			strncpy(comm, "Interrupt", TASK_COMM_LEN);
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 
 	/* Absolutely ensure our buffer is zero terminated. */
 	comm[TASK_COMM_LEN-1] = 0;

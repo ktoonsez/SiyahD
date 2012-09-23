@@ -931,8 +931,12 @@ static struct clksrc_clk clksrcs[] = {
 		.reg_div = { .reg = S5P_CLK_DIV3, .shift = 20, .size = 4 },
 	}, {
 		.clk		= {
+<<<<<<< HEAD
 			.name		= "sclk_cam",
 			.id		= 0,
+=======
+			.name		= "sclk_cam0",
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 			.enable		= s5pv210_clk_mask0_ctrl,
 			.ctrlbit	= (1 << 3),
 		},
@@ -941,8 +945,12 @@ static struct clksrc_clk clksrcs[] = {
 		.reg_div = { .reg = S5P_CLK_DIV1, .shift = 12, .size = 4 },
 	}, {
 		.clk		= {
+<<<<<<< HEAD
 			.name		= "sclk_cam",
 			.id		= 1,
+=======
+			.name		= "sclk_cam1",
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 			.enable		= s5pv210_clk_mask0_ctrl,
 			.ctrlbit	= (1 << 4),
 		},

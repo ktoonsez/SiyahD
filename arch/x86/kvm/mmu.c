@@ -293,9 +293,81 @@ static u64 __xchg_spte(u64 *sptep, u64 new_spte)
 #else
 	u64 old_spte;
 
+<<<<<<< HEAD
 	do {
 		old_spte = *sptep;
 	} while (cmpxchg64(sptep, old_spte, new_spte) != old_spte);
+=======
+	/*
+	 * If we map the spte from present to nonpresent, we should clear
+	 * present bit firstly to avoid vcpu fetch the old high bits.
+	 */
+	smp_wmb();
+
+	ssptep->spte_high = sspte.spte_high;
+	count_spte_clear(sptep, spte);
+}
+
+static u64 __update_clear_spte_slow(u64 *sptep, u64 spte)
+{
+	union split_spte *ssptep, sspte, orig;
+
+	ssptep = (union split_spte *)sptep;
+	sspte = (union split_spte)spte;
+
+	/* xchg acts as a barrier before the setting of the high bits */
+	orig.spte_low = xchg(&ssptep->spte_low, sspte.spte_low);
+	orig.spte_high = ssptep->spte_high;
+	ssptep->spte_high = sspte.spte_high;
+	count_spte_clear(sptep, spte);
+
+	return orig.spte;
+}
+
+/*
+ * The idea using the light way get the spte on x86_32 guest is from
+ * gup_get_pte(arch/x86/mm/gup.c).
+ * The difference is we can not catch the spte tlb flush if we leave
+ * guest mode, so we emulate it by increase clear_spte_count when spte
+ * is cleared.
+ */
+static u64 __get_spte_lockless(u64 *sptep)
+{
+	struct kvm_mmu_page *sp =  page_header(__pa(sptep));
+	union split_spte spte, *orig = (union split_spte *)sptep;
+	int count;
+
+retry:
+	count = sp->clear_spte_count;
+	smp_rmb();
+
+	spte.spte_low = orig->spte_low;
+	smp_rmb();
+
+	spte.spte_high = orig->spte_high;
+	smp_rmb();
+
+	if (unlikely(spte.spte_low != orig->spte_low ||
+	      count != sp->clear_spte_count))
+		goto retry;
+
+	return spte.spte;
+}
+
+static bool __check_direct_spte_mmio_pf(u64 spte)
+{
+	union split_spte sspte = (union split_spte)spte;
+	u32 high_mmio_mask = shadow_mmio_mask >> 32;
+
+	/* It is valid if the spte is zapped. */
+	if (spte == 0ull)
+		return true;
+
+	/* It is valid if the spte is being zapped. */
+	if (sspte.spte_low == 0ull &&
+	    (sspte.spte_high & high_mmio_mask) == high_mmio_mask)
+		return true;
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 
 	return old_spte;
 #endif

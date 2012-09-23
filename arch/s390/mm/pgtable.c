@@ -133,7 +133,134 @@ void crst_table_downgrade(struct mm_struct *mm, unsigned long limit)
 }
 #endif
 
+<<<<<<< HEAD
 static inline unsigned int atomic_xor_bits(atomic_t *v, unsigned int bits)
+=======
+#ifdef CONFIG_PGSTE
+
+/**
+ * gmap_alloc - allocate a guest address space
+ * @mm: pointer to the parent mm_struct
+ *
+ * Returns a guest address space structure.
+ */
+struct gmap *gmap_alloc(struct mm_struct *mm)
+{
+	struct gmap *gmap;
+	struct page *page;
+	unsigned long *table;
+
+	gmap = kzalloc(sizeof(struct gmap), GFP_KERNEL);
+	if (!gmap)
+		goto out;
+	INIT_LIST_HEAD(&gmap->crst_list);
+	gmap->mm = mm;
+	page = alloc_pages(GFP_KERNEL, ALLOC_ORDER);
+	if (!page)
+		goto out_free;
+	list_add(&page->lru, &gmap->crst_list);
+	table = (unsigned long *) page_to_phys(page);
+	crst_table_init(table, _REGION1_ENTRY_EMPTY);
+	gmap->table = table;
+	gmap->asce = _ASCE_TYPE_REGION1 | _ASCE_TABLE_LENGTH |
+		     _ASCE_USER_BITS | __pa(table);
+	list_add(&gmap->list, &mm->context.gmap_list);
+	return gmap;
+
+out_free:
+	kfree(gmap);
+out:
+	return NULL;
+}
+EXPORT_SYMBOL_GPL(gmap_alloc);
+
+static int gmap_unlink_segment(struct gmap *gmap, unsigned long *table)
+{
+	struct gmap_pgtable *mp;
+	struct gmap_rmap *rmap;
+	struct page *page;
+
+	if (*table & _SEGMENT_ENTRY_INV)
+		return 0;
+	page = pfn_to_page(*table >> PAGE_SHIFT);
+	mp = (struct gmap_pgtable *) page->index;
+	list_for_each_entry(rmap, &mp->mapper, list) {
+		if (rmap->entry != table)
+			continue;
+		list_del(&rmap->list);
+		kfree(rmap);
+		break;
+	}
+	*table = _SEGMENT_ENTRY_INV | _SEGMENT_ENTRY_RO | mp->vmaddr;
+	return 1;
+}
+
+static void gmap_flush_tlb(struct gmap *gmap)
+{
+	if (MACHINE_HAS_IDTE)
+		__tlb_flush_idte((unsigned long) gmap->table |
+				 _ASCE_TYPE_REGION1);
+	else
+		__tlb_flush_global();
+}
+
+/**
+ * gmap_free - free a guest address space
+ * @gmap: pointer to the guest address space structure
+ */
+void gmap_free(struct gmap *gmap)
+{
+	struct page *page, *next;
+	unsigned long *table;
+	int i;
+
+
+	/* Flush tlb. */
+	if (MACHINE_HAS_IDTE)
+		__tlb_flush_idte((unsigned long) gmap->table |
+				 _ASCE_TYPE_REGION1);
+	else
+		__tlb_flush_global();
+
+	/* Free all segment & region tables. */
+	down_read(&gmap->mm->mmap_sem);
+	list_for_each_entry_safe(page, next, &gmap->crst_list, lru) {
+		table = (unsigned long *) page_to_phys(page);
+		if ((*table & _REGION_ENTRY_TYPE_MASK) == 0)
+			/* Remove gmap rmap structures for segment table. */
+			for (i = 0; i < PTRS_PER_PMD; i++, table++)
+				gmap_unlink_segment(gmap, table);
+		__free_pages(page, ALLOC_ORDER);
+	}
+	up_read(&gmap->mm->mmap_sem);
+	list_del(&gmap->list);
+	kfree(gmap);
+}
+EXPORT_SYMBOL_GPL(gmap_free);
+
+/**
+ * gmap_enable - switch primary space to the guest address space
+ * @gmap: pointer to the guest address space structure
+ */
+void gmap_enable(struct gmap *gmap)
+{
+	S390_lowcore.gmap = (unsigned long) gmap;
+}
+EXPORT_SYMBOL_GPL(gmap_enable);
+
+/**
+ * gmap_disable - switch back to the standard primary address space
+ * @gmap: pointer to the guest address space structure
+ */
+void gmap_disable(struct gmap *gmap)
+{
+	S390_lowcore.gmap = 0UL;
+}
+EXPORT_SYMBOL_GPL(gmap_disable);
+
+static int gmap_alloc_table(struct gmap *gmap,
+			       unsigned long *table, unsigned long init)
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 {
 	unsigned int old, new;
 
@@ -144,8 +271,67 @@ static inline unsigned int atomic_xor_bits(atomic_t *v, unsigned int bits)
 	return new;
 }
 
+<<<<<<< HEAD
 /*
  * page table entry allocation/free routines.
+=======
+/**
+ * gmap_unmap_segment - unmap segment from the guest address space
+ * @gmap: pointer to the guest address space structure
+ * @addr: address in the guest address space
+ * @len: length of the memory area to unmap
+ *
+ * Returns 0 if the unmap succeded, -EINVAL if not.
+ */
+int gmap_unmap_segment(struct gmap *gmap, unsigned long to, unsigned long len)
+{
+	unsigned long *table;
+	unsigned long off;
+	int flush;
+
+	if ((to | len) & (PMD_SIZE - 1))
+		return -EINVAL;
+	if (len == 0 || to + len < to)
+		return -EINVAL;
+
+	flush = 0;
+	down_read(&gmap->mm->mmap_sem);
+	for (off = 0; off < len; off += PMD_SIZE) {
+		/* Walk the guest addr space page table */
+		table = gmap->table + (((to + off) >> 53) & 0x7ff);
+		if (*table & _REGION_ENTRY_INV)
+			goto out;
+		table = (unsigned long *)(*table & _REGION_ENTRY_ORIGIN);
+		table = table + (((to + off) >> 42) & 0x7ff);
+		if (*table & _REGION_ENTRY_INV)
+			goto out;
+		table = (unsigned long *)(*table & _REGION_ENTRY_ORIGIN);
+		table = table + (((to + off) >> 31) & 0x7ff);
+		if (*table & _REGION_ENTRY_INV)
+			goto out;
+		table = (unsigned long *)(*table & _REGION_ENTRY_ORIGIN);
+		table = table + (((to + off) >> 20) & 0x7ff);
+
+		/* Clear segment table entry in guest address space. */
+		flush |= gmap_unlink_segment(gmap, table);
+		*table = _SEGMENT_ENTRY_INV;
+	}
+out:
+	up_read(&gmap->mm->mmap_sem);
+	if (flush)
+		gmap_flush_tlb(gmap);
+	return 0;
+}
+EXPORT_SYMBOL_GPL(gmap_unmap_segment);
+
+/**
+ * gmap_mmap_segment - map a segment to the guest address space
+ * @gmap: pointer to the guest address space structure
+ * @from: source address in the parent address space
+ * @to: target address in the guest address space
+ *
+ * Returns 0 if the mmap succeded, -EINVAL or -ENOMEM if not.
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
  */
 #ifdef CONFIG_PGSTE
 static inline unsigned long *page_table_alloc_pgste(struct mm_struct *mm)

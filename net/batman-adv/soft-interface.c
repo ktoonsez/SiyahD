@@ -563,7 +563,7 @@ int interface_tx(struct sk_buff *skb, struct net_device *soft_iface)
 	struct softif_neigh *curr_softif_neigh = NULL;
 	int data_len = skb->len, ret;
 	short vid = -1;
-	bool do_bcast = false;
+	bool do_bcast;
 
 	if (atomic_read(&bat_priv->mesh_state) != MESH_ACTIVE)
 		goto dropped;
@@ -595,14 +595,21 @@ int interface_tx(struct sk_buff *skb, struct net_device *soft_iface)
 	/* TODO: check this for locks */
 	tt_local_add(soft_iface, ethhdr->h_source);
 
+<<<<<<< HEAD
 	if (is_multicast_ether_addr(ethhdr->h_dest)) {
 		ret = gw_is_target(bat_priv, skb);
+=======
+	orig_node = transtable_search(bat_priv, ethhdr->h_dest);
+	do_bcast = is_multicast_ether_addr(ethhdr->h_dest);
+	if (do_bcast ||	(orig_node && orig_node->gw_flags)) {
+		ret = gw_is_target(bat_priv, skb, orig_node);
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 
 		if (ret < 0)
 			goto dropped;
 
-		if (ret == 0)
-			do_bcast = true;
+		if (ret)
+			do_bcast = false;
 	}
 
 	/* ethernet packet should be broadcasted */

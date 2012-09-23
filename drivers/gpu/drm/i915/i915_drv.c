@@ -68,7 +68,11 @@ module_param_named(i915_enable_rc6, i915_enable_rc6, int, 0600);
 MODULE_PARM_DESC(i915_enable_rc6,
 		"Enable power-saving render C-state 6 (default: -1 (use per-chip default)");
 
+<<<<<<< HEAD
 int i915_enable_fbc __read_mostly = -1;
+=======
+unsigned int i915_enable_fbc __read_mostly = -1;
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 module_param_named(i915_enable_fbc, i915_enable_fbc, int, 0600);
 MODULE_PARM_DESC(i915_enable_fbc,
 		"Enable frame buffer compression for power savings "

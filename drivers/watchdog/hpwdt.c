@@ -484,6 +484,7 @@ static int hpwdt_pretimeout(struct notifier_block *nb, unsigned long ulReason,
 		asminline_call(&cmn_regs, cru_rom_addr);
 	die_nmi_called = 1;
 	spin_unlock_irqrestore(&rom_lock, rom_pl);
+<<<<<<< HEAD
 	if (cmn_regs.u1.ral == 0) {
 		printk(KERN_WARNING "hpwdt: An NMI occurred, "
 			"but unable to determine source.\n");
@@ -493,6 +494,21 @@ static int hpwdt_pretimeout(struct notifier_block *nb, unsigned long ulReason,
 		panic("An NMI occurred, please see the Integrated "
 			"Management Log for details.\n");
 	}
+=======
+
+	if (allow_kdump)
+		hpwdt_stop();
+
+	if (!is_icru) {
+		if (cmn_regs.u1.ral == 0) {
+			panic("An NMI occurred, "
+				"but unable to determine source.\n");
+		}
+	}
+	panic("An NMI occurred, please see the Integrated "
+		"Management Log for details.\n");
+
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 out:
 	return NOTIFY_OK;
 }

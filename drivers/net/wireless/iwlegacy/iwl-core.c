@@ -1785,6 +1785,22 @@ int iwl_legacy_force_reset(struct iwl_priv *priv, int mode, bool external)
 		queue_work(priv->workqueue, &priv->restart);
 		break;
 	}
+<<<<<<< HEAD
+=======
+
+	IWL_ERR(priv, "On demand firmware reload\n");
+
+	/* Set the FW error flag -- cleared on iwl_down */
+	set_bit(STATUS_FW_ERROR, &priv->status);
+	wake_up(&priv->wait_command_queue);
+	/*
+	 * Keep the restart process from trying to send host
+	 * commands by clearing the INIT status bit
+	 */
+	clear_bit(STATUS_READY, &priv->status);
+	queue_work(priv->workqueue, &priv->restart);
+
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 	return 0;
 }
 

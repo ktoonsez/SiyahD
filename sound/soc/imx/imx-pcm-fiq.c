@@ -241,6 +241,11 @@ static int ssi_irq = 0;
 static int imx_pcm_fiq_new(struct snd_card *card, struct snd_soc_dai *dai,
 	struct snd_pcm *pcm)
 {
+<<<<<<< HEAD
+=======
+	struct snd_soc_dai *dai = rtd->cpu_dai;
+	struct snd_pcm *pcm = rtd->pcm;
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 	int ret;
 
 	ret = imx_pcm_new(card, dai, pcm);

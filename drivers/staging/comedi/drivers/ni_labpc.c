@@ -239,6 +239,12 @@ static int labpc_eeprom_write_insn(struct comedi_device *dev,
 				   unsigned int *data);
 static unsigned int labpc_suggest_transfer_size(struct comedi_cmd cmd);
 static void labpc_adc_timing(struct comedi_device *dev, struct comedi_cmd *cmd);
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_ISA_DMA_API
+static unsigned int labpc_suggest_transfer_size(struct comedi_cmd cmd);
+#endif
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 #ifdef CONFIG_COMEDI_PCI
 static int labpc_find_device(struct comedi_device *dev, int bus, int slot);
 #endif

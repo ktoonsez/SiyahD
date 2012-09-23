@@ -5496,7 +5496,27 @@ again:
 		stac92xx_set_config_regs(codec,
 				stac92hd83xxx_brd_tbl[spec->board_config]);
 
+<<<<<<< HEAD
 	if (spec->board_config != STAC_92HD83XXX_PWR_REF)
+=======
+	switch (codec->vendor_id) {
+	case 0x111d76d1:
+	case 0x111d76d9:
+	case 0x111d76df:
+	case 0x111d76e5:
+	case 0x111d7666:
+	case 0x111d7667:
+	case 0x111d7668:
+	case 0x111d7669:
+	case 0x111d76e3:
+	case 0x111d7604:
+	case 0x111d76d4:
+	case 0x111d7605:
+	case 0x111d76d5:
+	case 0x111d76e7:
+		if (spec->board_config == STAC_92HD83XXX_PWR_REF)
+			break;
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 		spec->num_pwrs = 0;
 
 	codec->patch_ops = stac92xx_patch_ops;

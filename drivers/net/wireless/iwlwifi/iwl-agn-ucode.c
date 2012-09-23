@@ -192,12 +192,20 @@ static int iwlagn_set_temperature_offset_calib(struct iwl_priv *priv)
 {
 	struct iwl_calib_temperature_offset_cmd cmd;
 	__le16 *offset_calib =
+<<<<<<< HEAD
 		(__le16 *)iwl_eeprom_query_addr(priv, EEPROM_5000_TEMPERATURE);
 	cmd.hdr.op_code = IWL_PHY_CALIBRATE_TEMP_OFFSET_CMD;
 	cmd.hdr.first_group = 0;
 	cmd.hdr.groups_num = 1;
 	cmd.hdr.data_valid = 1;
 	cmd.radio_sensor_offset = le16_to_cpu(offset_calib[1]);
+=======
+		(__le16 *)iwl_eeprom_query_addr(priv, EEPROM_TEMPERATURE);
+
+	memset(&cmd, 0, sizeof(cmd));
+	iwl_set_calib_hdr(&cmd.hdr, IWL_PHY_CALIBRATE_TEMP_OFFSET_CMD);
+	memcpy(&cmd.radio_sensor_offset, offset_calib, sizeof(*offset_calib));
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 	if (!(cmd.radio_sensor_offset))
 		cmd.radio_sensor_offset = DEFAULT_RADIO_SENSOR_OFFSET;
 	cmd.reserved = 0;

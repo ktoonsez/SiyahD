@@ -473,7 +473,10 @@ struct radeon_mc;
 #define RADEON_GPU_PAGE_SIZE 4096
 #define RADEON_GPU_PAGE_MASK (RADEON_GPU_PAGE_SIZE - 1)
 #define RADEON_GPU_PAGE_SHIFT 12
+<<<<<<< HEAD
 #define RADEON_GPU_PAGE_ALIGN(a) (((a) + RADEON_GPU_PAGE_MASK) & ~RADEON_GPU_PAGE_MASK)
+=======
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 
 struct radeon_gart {
 	dma_addr_t			table_addr;
@@ -1130,6 +1133,54 @@ struct radeon_asic {
 	void (*vga_set_state)(struct radeon_device *rdev, bool state);
 	bool (*gpu_is_lockup)(struct radeon_device *rdev, struct radeon_ring *cp);
 	int (*asic_reset)(struct radeon_device *rdev);
+<<<<<<< HEAD
+=======
+	void (*gart_tlb_flush)(struct radeon_device *rdev);
+	int (*gart_set_page)(struct radeon_device *rdev, int i, uint64_t addr);
+	int (*cp_init)(struct radeon_device *rdev, unsigned ring_size);
+	void (*cp_fini)(struct radeon_device *rdev);
+	void (*cp_disable)(struct radeon_device *rdev);
+	void (*cp_commit)(struct radeon_device *rdev);
+	void (*ring_start)(struct radeon_device *rdev);
+	int (*ring_test)(struct radeon_device *rdev);
+	void (*ring_ib_execute)(struct radeon_device *rdev, struct radeon_ib *ib);
+	int (*irq_set)(struct radeon_device *rdev);
+	int (*irq_process)(struct radeon_device *rdev);
+	u32 (*get_vblank_counter)(struct radeon_device *rdev, int crtc);
+	void (*fence_ring_emit)(struct radeon_device *rdev, struct radeon_fence *fence);
+	int (*cs_parse)(struct radeon_cs_parser *p);
+	int (*copy_blit)(struct radeon_device *rdev,
+			 uint64_t src_offset,
+			 uint64_t dst_offset,
+			 unsigned num_gpu_pages,
+			 struct radeon_fence *fence);
+	int (*copy_dma)(struct radeon_device *rdev,
+			uint64_t src_offset,
+			uint64_t dst_offset,
+			unsigned num_gpu_pages,
+			struct radeon_fence *fence);
+	int (*copy)(struct radeon_device *rdev,
+		    uint64_t src_offset,
+		    uint64_t dst_offset,
+		    unsigned num_gpu_pages,
+		    struct radeon_fence *fence);
+	uint32_t (*get_engine_clock)(struct radeon_device *rdev);
+	void (*set_engine_clock)(struct radeon_device *rdev, uint32_t eng_clock);
+	uint32_t (*get_memory_clock)(struct radeon_device *rdev);
+	void (*set_memory_clock)(struct radeon_device *rdev, uint32_t mem_clock);
+	int (*get_pcie_lanes)(struct radeon_device *rdev);
+	void (*set_pcie_lanes)(struct radeon_device *rdev, int lanes);
+	void (*set_clock_gating)(struct radeon_device *rdev, int enable);
+	int (*set_surface_reg)(struct radeon_device *rdev, int reg,
+			       uint32_t tiling_flags, uint32_t pitch,
+			       uint32_t offset, uint32_t obj_size);
+	void (*clear_surface_reg)(struct radeon_device *rdev, int reg);
+	void (*bandwidth_update)(struct radeon_device *rdev);
+	void (*hpd_init)(struct radeon_device *rdev);
+	void (*hpd_fini)(struct radeon_device *rdev);
+	bool (*hpd_sense)(struct radeon_device *rdev, enum radeon_hpd_id hpd);
+	void (*hpd_set_polarity)(struct radeon_device *rdev, enum radeon_hpd_id hpd);
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 	/* ioctl hw specific callback. Some hw might want to perform special
 	 * operation on specific ioctl. For instance on wait idle some hw
 	 * might want to perform and HDP flush through MMIO as it seems that

@@ -659,6 +659,12 @@ static int ar9003_hw_process_ini(struct ath_hw *ah,
 		REG_WRITE_ARRAY(&ah->iniModesAdditional,
 				modesIndex, regWrites);
 
+<<<<<<< HEAD
+=======
+	if (AR_SREV_9330(ah))
+		REG_WRITE_ARRAY(&ah->iniModesAdditional, 1, regWrites);
+
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 	if (AR_SREV_9340(ah) && !ah->is_clk_25mhz)
 		REG_WRITE_ARRAY(&ah->iniModesAdditional_40M, 1, regWrites);
 

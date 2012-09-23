@@ -2200,8 +2200,13 @@ int r600_cp_resume(struct radeon_device *rdev)
 	/* Initialize the ring buffer's read and write pointers */
 	WREG32(CP_RB_CNTL, tmp | RB_RPTR_WR_ENA);
 	WREG32(CP_RB_RPTR_WR, 0);
+<<<<<<< HEAD
 	ring->wptr = 0;
 	WREG32(CP_RB_WPTR, ring->wptr);
+=======
+	rdev->cp.wptr = 0;
+	WREG32(CP_RB_WPTR, rdev->cp.wptr);
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 
 	/* set the wb address whether it's enabled or not */
 	WREG32(CP_RB_RPTR_ADDR,
@@ -2222,7 +2227,11 @@ int r600_cp_resume(struct radeon_device *rdev)
 	WREG32(CP_RB_BASE, ring->gpu_addr >> 8);
 	WREG32(CP_DEBUG, (1 << 27) | (1 << 28));
 
+<<<<<<< HEAD
 	ring->rptr = RREG32(CP_RB_RPTR);
+=======
+	rdev->cp.rptr = RREG32(CP_RB_RPTR);
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 
 	r600_cp_start(rdev);
 	ring->ready = true;
@@ -2380,14 +2389,22 @@ int r600_copy_blit(struct radeon_device *rdev,
 
 	mutex_lock(&rdev->r600_blit.mutex);
 	rdev->r600_blit.vb_ib = NULL;
+<<<<<<< HEAD
 	r = r600_blit_prepare_copy(rdev, num_gpu_pages);
+=======
+	r = r600_blit_prepare_copy(rdev, num_gpu_pages * RADEON_GPU_PAGE_SIZE);
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 	if (r) {
 		if (rdev->r600_blit.vb_ib)
 			radeon_ib_free(rdev, &rdev->r600_blit.vb_ib);
 		mutex_unlock(&rdev->r600_blit.mutex);
 		return r;
 	}
+<<<<<<< HEAD
 	r600_kms_blit_copy(rdev, src_offset, dst_offset, num_gpu_pages);
+=======
+	r600_kms_blit_copy(rdev, src_offset, dst_offset, num_gpu_pages * RADEON_GPU_PAGE_SIZE);
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 	r600_blit_done_copy(rdev, fence);
 	mutex_unlock(&rdev->r600_blit.mutex);
 	return 0;

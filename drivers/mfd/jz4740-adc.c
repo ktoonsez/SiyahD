@@ -309,11 +309,27 @@ static int __devinit jz4740_adc_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, adc);
 
+<<<<<<< HEAD
 	for (irq = adc->irq_base; irq < adc->irq_base + 5; ++irq) {
 		irq_set_chip_data(irq, adc);
 		irq_set_chip_and_handler(irq, &jz4740_adc_irq_chip,
 					 handle_level_irq);
 	}
+=======
+	gc = irq_alloc_generic_chip("INTC", 1, irq_base, adc->base,
+		handle_level_irq);
+
+	ct = gc->chip_types;
+	ct->regs.mask = JZ_REG_ADC_CTRL;
+	ct->regs.ack = JZ_REG_ADC_STATUS;
+	ct->chip.irq_mask = irq_gc_mask_set_bit;
+	ct->chip.irq_unmask = irq_gc_mask_clr_bit;
+	ct->chip.irq_ack = irq_gc_ack_set_bit;
+
+	irq_setup_generic_chip(gc, IRQ_MSK(5), 0, 0, IRQ_NOPROBE | IRQ_LEVEL);
+
+	adc->gc = gc;
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 
 	irq_set_handler_data(adc->irq, adc);
 	irq_set_chained_handler(adc->irq, jz4740_adc_irq_demux);

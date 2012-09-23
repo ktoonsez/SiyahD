@@ -65,9 +65,15 @@ void ft_dump_cmd(struct ft_cmd *cmd, const char *caller)
 		return;
 
 	se_cmd = &cmd->se_cmd;
+<<<<<<< HEAD
 	printk(KERN_INFO "%s: cmd %p state %d sess %p seq %p se_cmd %p\n",
 		caller, cmd, cmd->state, cmd->sess, cmd->seq, se_cmd);
 	printk(KERN_INFO "%s: cmd %p cdb %p\n",
+=======
+	pr_debug("%s: cmd %p sess %p seq %p se_cmd %p\n",
+		caller, cmd, cmd->sess, cmd->seq, se_cmd);
+	pr_debug("%s: cmd %p cdb %p\n",
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 		caller, cmd, cmd->cdb);
 	printk(KERN_INFO "%s: cmd %p lun %d\n", caller, cmd, cmd->lun);
 
@@ -93,6 +99,7 @@ void ft_dump_cmd(struct ft_cmd *cmd, const char *caller)
 		16, 4, cmd->cdb, MAX_COMMAND_SIZE, 0);
 }
 
+<<<<<<< HEAD
 static void ft_queue_cmd(struct ft_sess *sess, struct ft_cmd *cmd)
 {
 	struct se_queue_obj *qobj;
@@ -123,6 +130,8 @@ static struct ft_cmd *ft_dequeue_cmd(struct se_queue_obj *qobj)
 	return container_of(qr, struct ft_cmd, se_req);
 }
 
+=======
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 static void ft_free_cmd(struct ft_cmd *cmd)
 {
 	struct fc_frame *fp;
@@ -283,9 +292,7 @@ u32 ft_get_task_tag(struct se_cmd *se_cmd)
 
 int ft_get_cmd_state(struct se_cmd *se_cmd)
 {
-	struct ft_cmd *cmd = container_of(se_cmd, struct ft_cmd, se_cmd);
-
-	return cmd->state;
+	return 0;
 }
 
 int ft_is_state_remove(struct se_cmd *se_cmd)
@@ -502,6 +509,8 @@ int ft_queue_tm_resp(struct se_cmd *se_cmd)
 	return 0;
 }
 
+static void ft_send_work(struct work_struct *work);
+
 /*
  * Handle incoming FCP command.
  */
@@ -520,7 +529,9 @@ static void ft_recv_cmd(struct ft_sess *sess, struct fc_frame *fp)
 		goto busy;
 	}
 	cmd->req_frame = fp;		/* hold frame during cmd */
-	ft_queue_cmd(sess, cmd);
+
+	INIT_WORK(&cmd->work, ft_send_work);
+	queue_work(sess->tport->tpg->workqueue, &cmd->work);
 	return;
 
 busy:
@@ -560,12 +571,13 @@ void ft_recv_req(struct ft_sess *sess, struct fc_frame *fp)
 /*
  * Send new command to target.
  */
-static void ft_send_cmd(struct ft_cmd *cmd)
+static void ft_send_work(struct work_struct *work)
 {
+	struct ft_cmd *cmd = container_of(work, struct ft_cmd, work);
 	struct fc_frame_header *fh = fc_frame_header_get(cmd->req_frame);
 	struct se_cmd *se_cmd;
 	struct fcp_cmnd *fcp;
-	int data_dir;
+	int data_dir = 0;
 	u32 data_len;
 	int task_attr;
 	int ret;
@@ -673,6 +685,7 @@ err:
 	ft_send_resp_code(cmd, FCP_CMND_FIELDS_INVALID);
 	return;
 }
+<<<<<<< HEAD
 
 /*
  * Handle request in the command thread.
@@ -715,3 +728,5 @@ int ft_thread(void *arg)
 out:
 	return 0;
 }
+=======
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core

@@ -1036,6 +1036,65 @@ cleanup_io_restore_insn:
 .Lcritical_end:
 		.quad	__critical_end
 
+<<<<<<< HEAD
+=======
+#if defined(CONFIG_KVM) || defined(CONFIG_KVM_MODULE)
+/*
+ * sie64a calling convention:
+ * %r2 pointer to sie control block
+ * %r3 guest register save area
+ */
+ENTRY(sie64a)
+	stmg	%r6,%r14,__SF_GPRS(%r15)	# save kernel registers
+	stg	%r2,__SF_EMPTY(%r15)		# save control block pointer
+	stg	%r3,__SF_EMPTY+8(%r15)		# save guest register save area
+	lmg	%r0,%r13,0(%r3)			# load guest gprs 0-13
+	lg	%r14,__LC_THREAD_INFO		# pointer thread_info struct
+	oi	__TI_flags+6(%r14),_TIF_SIE>>8
+sie_loop:
+	lg	%r14,__LC_THREAD_INFO		# pointer thread_info struct
+	tm	__TI_flags+7(%r14),_TIF_EXIT_SIE
+	jnz	sie_exit
+	lg	%r14,__LC_GMAP			# get gmap pointer
+	ltgr	%r14,%r14
+	jz	sie_gmap
+	lctlg	%c1,%c1,__GMAP_ASCE(%r14)	# load primary asce
+sie_gmap:
+	lg	%r14,__SF_EMPTY(%r15)		# get control block pointer
+	SPP	__SF_EMPTY(%r15)		# set guest id
+	sie	0(%r14)
+sie_done:
+	SPP	__LC_CMF_HPP			# set host id
+	lg	%r14,__LC_THREAD_INFO		# pointer thread_info struct
+sie_exit:
+	lctlg	%c1,%c1,__LC_USER_ASCE		# load primary asce
+	ni	__TI_flags+6(%r14),255-(_TIF_SIE>>8)
+	lg	%r14,__SF_EMPTY+8(%r15)		# load guest register save area
+	stmg	%r0,%r13,0(%r14)		# save guest gprs 0-13
+	lmg	%r6,%r14,__SF_GPRS(%r15)	# restore kernel registers
+	lghi	%r2,0
+	br	%r14
+sie_fault:
+	lg	%r14,__LC_THREAD_INFO		# pointer thread_info struct
+	ni	__TI_flags+6(%r14),255-(_TIF_SIE>>8)
+	lg	%r14,__SF_EMPTY+8(%r15)		# load guest register save area
+	stmg	%r0,%r13,0(%r14)		# save guest gprs 0-13
+	lmg	%r6,%r14,__SF_GPRS(%r15)	# restore kernel registers
+	lghi	%r2,-EFAULT
+	br	%r14
+
+	.align	8
+.Lsie_loop:
+	.quad	sie_loop
+.Lsie_done:
+	.quad	sie_done
+
+	.section __ex_table,"a"
+	.quad	sie_loop,sie_fault
+	.previous
+#endif
+
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 		.section .rodata, "a"
 #define SYSCALL(esa,esame,emu)	.long esame
 	.globl	sys_call_table

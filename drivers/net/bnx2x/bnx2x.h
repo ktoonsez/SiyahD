@@ -281,6 +281,14 @@ union db_prod {
 	u32		raw;
 };
 
+/* dropless fc FW/HW related params */
+#define BRB_SIZE(bp)		(CHIP_IS_E3(bp) ? 1024 : 512)
+#define MAX_AGG_QS(bp)		(CHIP_IS_E1(bp) ? \
+					ETH_MAX_AGGREGATION_QUEUES_E1 :\
+					ETH_MAX_AGGREGATION_QUEUES_E1H_E2)
+#define FW_DROP_LEVEL(bp)	(3 + MAX_SPQ_PENDING + MAX_AGG_QS(bp))
+#define FW_PREFETCH_CNT		16
+#define DROPLESS_FC_HEADROOM	100
 
 /* MC hsi */
 #define BCM_PAGE_SHIFT			12
@@ -297,14 +305,45 @@ union db_prod {
 /* SGE ring related macros */
 #define NUM_RX_SGE_PAGES		2
 #define RX_SGE_CNT		(BCM_PAGE_SIZE / sizeof(struct eth_rx_sge))
+<<<<<<< HEAD
 #define MAX_RX_SGE_CNT			(RX_SGE_CNT - 2)
+=======
+#define NEXT_PAGE_SGE_DESC_CNT	2
+#define MAX_RX_SGE_CNT		(RX_SGE_CNT - NEXT_PAGE_SGE_DESC_CNT)
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 /* RX_SGE_CNT is promised to be a power of 2 */
 #define RX_SGE_MASK			(RX_SGE_CNT - 1)
 #define NUM_RX_SGE			(RX_SGE_CNT * NUM_RX_SGE_PAGES)
 #define MAX_RX_SGE			(NUM_RX_SGE - 1)
 #define NEXT_SGE_IDX(x)		((((x) & RX_SGE_MASK) == \
+<<<<<<< HEAD
 				  (MAX_RX_SGE_CNT - 1)) ? (x) + 3 : (x) + 1)
 #define RX_SGE(x)			((x) & MAX_RX_SGE)
+=======
+				  (MAX_RX_SGE_CNT - 1)) ? \
+					(x) + 1 + NEXT_PAGE_SGE_DESC_CNT : \
+					(x) + 1)
+#define RX_SGE(x)		((x) & MAX_RX_SGE)
+
+/*
+ * Number of required  SGEs is the sum of two:
+ * 1. Number of possible opened aggregations (next packet for
+ *    these aggregations will probably consume SGE immidiatelly)
+ * 2. Rest of BRB blocks divided by 2 (block will consume new SGE only
+ *    after placement on BD for new TPA aggregation)
+ *
+ * Takes into account NEXT_PAGE_SGE_DESC_CNT "next" elements on each page
+ */
+#define NUM_SGE_REQ		(MAX_AGG_QS(bp) + \
+					(BRB_SIZE(bp) - MAX_AGG_QS(bp)) / 2)
+#define NUM_SGE_PG_REQ		((NUM_SGE_REQ + MAX_RX_SGE_CNT - 1) / \
+						MAX_RX_SGE_CNT)
+#define SGE_TH_LO(bp)		(NUM_SGE_REQ + \
+				 NUM_SGE_PG_REQ * NEXT_PAGE_SGE_DESC_CNT)
+#define SGE_TH_HI(bp)		(SGE_TH_LO(bp) + DROPLESS_FC_HEADROOM)
+
+/* Manipulate a bit vector defined as an array of u64 */
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 
 /* SGE producer mask related macros */
 /* Number of bits in one sge_mask array element */
@@ -454,6 +493,7 @@ struct bnx2x_fastpath {
 
 #define NUM_TX_RINGS			16
 #define TX_DESC_CNT		(BCM_PAGE_SIZE / sizeof(union eth_tx_bd_types))
+<<<<<<< HEAD
 #define MAX_TX_DESC_CNT			(TX_DESC_CNT - 1)
 #define NUM_TX_BD			(TX_DESC_CNT * NUM_TX_RINGS)
 #define MAX_TX_BD			(NUM_TX_BD - 1)
@@ -464,10 +504,24 @@ struct bnx2x_fastpath {
 				  (MAX_TX_DESC_CNT - 1)) ? (x) + 2 : (x) + 1)
 #define TX_BD(x)			((x) & MAX_TX_BD)
 #define TX_BD_POFF(x)			((x) & MAX_TX_DESC_CNT)
+=======
+#define NEXT_PAGE_TX_DESC_CNT	1
+#define MAX_TX_DESC_CNT		(TX_DESC_CNT - NEXT_PAGE_TX_DESC_CNT)
+#define NUM_TX_BD		(TX_DESC_CNT * NUM_TX_RINGS)
+#define MAX_TX_BD		(NUM_TX_BD - 1)
+#define MAX_TX_AVAIL		(MAX_TX_DESC_CNT * NUM_TX_RINGS - 2)
+#define NEXT_TX_IDX(x)		((((x) & MAX_TX_DESC_CNT) == \
+				  (MAX_TX_DESC_CNT - 1)) ? \
+					(x) + 1 + NEXT_PAGE_TX_DESC_CNT : \
+					(x) + 1)
+#define TX_BD(x)		((x) & MAX_TX_BD)
+#define TX_BD_POFF(x)		((x) & MAX_TX_DESC_CNT)
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 
 /* The RX BD ring is special, each bd is 8 bytes but the last one is 16 */
 #define NUM_RX_RINGS			8
 #define RX_DESC_CNT		(BCM_PAGE_SIZE / sizeof(struct eth_rx_bd))
+<<<<<<< HEAD
 #define MAX_RX_DESC_CNT			(RX_DESC_CNT - 2)
 #define RX_DESC_MASK			(RX_DESC_CNT - 1)
 #define NUM_RX_BD			(RX_DESC_CNT * NUM_RX_RINGS)
@@ -480,12 +534,51 @@ struct bnx2x_fastpath {
 #define NEXT_RX_IDX(x)		((((x) & RX_DESC_MASK) == \
 				  (MAX_RX_DESC_CNT - 1)) ? (x) + 3 : (x) + 1)
 #define RX_BD(x)			((x) & MAX_RX_BD)
+=======
+#define NEXT_PAGE_RX_DESC_CNT	2
+#define MAX_RX_DESC_CNT		(RX_DESC_CNT - NEXT_PAGE_RX_DESC_CNT)
+#define RX_DESC_MASK		(RX_DESC_CNT - 1)
+#define NUM_RX_BD		(RX_DESC_CNT * NUM_RX_RINGS)
+#define MAX_RX_BD		(NUM_RX_BD - 1)
+#define MAX_RX_AVAIL		(MAX_RX_DESC_CNT * NUM_RX_RINGS - 2)
+
+/* dropless fc calculations for BDs
+ *
+ * Number of BDs should as number of buffers in BRB:
+ * Low threshold takes into account NEXT_PAGE_RX_DESC_CNT
+ * "next" elements on each page
+ */
+#define NUM_BD_REQ		BRB_SIZE(bp)
+#define NUM_BD_PG_REQ		((NUM_BD_REQ + MAX_RX_DESC_CNT - 1) / \
+					      MAX_RX_DESC_CNT)
+#define BD_TH_LO(bp)		(NUM_BD_REQ + \
+				 NUM_BD_PG_REQ * NEXT_PAGE_RX_DESC_CNT + \
+				 FW_DROP_LEVEL(bp))
+#define BD_TH_HI(bp)		(BD_TH_LO(bp) + DROPLESS_FC_HEADROOM)
+
+#define MIN_RX_AVAIL		((bp)->dropless_fc ? BD_TH_HI(bp) + 128 : 128)
+
+#define MIN_RX_SIZE_TPA_HW	(CHIP_IS_E1(bp) ? \
+					ETH_MIN_RX_CQES_WITH_TPA_E1 : \
+					ETH_MIN_RX_CQES_WITH_TPA_E1H_E2)
+#define MIN_RX_SIZE_NONTPA_HW   ETH_MIN_RX_CQES_WITHOUT_TPA
+#define MIN_RX_SIZE_TPA		(max_t(u32, MIN_RX_SIZE_TPA_HW, MIN_RX_AVAIL))
+#define MIN_RX_SIZE_NONTPA	(max_t(u32, MIN_RX_SIZE_NONTPA_HW,\
+								MIN_RX_AVAIL))
+
+#define NEXT_RX_IDX(x)		((((x) & RX_DESC_MASK) == \
+				  (MAX_RX_DESC_CNT - 1)) ? \
+					(x) + 1 + NEXT_PAGE_RX_DESC_CNT : \
+					(x) + 1)
+#define RX_BD(x)		((x) & MAX_RX_BD)
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 
 /* As long as CQE is 4 times bigger than BD entry we have to allocate
    4 times more pages for CQ ring in order to keep it balanced with
    BD ring */
 #define NUM_RCQ_RINGS			(NUM_RX_RINGS * 4)
 #define RCQ_DESC_CNT		(BCM_PAGE_SIZE / sizeof(union eth_rx_cqe))
+<<<<<<< HEAD
 #define MAX_RCQ_DESC_CNT		(RCQ_DESC_CNT - 1)
 #define NUM_RCQ_BD			(RCQ_DESC_CNT * NUM_RCQ_RINGS)
 #define MAX_RCQ_BD			(NUM_RCQ_BD - 1)
@@ -493,6 +586,32 @@ struct bnx2x_fastpath {
 #define NEXT_RCQ_IDX(x)		((((x) & MAX_RCQ_DESC_CNT) == \
 				  (MAX_RCQ_DESC_CNT - 1)) ? (x) + 2 : (x) + 1)
 #define RCQ_BD(x)			((x) & MAX_RCQ_BD)
+=======
+#define NEXT_PAGE_RCQ_DESC_CNT	1
+#define MAX_RCQ_DESC_CNT	(RCQ_DESC_CNT - NEXT_PAGE_RCQ_DESC_CNT)
+#define NUM_RCQ_BD		(RCQ_DESC_CNT * NUM_RCQ_RINGS)
+#define MAX_RCQ_BD		(NUM_RCQ_BD - 1)
+#define MAX_RCQ_AVAIL		(MAX_RCQ_DESC_CNT * NUM_RCQ_RINGS - 2)
+#define NEXT_RCQ_IDX(x)		((((x) & MAX_RCQ_DESC_CNT) == \
+				  (MAX_RCQ_DESC_CNT - 1)) ? \
+					(x) + 1 + NEXT_PAGE_RCQ_DESC_CNT : \
+					(x) + 1)
+#define RCQ_BD(x)		((x) & MAX_RCQ_BD)
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
+
+/* dropless fc calculations for RCQs
+ *
+ * Number of RCQs should be as number of buffers in BRB:
+ * Low threshold takes into account NEXT_PAGE_RCQ_DESC_CNT
+ * "next" elements on each page
+ */
+#define NUM_RCQ_REQ		BRB_SIZE(bp)
+#define NUM_RCQ_PG_REQ		((NUM_BD_REQ + MAX_RCQ_DESC_CNT - 1) / \
+					      MAX_RCQ_DESC_CNT)
+#define RCQ_TH_LO(bp)		(NUM_RCQ_REQ + \
+				 NUM_RCQ_PG_REQ * NEXT_PAGE_RCQ_DESC_CNT + \
+				 FW_DROP_LEVEL(bp))
+#define RCQ_TH_HI(bp)		(RCQ_TH_LO(bp) + DROPLESS_FC_HEADROOM)
 
 
 /* This is needed for determining of last_max */
@@ -590,9 +709,29 @@ struct bnx2x_fastpath {
 #define BNX2X_RX_SUM_FIX(cqe) \
 	BNX2X_PRS_FLAG_OVERETH_IPV4(cqe->fast_path_cqe.pars_flags.flags)
 
+<<<<<<< HEAD
 #define U_SB_ETH_RX_CQ_INDEX		1
 #define U_SB_ETH_RX_BD_INDEX		2
 #define C_SB_ETH_TX_CQ_INDEX		5
+=======
+
+#define FP_USB_FUNC_OFF	\
+			offsetof(struct cstorm_status_block_u, func)
+#define FP_CSB_FUNC_OFF	\
+			offsetof(struct cstorm_status_block_c, func)
+
+#define HC_INDEX_ETH_RX_CQ_CONS		1
+
+#define HC_INDEX_OOO_TX_CQ_CONS		4
+
+#define HC_INDEX_ETH_TX_CQ_CONS_COS0	5
+
+#define HC_INDEX_ETH_TX_CQ_CONS_COS1	6
+
+#define HC_INDEX_ETH_TX_CQ_CONS_COS2	7
+
+#define HC_INDEX_ETH_FIRST_TX_CQ_CONS	HC_INDEX_ETH_TX_CQ_CONS_COS0
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 
 #define BNX2X_RX_SB_INDEX \
 	(&fp->sb_index_values[U_SB_ETH_RX_CQ_INDEX])
@@ -919,6 +1058,23 @@ struct bnx2x {
 	void __iomem		*doorbells;
 	u16			db_size;
 
+<<<<<<< HEAD
+=======
+	u8			pf_num;	/* absolute PF number */
+	u8			pfid;	/* per-path PF number */
+	int			base_fw_ndsb; /**/
+#define BP_PATH(bp)			(CHIP_IS_E1x(bp) ? 0 : (bp->pf_num & 1))
+#define BP_PORT(bp)			(bp->pfid & 1)
+#define BP_FUNC(bp)			(bp->pfid)
+#define BP_ABS_FUNC(bp)			(bp->pf_num)
+#define BP_VN(bp)			((bp)->pfid >> 1)
+#define BP_MAX_VN_NUM(bp)		(CHIP_MODE_IS_4_PORT(bp) ? 2 : 4)
+#define BP_L_ID(bp)			(BP_VN(bp) << 2)
+#define BP_FW_MB_IDX_VN(bp, vn)		(BP_PORT(bp) +\
+	  (vn) * ((CHIP_IS_E1x(bp) || (CHIP_MODE_IS_4_PORT(bp))) ? 2  : 1))
+#define BP_FW_MB_IDX(bp)		BP_FW_MB_IDX_VN(bp, BP_VN(bp))
+
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 	struct net_device	*dev;
 	struct pci_dev		*pdev;
 
@@ -1622,7 +1778,7 @@ static inline u32 reg_poll(struct bnx2x *bp, u32 reg, u32 expected, int ms,
 
 #define MAX_DMAE_C_PER_PORT		8
 #define INIT_DMAE_C(bp)			(BP_PORT(bp) * MAX_DMAE_C_PER_PORT + \
-					 BP_E1HVN(bp))
+					 BP_VN(bp))
 #define PMF_DMAE_C(bp)			(BP_PORT(bp) * MAX_DMAE_C_PER_PORT + \
 					 E1HVN_MAX)
 
@@ -1648,7 +1804,12 @@ static inline u32 reg_poll(struct bnx2x *bp, u32 reg, u32 expected, int ms,
 
 /* must be used on a CID before placing it on a HW ring */
 #define HW_CID(bp, x)			((BP_PORT(bp) << 23) | \
+<<<<<<< HEAD
 					 (BP_E1HVN(bp) << 17) | (x))
+=======
+					 (BP_VN(bp) << BNX2X_SWCID_SHIFT) | \
+					 (x))
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 
 #define SP_DESC_CNT		(BCM_PAGE_SIZE / sizeof(struct eth_spe))
 #define MAX_SP_DESC_CNT			(SP_DESC_CNT - 1)

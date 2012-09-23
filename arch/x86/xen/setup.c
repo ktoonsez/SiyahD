@@ -326,18 +326,24 @@ char * __init xen_memory_setup(void)
 
 	extra_limit = xen_get_max_pages();
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 	if (max_pfn + extra_pages > extra_limit) {
 		if (extra_limit > max_pfn)
 			extra_pages = extra_limit - max_pfn;
 		else
 			extra_pages = 0;
 	}
+<<<<<<< HEAD
 =======
 	if (extra_limit >= max_pfn)
 		extra_pages = extra_limit - max_pfn;
 	else
 		extra_pages = 0;
 >>>>>>> bfa322c... Merge branch 'linus' into sched/core
+=======
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 
 	extra_pages += xen_return_unused_memory(xen_start_info->nr_pages, &e820);
 

@@ -330,9 +330,14 @@ static __always_inline __pure bool __static_cpu_has(u16 bit)
 		asm goto("1: jmp %l[t_no]\n"
 			 "2:\n"
 			 ".section .altinstructions,\"a\"\n"
+<<<<<<< HEAD
 			 _ASM_ALIGN "\n"
 			 _ASM_PTR "1b\n"
 			 _ASM_PTR "0\n" 	/* no replacement */
+=======
+			 " .long 1b - .\n"
+			 " .long 0\n"		/* no replacement */
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 			 " .word %P0\n"		/* feature bit */
 			 " .byte 2b - 1b\n"	/* source len */
 			 " .byte 0\n"		/* replacement len */
@@ -348,9 +353,14 @@ static __always_inline __pure bool __static_cpu_has(u16 bit)
 		asm volatile("1: movb $0,%0\n"
 			     "2:\n"
 			     ".section .altinstructions,\"a\"\n"
+<<<<<<< HEAD
 			     _ASM_ALIGN "\n"
 			     _ASM_PTR "1b\n"
 			     _ASM_PTR "3f\n"
+=======
+			     " .long 1b - .\n"
+			     " .long 3f - .\n"
+>>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 			     " .word %P1\n"		/* feature bit */
 			     " .byte 2b - 1b\n"		/* source len */
 			     " .byte 4f - 3f\n"		/* replacement len */
