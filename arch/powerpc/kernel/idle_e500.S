@@ -26,6 +26,20 @@ _GLOBAL(e500_idle)
 	ori	r4,r4,_TLF_NAPPING	/* so when we take an exception */
 	stw	r4,TI_LOCAL_FLAGS(r3)	/* it will return to our caller */
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_PPC_E500MC
+	wrteei	1
+1:	wait
+
+	/*
+	 * Guard against spurious wakeups (e.g. from a hypervisor) --
+	 * any real interrupt will cause us to return to LR due to
+	 * _TLF_NAPPING.
+	 */
+	b	1b
+#else
+>>>>>>> 1197ab2... Merge branch 'next' of git://git.kernel.org/pub/scm/linux/kernel/git/benh/powerpc
 	/* Check if we can nap or doze, put HID0 mask in r3 */
 	lis	r3,0
 BEGIN_FTR_SECTION
