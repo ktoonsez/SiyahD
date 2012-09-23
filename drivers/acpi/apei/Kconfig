@@ -16,7 +16,6 @@ config ACPI_APEI_GHES
 <<<<<<< HEAD
 =======
 	select IRQ_WORK
-	select LLIST
 	select GENERIC_ALLOCATOR
 >>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	help

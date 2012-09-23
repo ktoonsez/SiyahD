@@ -1,6 +1,6 @@
 #
 # Automatically generated make config: don't edit
-# Linux/arm 3.1.0-rc6 Kernel Configuration
+# Linux/arm 3.1.0-rc8 Kernel Configuration
 #
 CONFIG_ARM=y
 CONFIG_HAVE_PWM=y
@@ -583,6 +583,7 @@ CONFIG_ARM_ERRATA_754322=y
 # CONFIG_ARM_ERRATA_761171 is not set
 # CONFIG_ARM_ERRATA_762974 is not set
 # CONFIG_ARM_ERRATA_763722 is not set
+CONFIG_ARM_ERRATA_764369=y
 CONFIG_ARM_GIC=y
 CONFIG_PL330=y
 # CONFIG_FIQ_DEBUGGER is not set
@@ -593,7 +594,6 @@ CONFIG_PL330=y
 # CONFIG_PCI_SYSCALL is not set
 # CONFIG_ARCH_SUPPORTS_MSI is not set
 # CONFIG_PCCARD is not set
-CONFIG_ARM_ERRATA_764369=y
 # CONFIG_PL310_ERRATA_769419 is not set
 
 #
@@ -3178,3 +3178,4 @@ CONFIG_HAS_DMA=y
 CONFIG_CPU_RMAP=y
 CONFIG_NLATTR=y
 # CONFIG_AVERAGE is not set
+CONFIG_CORDIC=y
