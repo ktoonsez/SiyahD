@@ -144,7 +144,11 @@ static inline void enable_p5_mce(void) {}
 
 void mce_setup(struct mce *m);
 void mce_log(struct mce *m);
+<<<<<<< HEAD
 DECLARE_PER_CPU(struct sys_device, mce_dev);
+=======
+DECLARE_PER_CPU(struct device, mce_device);
+>>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 
 /*
  * Maximum banks number.

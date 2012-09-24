@@ -2663,6 +2663,11 @@ CONFIG_RTC_DRV_S3C=y
 # CONFIG_DMADEVICES is not set
 # CONFIG_AUXDISPLAY is not set
 # CONFIG_UIO is not set
+# CONFIG_VIRTIO_BALLOON is not set
+
+#
+# Microsoft Hyper-V guest support
+#
 CONFIG_STAGING=y
 # CONFIG_VIDEO_TM6000 is not set
 # CONFIG_USBIP_CORE is not set

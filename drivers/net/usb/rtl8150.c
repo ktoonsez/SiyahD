@@ -989,6 +989,7 @@ static void rtl8150_disconnect(struct usb_interface *intf)
 	}
 }
 
+<<<<<<< HEAD
 static int __init usb_rtl8150_init(void)
 {
 	printk(KERN_INFO KBUILD_MODNAME ": " DRIVER_VERSION ":"
@@ -1003,6 +1004,18 @@ static void __exit usb_rtl8150_exit(void)
 
 module_init(usb_rtl8150_init);
 module_exit(usb_rtl8150_exit);
+=======
+static struct usb_driver rtl8150_driver = {
+	.name		= driver_name,
+	.probe		= rtl8150_probe,
+	.disconnect	= rtl8150_disconnect,
+	.id_table	= rtl8150_table,
+	.suspend	= rtl8150_suspend,
+	.resume		= rtl8150_resume
+};
+
+module_usb_driver(rtl8150_driver);
+>>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 
 MODULE_AUTHOR(DRIVER_AUTHOR);
 MODULE_DESCRIPTION(DRIVER_DESC);

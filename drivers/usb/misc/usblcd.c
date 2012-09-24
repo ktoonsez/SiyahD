@@ -435,6 +435,7 @@ static struct usb_driver lcd_driver = {
 	.supports_autosuspend = 1,
 };
 
+<<<<<<< HEAD
 static int __init usb_lcd_init(void)
 {
 	int result;
@@ -454,6 +455,9 @@ static void __exit usb_lcd_exit(void)
 
 module_init(usb_lcd_init);
 module_exit(usb_lcd_exit);
+=======
+module_usb_driver(lcd_driver);
+>>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 
 MODULE_AUTHOR("Georges Toth <g.toth@e-biz.lu>");
 MODULE_DESCRIPTION(DRIVER_VERSION);

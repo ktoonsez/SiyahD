@@ -17,6 +17,7 @@
 #include <linux/mfd/max8698.h>
 #include <linux/init.h>
 #include <linux/serial_core.h>
+<<<<<<< HEAD
 #include <linux/sysdev.h>
 #include <linux/dm9000.h>
 #include <linux/fb.h>
@@ -24,6 +25,10 @@
 #include <linux/gpio_event.h>
 #include <linux/delay.h>
 #include <linux/pwm_backlight.h>
+=======
+#include <linux/i2c.h>
+#include <linux/device.h>
+>>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>

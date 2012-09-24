@@ -228,6 +228,7 @@ static struct usb_driver led_driver = {
 	.id_table =	id_table,
 };
 
+<<<<<<< HEAD
 static int __init usb_led_init(void)
 {
 	int retval = 0;
@@ -245,6 +246,9 @@ static void __exit usb_led_exit(void)
 
 module_init (usb_led_init);
 module_exit (usb_led_exit);
+=======
+module_usb_driver(led_driver);
+>>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 
 MODULE_AUTHOR(DRIVER_AUTHOR);
 MODULE_DESCRIPTION(DRIVER_DESC);

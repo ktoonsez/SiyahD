@@ -1,7 +1,11 @@
 #include <linux/clocksource.h>
 #include <linux/clockchips.h>
 #include <linux/interrupt.h>
+<<<<<<< HEAD
 #include <linux/sysdev.h>
+=======
+#include <linux/export.h>
+>>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 #include <linux/delay.h>
 #include <linux/errno.h>
 #include <linux/slab.h>
