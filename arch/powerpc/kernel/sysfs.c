@@ -4,7 +4,7 @@
 #include <linux/percpu.h>
 #include <linux/init.h>
 #include <linux/sched.h>
-#include <linux/module.h>
+#include <linux/export.h>
 #include <linux/nodemask.h>
 #include <linux/cpumask.h>
 #include <linux/notifier.h>
@@ -18,6 +18,7 @@
 #include <asm/machdep.h>
 #include <asm/smp.h>
 #include <asm/pmc.h>
+#include <asm/system.h>
 
 #include "cacheinfo.h"
 
@@ -50,12 +51,8 @@ static ssize_t store_smt_snooze_delay(struct device *dev,
 	if (ret != 1)
 		return -EINVAL;
 
-<<<<<<< HEAD
-	per_cpu(smt_snooze_delay, cpu->sysdev.id) = snooze;
-=======
 	per_cpu(smt_snooze_delay, cpu->dev.id) = snooze;
 	update_smt_snooze_delay(snooze);
->>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 
 	return count;
 }
@@ -182,19 +179,13 @@ SYSFS_PMCSETUP(mmcra, SPRN_MMCRA);
 SYSFS_PMCSETUP(purr, SPRN_PURR);
 SYSFS_PMCSETUP(spurr, SPRN_SPURR);
 SYSFS_PMCSETUP(dscr, SPRN_DSCR);
+SYSFS_PMCSETUP(pir, SPRN_PIR);
 
-<<<<<<< HEAD
-static SYSDEV_ATTR(mmcra, 0600, show_mmcra, store_mmcra);
-static SYSDEV_ATTR(spurr, 0600, show_spurr, NULL);
-static SYSDEV_ATTR(dscr, 0600, show_dscr, store_dscr);
-static SYSDEV_ATTR(purr, 0600, show_purr, store_purr);
-=======
 static DEVICE_ATTR(mmcra, 0600, show_mmcra, store_mmcra);
 static DEVICE_ATTR(spurr, 0600, show_spurr, NULL);
 static DEVICE_ATTR(dscr, 0600, show_dscr, store_dscr);
 static DEVICE_ATTR(purr, 0600, show_purr, store_purr);
 static DEVICE_ATTR(pir, 0400, show_pir, NULL);
->>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 
 unsigned long dscr_default = 0;
 EXPORT_SYMBOL(dscr_default);
@@ -403,14 +394,10 @@ static void __cpuinit register_cpu_online(unsigned int cpu)
 		device_create_file(s, &dev_attr_spurr);
 
 	if (cpu_has_feature(CPU_FTR_DSCR))
-<<<<<<< HEAD
-		sysdev_create_file(s, &attr_dscr);
-=======
 		device_create_file(s, &dev_attr_dscr);
 
 	if (cpu_has_feature(CPU_FTR_PPCAS_ARCH_V2))
 		device_create_file(s, &dev_attr_pir);
->>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 #endif /* CONFIG_PPC64 */
 
 	cacheinfo_cpu_online(cpu);
@@ -480,14 +467,10 @@ static void unregister_cpu_online(unsigned int cpu)
 		device_remove_file(s, &dev_attr_spurr);
 
 	if (cpu_has_feature(CPU_FTR_DSCR))
-<<<<<<< HEAD
-		sysdev_remove_file(s, &attr_dscr);
-=======
 		device_remove_file(s, &dev_attr_dscr);
 
 	if (cpu_has_feature(CPU_FTR_PPCAS_ARCH_V2))
 		device_remove_file(s, &dev_attr_pir);
->>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 #endif /* CONFIG_PPC64 */
 
 	cacheinfo_cpu_offline(cpu);

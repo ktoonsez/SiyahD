@@ -197,7 +197,7 @@ _ENTRY(__early_start)
 
 	bl	early_init
 
-#ifdef CONFIG_RELOCATABLE
+#ifdef CONFIG_DYNAMIC_MEMSTART
 	lis	r3,kernstart_addr@ha
 	la	r3,kernstart_addr@l(r3)
 #ifdef CONFIG_PHYS_64BIT
@@ -373,11 +373,12 @@ interrupt_base:
 	/* Data TLB Error Interrupt */
 	START_EXCEPTION(DataTLBError)
 	mtspr	SPRN_SPRG_WSCRATCH0, r10 /* Save some working registers */
-	mtspr	SPRN_SPRG_WSCRATCH1, r11
-	mtspr	SPRN_SPRG_WSCRATCH2, r12
-	mtspr	SPRN_SPRG_WSCRATCH3, r13
-	mfcr	r11
-	mtspr	SPRN_SPRG_WSCRATCH4, r11
+	mfspr	r10, SPRN_SPRG_THREAD
+	stw	r11, THREAD_NORMSAVE(0)(r10)
+	stw	r12, THREAD_NORMSAVE(1)(r10)
+	stw	r13, THREAD_NORMSAVE(2)(r10)
+	mfcr	r13
+	stw	r13, THREAD_NORMSAVE(3)(r10)
 	mfspr	r10, SPRN_DEAR		/* Get faulting address */
 
 	/* If we are faulting a kernel address, we have to use the
@@ -443,11 +444,12 @@ interrupt_base:
 	/* The bailout.  Restore registers to pre-exception conditions
 	 * and call the heavyweights to help us out.
 	 */
-	mfspr	r11, SPRN_SPRG_RSCRATCH4
+	mfspr	r10, SPRN_SPRG_THREAD
+	lwz	r11, THREAD_NORMSAVE(3)(r10)
 	mtcr	r11
-	mfspr	r13, SPRN_SPRG_RSCRATCH3
-	mfspr	r12, SPRN_SPRG_RSCRATCH2
-	mfspr	r11, SPRN_SPRG_RSCRATCH1
+	lwz	r13, THREAD_NORMSAVE(2)(r10)
+	lwz	r12, THREAD_NORMSAVE(1)(r10)
+	lwz	r11, THREAD_NORMSAVE(0)(r10)
 	mfspr	r10, SPRN_SPRG_RSCRATCH0
 	b	DataStorage
 
@@ -459,11 +461,12 @@ interrupt_base:
 	 */
 	START_EXCEPTION(InstructionTLBError)
 	mtspr	SPRN_SPRG_WSCRATCH0, r10 /* Save some working registers */
-	mtspr	SPRN_SPRG_WSCRATCH1, r11
-	mtspr	SPRN_SPRG_WSCRATCH2, r12
-	mtspr	SPRN_SPRG_WSCRATCH3, r13
-	mfcr	r11
-	mtspr	SPRN_SPRG_WSCRATCH4, r11
+	mfspr	r10, SPRN_SPRG_THREAD
+	stw	r11, THREAD_NORMSAVE(0)(r10)
+	stw	r12, THREAD_NORMSAVE(1)(r10)
+	stw	r13, THREAD_NORMSAVE(2)(r10)
+	mfcr	r13
+	stw	r13, THREAD_NORMSAVE(3)(r10)
 	mfspr	r10, SPRN_SRR0		/* Get faulting address */
 
 	/* If we are faulting a kernel address, we have to use the
@@ -523,11 +526,12 @@ interrupt_base:
 	/* The bailout.  Restore registers to pre-exception conditions
 	 * and call the heavyweights to help us out.
 	 */
-	mfspr	r11, SPRN_SPRG_RSCRATCH4
+	mfspr	r10, SPRN_SPRG_THREAD
+	lwz	r11, THREAD_NORMSAVE(3)(r10)
 	mtcr	r11
-	mfspr	r13, SPRN_SPRG_RSCRATCH3
-	mfspr	r12, SPRN_SPRG_RSCRATCH2
-	mfspr	r11, SPRN_SPRG_RSCRATCH1
+	lwz	r13, THREAD_NORMSAVE(2)(r10)
+	lwz	r12, THREAD_NORMSAVE(1)(r10)
+	lwz	r11, THREAD_NORMSAVE(0)(r10)
 	mfspr	r10, SPRN_SPRG_RSCRATCH0
 	b	InstructionStorage
 
@@ -719,9 +723,6 @@ tlb_write_entry:
 	tlbwe
 
 	/* Done...restore registers and get out of here.  */
-<<<<<<< HEAD
-	mfspr	r11, SPRN_SPRG_RSCRATCH4
-=======
 	mfspr	r10, SPRN_SPRG_THREAD
 #ifdef CONFIG_HUGETLB_PAGE
 	beq	6, 8f /* skip restore for 4k page faults */
@@ -731,11 +732,10 @@ tlb_write_entry:
 	lwz	r17, THREAD_NORMSAVE(7)(r10)
 #endif
 8:	lwz	r11, THREAD_NORMSAVE(3)(r10)
->>>>>>> 1197ab2... Merge branch 'next' of git://git.kernel.org/pub/scm/linux/kernel/git/benh/powerpc
 	mtcr	r11
-	mfspr	r13, SPRN_SPRG_RSCRATCH3
-	mfspr	r12, SPRN_SPRG_RSCRATCH2
-	mfspr	r11, SPRN_SPRG_RSCRATCH1
+	lwz	r13, THREAD_NORMSAVE(2)(r10)
+	lwz	r12, THREAD_NORMSAVE(1)(r10)
+	lwz	r11, THREAD_NORMSAVE(0)(r10)
 	mfspr	r10, SPRN_SPRG_RSCRATCH0
 	rfi					/* Force context change */
 
@@ -766,7 +766,7 @@ load_up_spe:
 	cmpi	0,r4,0
 	beq	1f
 	addi	r4,r4,THREAD	/* want THREAD of last_task_used_spe */
-	SAVE_32EVRS(0,r10,r4)
+	SAVE_32EVRS(0,r10,r4,THREAD_EVR0)
 	evxor	evr10, evr10, evr10	/* clear out evr10 */
 	evmwumiaa evr10, evr10, evr10	/* evr10 <- ACC = 0 * 0 + ACC */
 	li	r5,THREAD_ACC
@@ -786,7 +786,7 @@ load_up_spe:
 	stw	r4,THREAD_USED_SPE(r5)
 	evlddx	evr4,r10,r5
 	evmra	evr4,evr4
-	REST_32EVRS(0,r10,r5)
+	REST_32EVRS(0,r10,r5,THREAD_EVR0)
 #ifndef CONFIG_SMP
 	subi	r4,r5,THREAD
 	stw	r4,last_task_used_spe@l(r3)
@@ -897,13 +897,11 @@ _GLOBAL(giveup_spe)
 	addi	r3,r3,THREAD		/* want THREAD of task */
 	lwz	r5,PT_REGS(r3)
 	cmpi	0,r5,0
-	SAVE_32EVRS(0, r4, r3)
+	SAVE_32EVRS(0, r4, r3, THREAD_EVR0)
 	evxor	evr6, evr6, evr6	/* clear out evr6 */
 	evmwumiaa evr6, evr6, evr6	/* evr6 <- ACC = 0 * 0 + ACC */
 	li	r4,THREAD_ACC
 	evstddx	evr6, r4, r3		/* save off accumulator */
-	mfspr	r6,SPRN_SPEFSCR
-	stw	r6,THREAD_SPEFSCR(r3)	/* save spefscr register value */
 	beq	1f
 	lwz	r4,_MSR-STACK_FRAME_OVERHEAD(r5)
 	lis	r3,MSR_SPE@h

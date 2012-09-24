@@ -68,6 +68,8 @@
  */
 
 #include <linux/kernel.h>
+#include <linux/bootmem.h>
+#include <linux/swap.h>
 #include <linux/mm.h>
 #include <linux/mman.h>
 #include <linux/module.h>
@@ -93,6 +95,15 @@ static unsigned int selfballoon_uphysteresis __read_mostly = 1;
 
 /* In HZ, controls frequency of worker invocation. */
 static unsigned int selfballoon_interval __read_mostly = 5;
+
+/*
+ * Minimum usable RAM in MB for selfballooning target for balloon.
+ * If non-zero, it is added to totalreserve_pages and self-ballooning
+ * will not balloon below the sum.  If zero, a piecewise linear function
+ * is calculated as a minimum and added to totalreserve_pages.  Note that
+ * setting this value indiscriminately may cause OOMs and crashes.
+ */
+static unsigned int selfballoon_min_usable_mb;
 
 static void selfballoon_process(struct work_struct *work);
 static DECLARE_DELAYED_WORK(selfballoon_worker, selfballoon_process);
@@ -190,20 +201,23 @@ static int __init xen_selfballooning_setup(char *s)
 __setup("selfballooning", xen_selfballooning_setup);
 #endif /* CONFIG_FRONTSWAP */
 
+#define MB2PAGES(mb)	((mb) << (20 - PAGE_SHIFT))
+
 /*
  * Use current balloon size, the goal (vm_committed_as), and hysteresis
  * parameters to set a new target balloon size
  */
 static void selfballoon_process(struct work_struct *work)
 {
-	unsigned long cur_pages, goal_pages, tgt_pages;
+	unsigned long cur_pages, goal_pages, tgt_pages, floor_pages;
+	unsigned long useful_pages;
 	bool reset_timer = false;
 
 	if (xen_selfballooning_enabled) {
-		cur_pages = balloon_stats.current_pages;
+		cur_pages = totalram_pages;
 		tgt_pages = cur_pages; /* default is no change */
 		goal_pages = percpu_counter_read_positive(&vm_committed_as) +
-			balloon_stats.current_pages - totalram_pages;
+				totalreserve_pages;
 #ifdef CONFIG_FRONTSWAP
 		/* allow space for frontswap pages to be repatriated */
 		if (frontswap_selfshrinking && frontswap_enabled)
@@ -218,7 +232,26 @@ static void selfballoon_process(struct work_struct *work)
 				((goal_pages - cur_pages) /
 				  selfballoon_uphysteresis);
 		/* else if cur_pages == goal_pages, no change */
-		balloon_set_new_target(tgt_pages);
+		useful_pages = max_pfn - totalreserve_pages;
+		if (selfballoon_min_usable_mb != 0)
+			floor_pages = totalreserve_pages +
+					MB2PAGES(selfballoon_min_usable_mb);
+		/* piecewise linear function ending in ~3% slope */
+		else if (useful_pages < MB2PAGES(16))
+			floor_pages = max_pfn; /* not worth ballooning */
+		else if (useful_pages < MB2PAGES(64))
+			floor_pages = totalreserve_pages + MB2PAGES(16) +
+					((useful_pages - MB2PAGES(16)) >> 1);
+		else if (useful_pages < MB2PAGES(512))
+			floor_pages = totalreserve_pages + MB2PAGES(40) +
+					((useful_pages - MB2PAGES(40)) >> 3);
+		else /* useful_pages >= MB2PAGES(512) */
+			floor_pages = totalreserve_pages + MB2PAGES(99) +
+					((useful_pages - MB2PAGES(99)) >> 5);
+		if (tgt_pages < floor_pages)
+			tgt_pages = floor_pages;
+		balloon_set_new_target(tgt_pages +
+			balloon_stats.current_pages - totalram_pages);
 		reset_timer = true;
 	}
 #ifdef CONFIG_FRONTSWAP
@@ -340,8 +373,6 @@ static ssize_t store_selfballoon_uphys(struct device *dev,
 static DEVICE_ATTR(selfballoon_uphysteresis, S_IRUGO | S_IWUSR,
 		   show_selfballoon_uphys, store_selfballoon_uphys);
 
-<<<<<<< HEAD
-=======
 SELFBALLOON_SHOW(selfballoon_min_usable_mb, "%d\n",
 				selfballoon_min_usable_mb);
 
@@ -367,7 +398,6 @@ static DEVICE_ATTR(selfballoon_min_usable_mb, S_IRUGO | S_IWUSR,
 		   store_selfballoon_min_usable_mb);
 
 
->>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 #ifdef CONFIG_FRONTSWAP
 SELFBALLOON_SHOW(frontswap_selfshrinking, "%d\n", frontswap_selfshrinking);
 
@@ -445,18 +475,11 @@ static DEVICE_ATTR(frontswap_hysteresis, S_IRUGO | S_IWUSR,
 #endif /* CONFIG_FRONTSWAP */
 
 static struct attribute *selfballoon_attrs[] = {
-<<<<<<< HEAD
-	&attr_selfballooning.attr,
-	&attr_selfballoon_interval.attr,
-	&attr_selfballoon_downhysteresis.attr,
-	&attr_selfballoon_uphysteresis.attr,
-=======
 	&dev_attr_selfballooning.attr,
 	&dev_attr_selfballoon_interval.attr,
 	&dev_attr_selfballoon_downhysteresis.attr,
 	&dev_attr_selfballoon_uphysteresis.attr,
 	&dev_attr_selfballoon_min_usable_mb.attr,
->>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 #ifdef CONFIG_FRONTSWAP
 	&dev_attr_frontswap_selfshrinking.attr,
 	&dev_attr_frontswap_hysteresis.attr,

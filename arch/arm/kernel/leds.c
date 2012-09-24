@@ -7,16 +7,11 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-#include <linux/module.h>
+#include <linux/export.h>
 #include <linux/init.h>
-<<<<<<< HEAD
-#include <linux/notifier.h>
-#include <linux/cpu.h>
-#include <linux/sysdev.h>
-=======
 #include <linux/device.h>
->>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 #include <linux/syscore_ops.h>
+#include <linux/string.h>
 
 #include <asm/leds.h>
 
@@ -108,25 +103,6 @@ static struct syscore_ops leds_syscore_ops = {
 	.resume		= leds_resume,
 };
 
-static int leds_idle_notifier(struct notifier_block *nb, unsigned long val,
-                                void *data)
-{
-	switch (val) {
-	case IDLE_START:
-		leds_event(led_idle_start);
-		break;
-	case IDLE_END:
-		leds_event(led_idle_end);
-		break;
-	}
-
-	return 0;
-}
-
-static struct notifier_block leds_idle_nb = {
-	.notifier_call = leds_idle_notifier,
-};
-
 static int __init leds_init(void)
 {
 	int ret;
@@ -134,18 +110,9 @@ static int __init leds_init(void)
 	if (ret == 0)
 		ret = device_register(&leds_device);
 	if (ret == 0)
-<<<<<<< HEAD
-		ret = sysdev_create_file(&leds_device, &attr_event);
-
-	if (ret == 0) {
-=======
 		ret = device_create_file(&leds_device, &dev_attr_event);
 	if (ret == 0)
->>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 		register_syscore_ops(&leds_syscore_ops);
-		idle_notifier_register(&leds_idle_nb);
-	}
-
 	return ret;
 }
 

@@ -32,12 +32,7 @@
 # define XFS_BIG_INUMS	0
 #endif
 
-<<<<<<< HEAD
-#include <xfs_types.h>
-#include <xfs_arch.h>
-=======
 #include "xfs_types.h"
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 #include "kmem.h"
 #include "mrlock.h"
@@ -92,6 +87,12 @@
 #include "xfs_super.h"
 #include "xfs_buf.h"
 #include "xfs_message.h"
+
+#ifdef __BIG_ENDIAN
+#define XFS_NATIVE_HOST 1
+#else
+#undef XFS_NATIVE_HOST
+#endif
 
 /*
  * Feature macros (disable/enable)

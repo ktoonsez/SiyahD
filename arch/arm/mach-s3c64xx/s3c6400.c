@@ -38,7 +38,8 @@
 #include <plat/sdhci.h>
 #include <plat/iic-core.h>
 #include <plat/onenand-core.h>
-#include <mach/s3c6400.h>
+
+#include "common.h"
 
 void __init s3c6400_map_io(void)
 {
@@ -60,7 +61,7 @@ void __init s3c6400_map_io(void)
 void __init s3c6400_init_clocks(int xtal)
 {
 	s3c64xx_register_clocks(xtal, S3C6400_CLKDIV0_ARM_MASK);
-	s3c6400_setup_clocks();
+	s3c64xx_setup_clocks();
 }
 
 void __init s3c6400_init_irq(void)
@@ -70,14 +71,9 @@ void __init s3c6400_init_irq(void)
 	s3c64xx_init_irq(~0 & ~(0xf << 5), ~0);
 }
 
-<<<<<<< HEAD
-struct sysdev_class s3c6400_sysclass = {
-	.name	= "s3c6400-core",
-=======
 static struct bus_type s3c6400_subsys = {
 	.name		= "s3c6400-core",
 	.dev_name	= "s3c6400-core",
->>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 };
 
 static struct device s3c6400_dev = {

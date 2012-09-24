@@ -1,5 +1,5 @@
 /*
- *    Copyright IBM Corp. 2007,2009
+ *    Copyright IBM Corp. 2007,2011
  *    Author(s): Martin Schwidefsky <schwidefsky@de.ibm.com>
  */
 
@@ -16,6 +16,7 @@
 #include <linux/module.h>
 #include <linux/quicklist.h>
 #include <linux/rcupdate.h>
+#include <linux/slab.h>
 
 #include <asm/system.h>
 #include <asm/pgtable.h>
@@ -133,9 +134,6 @@ void crst_table_downgrade(struct mm_struct *mm, unsigned long limit)
 }
 #endif
 
-<<<<<<< HEAD
-static inline unsigned int atomic_xor_bits(atomic_t *v, unsigned int bits)
-=======
 #ifdef CONFIG_PGSTE
 
 /**
@@ -224,6 +222,7 @@ void gmap_free(struct gmap *gmap)
 
 	/* Free all segment & region tables. */
 	down_read(&gmap->mm->mmap_sem);
+	spin_lock(&gmap->mm->page_table_lock);
 	list_for_each_entry_safe(page, next, &gmap->crst_list, lru) {
 		table = (unsigned long *) page_to_phys(page);
 		if ((*table & _REGION_ENTRY_TYPE_MASK) == 0)
@@ -232,6 +231,7 @@ void gmap_free(struct gmap *gmap)
 				gmap_unlink_segment(gmap, table);
 		__free_pages(page, ALLOC_ORDER);
 	}
+	spin_unlock(&gmap->mm->page_table_lock);
 	up_read(&gmap->mm->mmap_sem);
 	list_del(&gmap->list);
 	kfree(gmap);
@@ -258,23 +258,29 @@ void gmap_disable(struct gmap *gmap)
 }
 EXPORT_SYMBOL_GPL(gmap_disable);
 
+/*
+ * gmap_alloc_table is assumed to be called with mmap_sem held
+ */
 static int gmap_alloc_table(struct gmap *gmap,
 			       unsigned long *table, unsigned long init)
->>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 {
-	unsigned int old, new;
+	struct page *page;
+	unsigned long *new;
 
-	do {
-		old = atomic_read(v);
-		new = old ^ bits;
-	} while (atomic_cmpxchg(v, old, new) != old);
-	return new;
+	page = alloc_pages(GFP_KERNEL, ALLOC_ORDER);
+	if (!page)
+		return -ENOMEM;
+	new = (unsigned long *) page_to_phys(page);
+	crst_table_init(new, init);
+	if (*table & _REGION_ENTRY_INV) {
+		list_add(&page->lru, &gmap->crst_list);
+		*table = (unsigned long) new | _REGION_ENTRY_LENGTH |
+			(*table & _REGION_ENTRY_TYPE_MASK);
+	} else
+		__free_pages(page, ALLOC_ORDER);
+	return 0;
 }
 
-<<<<<<< HEAD
-/*
- * page table entry allocation/free routines.
-=======
 /**
  * gmap_unmap_segment - unmap segment from the guest address space
  * @gmap: pointer to the guest address space structure
@@ -296,6 +302,7 @@ int gmap_unmap_segment(struct gmap *gmap, unsigned long to, unsigned long len)
 
 	flush = 0;
 	down_read(&gmap->mm->mmap_sem);
+	spin_lock(&gmap->mm->page_table_lock);
 	for (off = 0; off < len; off += PMD_SIZE) {
 		/* Walk the guest addr space page table */
 		table = gmap->table + (((to + off) >> 53) & 0x7ff);
@@ -317,6 +324,7 @@ int gmap_unmap_segment(struct gmap *gmap, unsigned long to, unsigned long len)
 		*table = _SEGMENT_ENTRY_INV;
 	}
 out:
+	spin_unlock(&gmap->mm->page_table_lock);
 	up_read(&gmap->mm->mmap_sem);
 	if (flush)
 		gmap_flush_tlb(gmap);
@@ -331,18 +339,234 @@ EXPORT_SYMBOL_GPL(gmap_unmap_segment);
  * @to: target address in the guest address space
  *
  * Returns 0 if the mmap succeded, -EINVAL or -ENOMEM if not.
->>>>>>> 22f92ba... Merge branch 'linus' into sched/core
  */
-#ifdef CONFIG_PGSTE
-static inline unsigned long *page_table_alloc_pgste(struct mm_struct *mm)
+int gmap_map_segment(struct gmap *gmap, unsigned long from,
+		     unsigned long to, unsigned long len)
+{
+	unsigned long *table;
+	unsigned long off;
+	int flush;
+
+	if ((from | to | len) & (PMD_SIZE - 1))
+		return -EINVAL;
+	if (len == 0 || from + len > PGDIR_SIZE ||
+	    from + len < from || to + len < to)
+		return -EINVAL;
+
+	flush = 0;
+	down_read(&gmap->mm->mmap_sem);
+	spin_lock(&gmap->mm->page_table_lock);
+	for (off = 0; off < len; off += PMD_SIZE) {
+		/* Walk the gmap address space page table */
+		table = gmap->table + (((to + off) >> 53) & 0x7ff);
+		if ((*table & _REGION_ENTRY_INV) &&
+		    gmap_alloc_table(gmap, table, _REGION2_ENTRY_EMPTY))
+			goto out_unmap;
+		table = (unsigned long *)(*table & _REGION_ENTRY_ORIGIN);
+		table = table + (((to + off) >> 42) & 0x7ff);
+		if ((*table & _REGION_ENTRY_INV) &&
+		    gmap_alloc_table(gmap, table, _REGION3_ENTRY_EMPTY))
+			goto out_unmap;
+		table = (unsigned long *)(*table & _REGION_ENTRY_ORIGIN);
+		table = table + (((to + off) >> 31) & 0x7ff);
+		if ((*table & _REGION_ENTRY_INV) &&
+		    gmap_alloc_table(gmap, table, _SEGMENT_ENTRY_EMPTY))
+			goto out_unmap;
+		table = (unsigned long *) (*table & _REGION_ENTRY_ORIGIN);
+		table = table + (((to + off) >> 20) & 0x7ff);
+
+		/* Store 'from' address in an invalid segment table entry. */
+		flush |= gmap_unlink_segment(gmap, table);
+		*table = _SEGMENT_ENTRY_INV | _SEGMENT_ENTRY_RO | (from + off);
+	}
+	spin_unlock(&gmap->mm->page_table_lock);
+	up_read(&gmap->mm->mmap_sem);
+	if (flush)
+		gmap_flush_tlb(gmap);
+	return 0;
+
+out_unmap:
+	spin_unlock(&gmap->mm->page_table_lock);
+	up_read(&gmap->mm->mmap_sem);
+	gmap_unmap_segment(gmap, to, len);
+	return -ENOMEM;
+}
+EXPORT_SYMBOL_GPL(gmap_map_segment);
+
+/*
+ * this function is assumed to be called with mmap_sem held
+ */
+unsigned long __gmap_fault(unsigned long address, struct gmap *gmap)
+{
+	unsigned long *table, vmaddr, segment;
+	struct mm_struct *mm;
+	struct gmap_pgtable *mp;
+	struct gmap_rmap *rmap;
+	struct vm_area_struct *vma;
+	struct page *page;
+	pgd_t *pgd;
+	pud_t *pud;
+	pmd_t *pmd;
+
+	current->thread.gmap_addr = address;
+	mm = gmap->mm;
+	/* Walk the gmap address space page table */
+	table = gmap->table + ((address >> 53) & 0x7ff);
+	if (unlikely(*table & _REGION_ENTRY_INV))
+		return -EFAULT;
+	table = (unsigned long *)(*table & _REGION_ENTRY_ORIGIN);
+	table = table + ((address >> 42) & 0x7ff);
+	if (unlikely(*table & _REGION_ENTRY_INV))
+		return -EFAULT;
+	table = (unsigned long *)(*table & _REGION_ENTRY_ORIGIN);
+	table = table + ((address >> 31) & 0x7ff);
+	if (unlikely(*table & _REGION_ENTRY_INV))
+		return -EFAULT;
+	table = (unsigned long *)(*table & _REGION_ENTRY_ORIGIN);
+	table = table + ((address >> 20) & 0x7ff);
+
+	/* Convert the gmap address to an mm address. */
+	segment = *table;
+	if (likely(!(segment & _SEGMENT_ENTRY_INV))) {
+		page = pfn_to_page(segment >> PAGE_SHIFT);
+		mp = (struct gmap_pgtable *) page->index;
+		return mp->vmaddr | (address & ~PMD_MASK);
+	} else if (segment & _SEGMENT_ENTRY_RO) {
+		vmaddr = segment & _SEGMENT_ENTRY_ORIGIN;
+		vma = find_vma(mm, vmaddr);
+		if (!vma || vma->vm_start > vmaddr)
+			return -EFAULT;
+
+		/* Walk the parent mm page table */
+		pgd = pgd_offset(mm, vmaddr);
+		pud = pud_alloc(mm, pgd, vmaddr);
+		if (!pud)
+			return -ENOMEM;
+		pmd = pmd_alloc(mm, pud, vmaddr);
+		if (!pmd)
+			return -ENOMEM;
+		if (!pmd_present(*pmd) &&
+		    __pte_alloc(mm, vma, pmd, vmaddr))
+			return -ENOMEM;
+		/* pmd now points to a valid segment table entry. */
+		rmap = kmalloc(sizeof(*rmap), GFP_KERNEL|__GFP_REPEAT);
+		if (!rmap)
+			return -ENOMEM;
+		/* Link gmap segment table entry location to page table. */
+		page = pmd_page(*pmd);
+		mp = (struct gmap_pgtable *) page->index;
+		rmap->entry = table;
+		spin_lock(&mm->page_table_lock);
+		list_add(&rmap->list, &mp->mapper);
+		spin_unlock(&mm->page_table_lock);
+		/* Set gmap segment table entry to page table. */
+		*table = pmd_val(*pmd) & PAGE_MASK;
+		return vmaddr | (address & ~PMD_MASK);
+	}
+	return -EFAULT;
+}
+
+unsigned long gmap_fault(unsigned long address, struct gmap *gmap)
+{
+	unsigned long rc;
+
+	down_read(&gmap->mm->mmap_sem);
+	rc = __gmap_fault(address, gmap);
+	up_read(&gmap->mm->mmap_sem);
+
+	return rc;
+}
+EXPORT_SYMBOL_GPL(gmap_fault);
+
+void gmap_discard(unsigned long from, unsigned long to, struct gmap *gmap)
+{
+
+	unsigned long *table, address, size;
+	struct vm_area_struct *vma;
+	struct gmap_pgtable *mp;
+	struct page *page;
+
+	down_read(&gmap->mm->mmap_sem);
+	address = from;
+	while (address < to) {
+		/* Walk the gmap address space page table */
+		table = gmap->table + ((address >> 53) & 0x7ff);
+		if (unlikely(*table & _REGION_ENTRY_INV)) {
+			address = (address + PMD_SIZE) & PMD_MASK;
+			continue;
+		}
+		table = (unsigned long *)(*table & _REGION_ENTRY_ORIGIN);
+		table = table + ((address >> 42) & 0x7ff);
+		if (unlikely(*table & _REGION_ENTRY_INV)) {
+			address = (address + PMD_SIZE) & PMD_MASK;
+			continue;
+		}
+		table = (unsigned long *)(*table & _REGION_ENTRY_ORIGIN);
+		table = table + ((address >> 31) & 0x7ff);
+		if (unlikely(*table & _REGION_ENTRY_INV)) {
+			address = (address + PMD_SIZE) & PMD_MASK;
+			continue;
+		}
+		table = (unsigned long *)(*table & _REGION_ENTRY_ORIGIN);
+		table = table + ((address >> 20) & 0x7ff);
+		if (unlikely(*table & _SEGMENT_ENTRY_INV)) {
+			address = (address + PMD_SIZE) & PMD_MASK;
+			continue;
+		}
+		page = pfn_to_page(*table >> PAGE_SHIFT);
+		mp = (struct gmap_pgtable *) page->index;
+		vma = find_vma(gmap->mm, mp->vmaddr);
+		size = min(to - address, PMD_SIZE - (address & ~PMD_MASK));
+		zap_page_range(vma, mp->vmaddr | (address & ~PMD_MASK),
+			       size, NULL);
+		address = (address + PMD_SIZE) & PMD_MASK;
+	}
+	up_read(&gmap->mm->mmap_sem);
+}
+EXPORT_SYMBOL_GPL(gmap_discard);
+
+void gmap_unmap_notifier(struct mm_struct *mm, unsigned long *table)
+{
+	struct gmap_rmap *rmap, *next;
+	struct gmap_pgtable *mp;
+	struct page *page;
+	int flush;
+
+	flush = 0;
+	spin_lock(&mm->page_table_lock);
+	page = pfn_to_page(__pa(table) >> PAGE_SHIFT);
+	mp = (struct gmap_pgtable *) page->index;
+	list_for_each_entry_safe(rmap, next, &mp->mapper, list) {
+		*rmap->entry =
+			_SEGMENT_ENTRY_INV | _SEGMENT_ENTRY_RO | mp->vmaddr;
+		list_del(&rmap->list);
+		kfree(rmap);
+		flush = 1;
+	}
+	spin_unlock(&mm->page_table_lock);
+	if (flush)
+		__tlb_flush_global();
+}
+
+static inline unsigned long *page_table_alloc_pgste(struct mm_struct *mm,
+						    unsigned long vmaddr)
 {
 	struct page *page;
 	unsigned long *table;
+	struct gmap_pgtable *mp;
 
 	page = alloc_page(GFP_KERNEL|__GFP_REPEAT);
 	if (!page)
 		return NULL;
+	mp = kmalloc(sizeof(*mp), GFP_KERNEL|__GFP_REPEAT);
+	if (!mp) {
+		__free_page(page);
+		return NULL;
+	}
 	pgtable_page_ctor(page);
+	mp->vmaddr = vmaddr & PMD_MASK;
+	INIT_LIST_HEAD(&mp->mapper);
+	page->index = (unsigned long) mp;
 	atomic_set(&page->_mapcount, 3);
 	table = (unsigned long *) page_to_phys(page);
 	clear_table(table, _PAGE_TYPE_EMPTY, PAGE_SIZE/2);
@@ -353,24 +577,58 @@ static inline unsigned long *page_table_alloc_pgste(struct mm_struct *mm)
 static inline void page_table_free_pgste(unsigned long *table)
 {
 	struct page *page;
+	struct gmap_pgtable *mp;
 
 	page = pfn_to_page(__pa(table) >> PAGE_SHIFT);
+	mp = (struct gmap_pgtable *) page->index;
+	BUG_ON(!list_empty(&mp->mapper));
 	pgtable_page_ctor(page);
 	atomic_set(&page->_mapcount, -1);
+	kfree(mp);
 	__free_page(page);
 }
-#endif
 
-unsigned long *page_table_alloc(struct mm_struct *mm)
+#else /* CONFIG_PGSTE */
+
+static inline unsigned long *page_table_alloc_pgste(struct mm_struct *mm,
+						    unsigned long vmaddr)
+{
+	return NULL;
+}
+
+static inline void page_table_free_pgste(unsigned long *table)
+{
+}
+
+static inline void gmap_unmap_notifier(struct mm_struct *mm,
+					  unsigned long *table)
+{
+}
+
+#endif /* CONFIG_PGSTE */
+
+static inline unsigned int atomic_xor_bits(atomic_t *v, unsigned int bits)
+{
+	unsigned int old, new;
+
+	do {
+		old = atomic_read(v);
+		new = old ^ bits;
+	} while (atomic_cmpxchg(v, old, new) != old);
+	return new;
+}
+
+/*
+ * page table entry allocation/free routines.
+ */
+unsigned long *page_table_alloc(struct mm_struct *mm, unsigned long vmaddr)
 {
 	struct page *page;
 	unsigned long *table;
 	unsigned int mask, bit;
 
-#ifdef CONFIG_PGSTE
 	if (mm_has_pgste(mm))
-		return page_table_alloc_pgste(mm);
-#endif
+		return page_table_alloc_pgste(mm, vmaddr);
 	/* Allocate fragments of a 4K page as 1K/2K page table */
 	spin_lock_bh(&mm->context.list_lock);
 	mask = FRAG_MASK;
@@ -408,10 +666,10 @@ void page_table_free(struct mm_struct *mm, unsigned long *table)
 	struct page *page;
 	unsigned int bit, mask;
 
-#ifdef CONFIG_PGSTE
-	if (mm_has_pgste(mm))
+	if (mm_has_pgste(mm)) {
+		gmap_unmap_notifier(mm, table);
 		return page_table_free_pgste(table);
-#endif
+	}
 	/* Free 1K/2K page table fragment of a 4K page */
 	page = pfn_to_page(__pa(table) >> PAGE_SHIFT);
 	bit = 1 << ((__pa(table) & ~PAGE_MASK)/(PTRS_PER_PTE*sizeof(pte_t)));
@@ -429,14 +687,14 @@ void page_table_free(struct mm_struct *mm, unsigned long *table)
 	}
 }
 
+#ifdef CONFIG_HAVE_RCU_TABLE_FREE
+
 static void __page_table_free_rcu(void *table, unsigned bit)
 {
 	struct page *page;
 
-#ifdef CONFIG_PGSTE
 	if (bit == FRAG_MASK)
 		return page_table_free_pgste(table);
-#endif
 	/* Free 1K/2K page table fragment of a 4K page */
 	page = pfn_to_page(__pa(table) >> PAGE_SHIFT);
 	if (atomic_xor_bits(&page->_mapcount, bit) == 0) {
@@ -453,13 +711,12 @@ void page_table_free_rcu(struct mmu_gather *tlb, unsigned long *table)
 	unsigned int bit, mask;
 
 	mm = tlb->mm;
-#ifdef CONFIG_PGSTE
 	if (mm_has_pgste(mm)) {
+		gmap_unmap_notifier(mm, table);
 		table = (unsigned long *) (__pa(table) | FRAG_MASK);
 		tlb_remove_table(tlb, table);
 		return;
 	}
-#endif
 	bit = 1 << ((__pa(table) & ~PAGE_MASK) / (PTRS_PER_PTE*sizeof(pte_t)));
 	page = pfn_to_page(__pa(table) >> PAGE_SHIFT);
 	spin_lock_bh(&mm->context.list_lock);
@@ -485,66 +742,7 @@ void __tlb_remove_table(void *_table)
 		free_pages((unsigned long) table, ALLOC_ORDER);
 }
 
-static void tlb_remove_table_smp_sync(void *arg)
-{
-	/* Simply deliver the interrupt */
-}
-
-static void tlb_remove_table_one(void *table)
-{
-	/*
-	 * This isn't an RCU grace period and hence the page-tables cannot be
-	 * assumed to be actually RCU-freed.
-	 *
-	 * It is however sufficient for software page-table walkers that rely
-	 * on IRQ disabling. See the comment near struct mmu_table_batch.
-	 */
-	smp_call_function(tlb_remove_table_smp_sync, NULL, 1);
-	__tlb_remove_table(table);
-}
-
-static void tlb_remove_table_rcu(struct rcu_head *head)
-{
-	struct mmu_table_batch *batch;
-	int i;
-
-	batch = container_of(head, struct mmu_table_batch, rcu);
-
-	for (i = 0; i < batch->nr; i++)
-		__tlb_remove_table(batch->tables[i]);
-
-	free_page((unsigned long)batch);
-}
-
-void tlb_table_flush(struct mmu_gather *tlb)
-{
-	struct mmu_table_batch **batch = &tlb->batch;
-
-	if (*batch) {
-		__tlb_flush_mm(tlb->mm);
-		call_rcu_sched(&(*batch)->rcu, tlb_remove_table_rcu);
-		*batch = NULL;
-	}
-}
-
-void tlb_remove_table(struct mmu_gather *tlb, void *table)
-{
-	struct mmu_table_batch **batch = &tlb->batch;
-
-	if (*batch == NULL) {
-		*batch = (struct mmu_table_batch *)
-			__get_free_page(GFP_NOWAIT | __GFP_NOWARN);
-		if (*batch == NULL) {
-			__tlb_flush_mm(tlb->mm);
-			tlb_remove_table_one(table);
-			return;
-		}
-		(*batch)->nr = 0;
-	}
-	(*batch)->tables[(*batch)->nr++] = table;
-	if ((*batch)->nr == MAX_TABLE_BATCH)
-		tlb_table_flush(tlb);
-}
+#endif
 
 /*
  * switch on pgstes for its userspace process (for kvm)

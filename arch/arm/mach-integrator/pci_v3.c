@@ -502,12 +502,9 @@ void __init pci_v3_preinit(void)
 	unsigned int temp;
 	int ret;
 
-<<<<<<< HEAD
-=======
 	pcibios_min_io = 0x6000;
 	pcibios_min_mem = 0x00100000;
 
->>>>>>> 22f92ba... Merge branch 'linus' into sched/core
 	/*
 	 * Hook in our fault handler for PCI errors
 	 */

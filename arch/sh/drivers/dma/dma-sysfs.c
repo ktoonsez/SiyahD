@@ -11,12 +11,8 @@
  */
 #include <linux/kernel.h>
 #include <linux/init.h>
-<<<<<<< HEAD
-#include <linux/sysdev.h>
-=======
 #include <linux/stat.h>
 #include <linux/device.h>
->>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 #include <linux/platform_device.h>
 #include <linux/err.h>
 #include <linux/string.h>

@@ -25,12 +25,8 @@
 #ifdef __KERNEL__
 
 #include <linux/workqueue.h>
-<<<<<<< HEAD
-#include <linux/sysdev.h>
-=======
 #include <linux/device.h>
 #include <linux/mutex.h>
->>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 
 #define LS_SIZE (256 * 1024)
 #define LS_ADDR_MASK (LS_SIZE - 1)
@@ -241,7 +237,7 @@ extern long spu_sys_callback(struct spu_syscall_block *s);
 struct file;
 struct spufs_calls {
 	long (*create_thread)(const char __user *name,
-					unsigned int flags, mode_t mode,
+					unsigned int flags, umode_t mode,
 					struct file *neighbor);
 	long (*spu_run)(struct file *filp, __u32 __user *unpc,
 						__u32 __user *ustatus);

@@ -256,7 +256,7 @@ static int __init microcode_dev_init(void)
 	return 0;
 }
 
-static void microcode_dev_exit(void)
+static void __exit microcode_dev_exit(void)
 {
 	misc_deregister(&microcode_dev);
 }
@@ -297,31 +297,20 @@ static ssize_t reload_store(struct device *dev,
 			    const char *buf, size_t size)
 {
 	unsigned long val;
-	int cpu;
-	ssize_t ret = 0, tmp_ret;
+	int cpu = dev->id;
+	int ret = 0;
+	char *end;
 
-	/* allow reload only from the BSP */
-	if (boot_cpu_data.cpu_index != dev->id)
+	val = simple_strtoul(buf, &end, 0);
+	if (end == buf)
 		return -EINVAL;
 
-	ret = kstrtoul(buf, 0, &val);
-	if (ret)
-		return ret;
-
-	if (val != 1)
-		return size;
-
-	get_online_cpus();
-	for_each_online_cpu(cpu) {
-		tmp_ret = reload_for_cpu(cpu);
-		if (tmp_ret != 0)
-			pr_warn("Error reloading microcode on CPU %d\n", cpu);
-
-		/* save retval of the first encountered reload error */
-		if (!ret)
-			ret = tmp_ret;
+	if (val == 1) {
+		get_online_cpus();
+		if (cpu_online(cpu))
+			ret = reload_for_cpu(cpu);
+		put_online_cpus();
 	}
-	put_online_cpus();
 
 	if (!ret)
 		ret = size;
@@ -496,7 +485,13 @@ mc_cpu_callback(struct notifier_block *nb, unsigned long action, void *hcpu)
 		sysfs_remove_group(&dev->kobj, &mc_attr_group);
 		pr_debug("CPU%d removed\n", cpu);
 		break;
-	case CPU_DEAD:
+
+	/*
+	 * When a CPU goes offline, don't free up or invalidate the copy of
+	 * the microcode in kernel memory, so that we can reuse it when the
+	 * CPU comes back online without unnecessarily requesting the userspace
+	 * for it again.
+	 */
 	case CPU_UP_CANCELED_FROZEN:
 		/* The CPU refused to come up during a system resume */
 		microcode_fini_cpu(cpu);
@@ -526,10 +521,8 @@ static int __init microcode_init(void)
 
 	microcode_pdev = platform_device_register_simple("microcode", -1,
 							 NULL, 0);
-	if (IS_ERR(microcode_pdev)) {
-		microcode_dev_exit();
+	if (IS_ERR(microcode_pdev))
 		return PTR_ERR(microcode_pdev);
-	}
 
 	get_online_cpus();
 	mutex_lock(&microcode_mutex);
@@ -539,18 +532,12 @@ static int __init microcode_init(void)
 	mutex_unlock(&microcode_mutex);
 	put_online_cpus();
 
-	if (error) {
-		platform_device_unregister(microcode_pdev);
-		return error;
-	}
+	if (error)
+		goto out_pdev;
 
 	error = microcode_dev_init();
 	if (error)
-<<<<<<< HEAD
-		return error;
-=======
 		goto out_driver;
->>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 
 	register_syscore_ops(&mc_syscore_ops);
 	register_hotcpu_notifier(&mc_cpu_notifier);
@@ -559,8 +546,6 @@ static int __init microcode_init(void)
 		" <tigran@aivazian.fsnet.co.uk>, Peter Oruba\n");
 
 	return 0;
-<<<<<<< HEAD
-=======
 
 out_driver:
 	get_online_cpus();
@@ -575,12 +560,13 @@ out_pdev:
 	platform_device_unregister(microcode_pdev);
 	return error;
 
->>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core
 }
 module_init(microcode_init);
 
 static void __exit microcode_exit(void)
 {
+	struct cpuinfo_x86 *c = &cpu_data(0);
+
 	microcode_dev_exit();
 
 	unregister_hotcpu_notifier(&mc_cpu_notifier);
@@ -597,6 +583,9 @@ static void __exit microcode_exit(void)
 	platform_device_unregister(microcode_pdev);
 
 	microcode_ops = NULL;
+
+	if (c->x86_vendor == X86_VENDOR_AMD)
+		exit_amd_microcode();
 
 	pr_info("Microcode Update Driver: v" MICROCODE_VERSION " removed.\n");
 }

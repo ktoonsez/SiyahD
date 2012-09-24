@@ -33,7 +33,6 @@
 #include "xfs_dinode.h"
 #include "xfs_inode.h"
 #include "xfs_btree.h"
-#include "xfs_btree_trace.h"
 #include "xfs_ialloc.h"
 #include "xfs_bmap.h"
 #include "xfs_rtalloc.h"
@@ -797,8 +796,6 @@ xfs_fs_destroy_inode(
 	if (is_bad_inode(inode))
 		goto out_reclaim;
 
-	xfs_ioend_wait(ip);
-
 	ASSERT(XFS_FORCED_SHUTDOWN(ip->i_mount) || ip->i_delayed_blks == 0);
 
 	/*
@@ -838,7 +835,6 @@ xfs_fs_inode_init_once(
 	inode_init_once(VFS_I(ip));
 
 	/* xfs inode */
-	atomic_set(&ip->i_iocount, 0);
 	atomic_set(&ip->i_pincount, 0);
 	spin_lock_init(&ip->i_flags_lock);
 	init_waitqueue_head(&ip->i_ipin_wait);
@@ -873,30 +869,6 @@ xfs_fs_dirty_inode(
 }
 
 STATIC int
-<<<<<<< HEAD
-=======
-xfs_log_inode(
-	struct xfs_inode	*ip)
-{
-	struct xfs_mount	*mp = ip->i_mount;
-	struct xfs_trans	*tp;
-	int			error;
-
-	tp = xfs_trans_alloc(mp, XFS_TRANS_FSYNC_TS);
-	error = xfs_trans_reserve(tp, 0, XFS_FSYNC_TS_LOG_RES(mp), 0, 0, 0);
-	if (error) {
-		xfs_trans_cancel(tp, 0);
-		return error;
-	}
-
-	xfs_ilock(ip, XFS_ILOCK_EXCL);
-	xfs_trans_ijoin_ref(tp, ip, XFS_ILOCK_EXCL);
-	xfs_trans_log_inode(tp, ip, XFS_ILOG_CORE);
-	return xfs_trans_commit(tp, 0);
-}
-
-STATIC int
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 xfs_fs_write_inode(
 	struct inode		*inode,
 	struct writeback_control *wbc)
@@ -909,11 +881,6 @@ xfs_fs_write_inode(
 
 	if (XFS_FORCED_SHUTDOWN(mp))
 		return -XFS_ERROR(EIO);
-<<<<<<< HEAD
-=======
-	if (!ip->i_update_core)
-		return 0;
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 	if (wbc->sync_mode == WB_SYNC_ALL || wbc->for_kupdate) {
 		/*
@@ -921,14 +888,9 @@ xfs_fs_write_inode(
 		 * of forcing it all the way to stable storage using a
 		 * synchronous transaction we let the log force inside the
 		 * ->sync_fs call do that for thus, which reduces the number
-		 * of synchronous log foces dramatically.
+		 * of synchronous log forces dramatically.
 		 */
-		xfs_ioend_wait(ip);
-<<<<<<< HEAD
 		error = xfs_log_dirty_inode(ip, NULL, 0);
-=======
-		error = xfs_log_inode(ip);
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 		if (error)
 			goto out;
 		return 0;
@@ -1024,11 +986,6 @@ xfs_fs_put_super(
 {
 	struct xfs_mount	*mp = XFS_M(sb);
 
-	/*
-	 * Unregister the memory shrinker before we tear down the mount
-	 * structure so we don't have memory reclaim racing with us here.
-	 */
-	xfs_inode_shrinker_unregister(mp);
 	xfs_syncd_stop(mp);
 
 	/*
@@ -1038,7 +995,7 @@ xfs_fs_put_super(
 	 */
 	xfs_filestream_unmount(mp);
 
-	XFS_bflush(mp->m_ddev_targp);
+	xfs_flush_buftarg(mp->m_ddev_targp, 1);
 
 	xfs_unmountfs(mp);
 	xfs_freesb(mp);
@@ -1281,9 +1238,9 @@ xfs_fs_unfreeze(
 STATIC int
 xfs_fs_show_options(
 	struct seq_file		*m,
-	struct vfsmount		*mnt)
+	struct dentry		*root)
 {
-	return -xfs_showargs(XFS_M(mnt->mnt_sb), m);
+	return -xfs_showargs(XFS_M(root->d_sb), m);
 }
 
 /*
@@ -1411,8 +1368,6 @@ xfs_fs_fill_super(
 	sb->s_time_gran = 1;
 	set_posix_acl_flag(sb);
 
-	xfs_inode_shrinker_register(mp);
-
 	error = xfs_mountfs(mp);
 	if (error)
 		goto out_filestream_unmount;
@@ -1439,7 +1394,6 @@ xfs_fs_fill_super(
 	return 0;
 
  out_filestream_unmount:
-	xfs_inode_shrinker_unregister(mp);
 	xfs_filestream_unmount(mp);
  out_free_sb:
 	xfs_freesb(mp);
@@ -1458,8 +1412,6 @@ xfs_fs_fill_super(
  out_syncd_stop:
 	xfs_syncd_stop(mp);
  out_unmount:
-	xfs_inode_shrinker_unregister(mp);
-
 	/*
 	 * Blow away any referenced inode in the filestreams cache.
 	 * This can and will cause log traffic as inodes go inactive
@@ -1467,7 +1419,7 @@ xfs_fs_fill_super(
 	 */
 	xfs_filestream_unmount(mp);
 
-	XFS_bflush(mp->m_ddev_targp);
+	xfs_flush_buftarg(mp->m_ddev_targp, 1);
 
 	xfs_unmountfs(mp);
 	goto out_free_sb;
@@ -1483,6 +1435,21 @@ xfs_fs_mount(
 	return mount_bdev(fs_type, flags, dev_name, data, xfs_fs_fill_super);
 }
 
+static int
+xfs_fs_nr_cached_objects(
+	struct super_block	*sb)
+{
+	return xfs_reclaim_inodes_count(XFS_M(sb));
+}
+
+static void
+xfs_fs_free_cached_objects(
+	struct super_block	*sb,
+	int			nr_to_scan)
+{
+	xfs_reclaim_inodes_nr(XFS_M(sb), nr_to_scan);
+}
+
 static const struct super_operations xfs_super_operations = {
 	.alloc_inode		= xfs_fs_alloc_inode,
 	.destroy_inode		= xfs_fs_destroy_inode,
@@ -1496,6 +1463,8 @@ static const struct super_operations xfs_super_operations = {
 	.statfs			= xfs_fs_statfs,
 	.remount_fs		= xfs_fs_remount,
 	.show_options		= xfs_fs_show_options,
+	.nr_cached_objects	= xfs_fs_nr_cached_objects,
+	.free_cached_objects	= xfs_fs_free_cached_objects,
 };
 
 static struct file_system_type xfs_fs_type = {
@@ -1677,7 +1646,6 @@ init_xfs_fs(void)
 	printk(KERN_INFO XFS_VERSION_STRING " with "
 			 XFS_BUILD_OPTIONS " enabled\n");
 
-	xfs_ioend_init();
 	xfs_dir_startup();
 
 	error = xfs_init_zones();

@@ -220,7 +220,7 @@ xfs_qm_adjust_dqtimers(
 {
 	ASSERT(d->d_id);
 
-#ifdef QUOTADEBUG
+#ifdef DEBUG
 	if (d->d_blk_hardlimit)
 		ASSERT(be64_to_cpu(d->d_blk_softlimit) <=
 		       be64_to_cpu(d->d_blk_hardlimit));
@@ -231,6 +231,7 @@ xfs_qm_adjust_dqtimers(
 		ASSERT(be64_to_cpu(d->d_rtb_softlimit) <=
 		       be64_to_cpu(d->d_rtb_hardlimit));
 #endif
+
 	if (!d->d_btimer) {
 		if ((d->d_blk_softlimit &&
 		     (be64_to_cpu(d->d_bcount) >=
@@ -317,12 +318,7 @@ xfs_qm_init_dquot_blk(
 	int		curid, i;
 
 	ASSERT(tp);
-<<<<<<< HEAD
-	ASSERT(XFS_BUF_ISBUSY(bp));
-	ASSERT(XFS_BUF_VALUSEMA(bp) <= 0);
-=======
 	ASSERT(xfs_buf_islocked(bp));
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 	d = bp->b_addr;
 
@@ -381,16 +377,14 @@ xfs_qm_dqalloc(
 		return (ESRCH);
 	}
 
-	xfs_trans_ijoin_ref(tp, quotip, XFS_ILOCK_EXCL);
+	xfs_trans_ijoin(tp, quotip, XFS_ILOCK_EXCL);
 	nmaps = 1;
-	if ((error = xfs_bmapi(tp, quotip,
-			      offset_fsb, XFS_DQUOT_CLUSTER_SIZE_FSB,
-			      XFS_BMAPI_METADATA | XFS_BMAPI_WRITE,
-			      &firstblock,
-			      XFS_QM_DQALLOC_SPACE_RES(mp),
-			      &map, &nmaps, &flist))) {
+	error = xfs_bmapi_write(tp, quotip, offset_fsb,
+				XFS_DQUOT_CLUSTER_SIZE_FSB, XFS_BMAPI_METADATA,
+				&firstblock, XFS_QM_DQALLOC_SPACE_RES(mp),
+				&map, &nmaps, &flist);
+	if (error)
 		goto error0;
-	}
 	ASSERT(map.br_blockcount == XFS_DQUOT_CLUSTER_SIZE_FSB);
 	ASSERT(nmaps == 1);
 	ASSERT((map.br_startblock != DELAYSTARTBLOCK) &&
@@ -406,8 +400,11 @@ xfs_qm_dqalloc(
 			       dqp->q_blkno,
 			       mp->m_quotainfo->qi_dqchunklen,
 			       0);
-	if (!bp || (error = xfs_buf_geterror(bp)))
+
+	error = xfs_buf_geterror(bp);
+	if (error)
 		goto error1;
+
 	/*
 	 * Make a chunk of dquots out of this buffer and log
 	 * the entire thing.
@@ -489,9 +486,8 @@ xfs_qm_dqtobp(
 	/*
 	 * Find the block map; no allocations yet
 	 */
-	error = xfs_bmapi(NULL, quotip, dqp->q_fileoffset,
-			  XFS_DQUOT_CLUSTER_SIZE_FSB, XFS_BMAPI_METADATA,
-			  NULL, 0, &map, &nmaps, NULL);
+	error = xfs_bmapi_read(quotip, dqp->q_fileoffset,
+			       XFS_DQUOT_CLUSTER_SIZE_FSB, &map, &nmaps, 0);
 
 	xfs_iunlock(quotip, XFS_ILOCK_SHARED);
 	if (error)
@@ -537,12 +533,7 @@ xfs_qm_dqtobp(
 			return XFS_ERROR(error);
 	}
 
-<<<<<<< HEAD
-	ASSERT(XFS_BUF_ISBUSY(bp));
-	ASSERT(XFS_BUF_VALUSEMA(bp) <= 0);
-=======
 	ASSERT(xfs_buf_islocked(bp));
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 	/*
 	 * calculate the location of the dquot inside the buffer.
@@ -614,7 +605,7 @@ xfs_qm_dqread(
 	dqp->q_res_rtbcount = be64_to_cpu(ddqp->d_rtbcount);
 
 	/* Mark the buf so that this will stay incore a little longer */
-	XFS_BUF_SET_VTYPE_REF(bp, B_FS_DQUOT, XFS_DQUOT_REF);
+	xfs_buf_set_ref(bp, XFS_DQUOT_REF);
 
 	/*
 	 * We got the buffer with a xfs_trans_read_buf() (in dqtobp())
@@ -628,12 +619,7 @@ xfs_qm_dqread(
 	 * this particular dquot was repaired. We still aren't afraid to
 	 * brelse it because we have the changes incore.
 	 */
-<<<<<<< HEAD
-	ASSERT(XFS_BUF_ISBUSY(bp));
-	ASSERT(XFS_BUF_VALUSEMA(bp) <= 0);
-=======
 	ASSERT(xfs_buf_islocked(bp));
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 	xfs_trans_brelse(tp, bp);
 
 	return (error);
@@ -1256,9 +1242,11 @@ xfs_qm_dqflush(
 	}
 
 	if (flags & SYNC_WAIT)
-		error = xfs_bwrite(mp, bp);
+		error = xfs_bwrite(bp);
 	else
-		xfs_bdwrite(mp, bp);
+		xfs_buf_delwri_queue(bp);
+
+	xfs_buf_relse(bp);
 
 	trace_xfs_dqflush_done(dqp);
 
@@ -1433,45 +1421,6 @@ xfs_qm_dqpurge(
 	return (0);
 }
 
-
-#ifdef QUOTADEBUG
-void
-xfs_qm_dqprint(xfs_dquot_t *dqp)
-{
-	struct xfs_mount	*mp = dqp->q_mount;
-
-	xfs_debug(mp, "-----------KERNEL DQUOT----------------");
-	xfs_debug(mp, "---- dquotID =  %d",
-		(int)be32_to_cpu(dqp->q_core.d_id));
-	xfs_debug(mp, "---- type    =  %s", DQFLAGTO_TYPESTR(dqp));
-	xfs_debug(mp, "---- fs      =  0x%p", dqp->q_mount);
-	xfs_debug(mp, "---- blkno   =  0x%x", (int) dqp->q_blkno);
-	xfs_debug(mp, "---- boffset =  0x%x", (int) dqp->q_bufoffset);
-	xfs_debug(mp, "---- blkhlimit =  %Lu (0x%x)",
-		be64_to_cpu(dqp->q_core.d_blk_hardlimit),
-		(int)be64_to_cpu(dqp->q_core.d_blk_hardlimit));
-	xfs_debug(mp, "---- blkslimit =  %Lu (0x%x)",
-		be64_to_cpu(dqp->q_core.d_blk_softlimit),
-		(int)be64_to_cpu(dqp->q_core.d_blk_softlimit));
-	xfs_debug(mp, "---- inohlimit =  %Lu (0x%x)",
-		be64_to_cpu(dqp->q_core.d_ino_hardlimit),
-		(int)be64_to_cpu(dqp->q_core.d_ino_hardlimit));
-	xfs_debug(mp, "---- inoslimit =  %Lu (0x%x)",
-		be64_to_cpu(dqp->q_core.d_ino_softlimit),
-		(int)be64_to_cpu(dqp->q_core.d_ino_softlimit));
-	xfs_debug(mp, "---- bcount  =  %Lu (0x%x)",
-		be64_to_cpu(dqp->q_core.d_bcount),
-		(int)be64_to_cpu(dqp->q_core.d_bcount));
-	xfs_debug(mp, "---- icount  =  %Lu (0x%x)",
-		be64_to_cpu(dqp->q_core.d_icount),
-		(int)be64_to_cpu(dqp->q_core.d_icount));
-	xfs_debug(mp, "---- btimer  =  %d",
-		(int)be32_to_cpu(dqp->q_core.d_btimer));
-	xfs_debug(mp, "---- itimer  =  %d",
-		(int)be32_to_cpu(dqp->q_core.d_itimer));
-	xfs_debug(mp, "---------------------------");
-}
-#endif
 
 /*
  * Give the buffer a little push if it is incore and

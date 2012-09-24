@@ -25,10 +25,6 @@ extern struct balloon_stats balloon_stats;
 
 void balloon_set_new_target(unsigned long target);
 
-<<<<<<< HEAD
-int alloc_xenballooned_pages(int nr_pages, struct page** pages);
-void free_xenballooned_pages(int nr_pages, struct page** pages);
-=======
 int alloc_xenballooned_pages(int nr_pages, struct page **pages,
 		bool highmem);
 void free_xenballooned_pages(int nr_pages, struct page **pages);
@@ -42,4 +38,3 @@ static inline int register_xen_selfballooning(struct device *dev)
 	return -ENOSYS;
 }
 #endif
->>>>>>> 7affca3... Merge branch 'driver-core-next' of git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/driver-core

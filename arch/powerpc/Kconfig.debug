@@ -164,6 +164,13 @@ config PPC_EARLY_DEBUG_LPAR
 	  Select this to enable early debugging for a machine with a HVC
 	  console on vterm 0.
 
+config PPC_EARLY_DEBUG_LPAR_HVSI
+	bool "LPAR HVSI Console"
+	depends on PPC_PSERIES
+	help
+	  Select this to enable early debugging for a machine with a HVSI
+	  console on a specified vterm.
+
 config PPC_EARLY_DEBUG_G5
 	bool "Apple G5"
 	depends on PPC_PMAC64
@@ -274,8 +281,6 @@ config PPC_EARLY_DEBUG_OPAL_HVSI
 
 endchoice
 
-<<<<<<< HEAD
-=======
 config PPC_EARLY_DEBUG_OPAL
 	def_bool y
 	depends on PPC_EARLY_DEBUG_OPAL_RAW || PPC_EARLY_DEBUG_OPAL_HVSI
@@ -301,7 +306,6 @@ config PPC_EARLY_DEBUG_OPAL_VTERMNO
 	  On OPAL v2, this will be 0 for network console and 1 or 2 for
 	  the machine built-in serial ports.
 
->>>>>>> 1197ab2... Merge branch 'next' of git://git.kernel.org/pub/scm/linux/kernel/git/benh/powerpc
 config PPC_EARLY_DEBUG_44x_PHYSLOW
 	hex "Low 32 bits of early debug UART physical address"
 	depends on PPC_EARLY_DEBUG_44x
@@ -331,5 +335,17 @@ config PPC_EARLY_DEBUG_CPM_ADDR
 	  used for early debug output.  Because it is needed before
 	  platform probing is done, all platforms selected must
 	  share the same address.
+
+config STRICT_DEVMEM
+	def_bool y
+	prompt "Filter access to /dev/mem"
+	help
+	  This option restricts access to /dev/mem.  If this option is
+	  disabled, you allow userspace access to all memory, including
+	  kernel and userspace memory. Accidental memory access is likely
+	  to be disastrous.
+	  Memory access is required for experts who want to debug the kernel.
+
+	  If you are unsure, say Y.
 
 endmenu

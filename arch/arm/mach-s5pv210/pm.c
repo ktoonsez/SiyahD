@@ -88,11 +88,7 @@ static struct sleep_save s5pv210_core_save[] = {
 	SAVE_ITEM(S3C2410_TCNTO(0)),
 };
 
-<<<<<<< HEAD
-void s5pv210_cpu_suspend(void)
-=======
 static int s5pv210_cpu_suspend(unsigned long arg)
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 {
 	unsigned long tmp;
 

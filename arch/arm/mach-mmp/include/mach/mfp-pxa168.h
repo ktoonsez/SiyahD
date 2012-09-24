@@ -326,8 +326,6 @@
 #define GPIO112_KP_MKOUT6       MFP_CFG(GPIO112, AF7)
 #define GPIO121_KP_MKIN4        MFP_CFG(GPIO121, AF7)
 
-<<<<<<< HEAD
-=======
 /* Fast Ethernet */
 #define GPIO86_TX_CLK		MFP_CFG(GPIO86, AF5)
 #define GPIO87_TX_EN		MFP_CFG(GPIO87, AF5)
@@ -353,5 +351,4 @@
 #define GPIO111_SSP2_CLK	MFP_CFG(GPIO111, AF4)
 #define GPIO112_SSP2_FRM	MFP_CFG(GPIO112, AF4)
 
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 #endif /* __ASM_MACH_MFP_PXA168_H */

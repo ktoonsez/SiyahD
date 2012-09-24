@@ -46,43 +46,46 @@ typedef enum {
 
 #define XBF_READ	(1 << 0) /* buffer intended for reading from device */
 #define XBF_WRITE	(1 << 1) /* buffer intended for writing to device */
-#define XBF_MAPPED	(1 << 2) /* buffer mapped (b_addr valid) */
+#define XBF_READ_AHEAD	(1 << 2) /* asynchronous read-ahead */
+#define XBF_MAPPED	(1 << 3) /* buffer mapped (b_addr valid) */
 #define XBF_ASYNC	(1 << 4) /* initiator will not wait for completion */
 #define XBF_DONE	(1 << 5) /* all pages in the buffer uptodate */
 #define XBF_DELWRI	(1 << 6) /* buffer has dirty pages */
 #define XBF_STALE	(1 << 7) /* buffer has been staled, do not find it */
-#define XBF_ORDERED	(1 << 11)/* use ordered writes */
-#define XBF_READ_AHEAD	(1 << 12)/* asynchronous read-ahead */
-#define XBF_LOG_BUFFER	(1 << 13)/* this is a buffer used for the log */
+
+/* I/O hints for the BIO layer */
+#define XBF_SYNCIO	(1 << 10)/* treat this buffer as synchronous I/O */
+#define XBF_FUA		(1 << 11)/* force cache write through mode */
+#define XBF_FLUSH	(1 << 12)/* flush the disk cache before a write */
 
 /* flags used only as arguments to access routines */
-#define XBF_LOCK	(1 << 14)/* lock requested */
-#define XBF_TRYLOCK	(1 << 15)/* lock requested, but do not wait */
-#define XBF_DONT_BLOCK	(1 << 16)/* do not block in current thread */
+#define XBF_LOCK	(1 << 15)/* lock requested */
+#define XBF_TRYLOCK	(1 << 16)/* lock requested, but do not wait */
+#define XBF_DONT_BLOCK	(1 << 17)/* do not block in current thread */
 
 /* flags used only internally */
-#define _XBF_PAGES	(1 << 18)/* backed by refcounted pages */
-#define	_XBF_RUN_QUEUES	(1 << 19)/* run block device task queue	*/
-#define	_XBF_KMEM	(1 << 20)/* backed by heap memory */
-#define _XBF_DELWRI_Q	(1 << 21)/* buffer on delwri queue */
+#define _XBF_PAGES	(1 << 20)/* backed by refcounted pages */
+#define _XBF_KMEM	(1 << 21)/* backed by heap memory */
+#define _XBF_DELWRI_Q	(1 << 22)/* buffer on delwri queue */
 
 typedef unsigned int xfs_buf_flags_t;
 
 #define XFS_BUF_FLAGS \
 	{ XBF_READ,		"READ" }, \
 	{ XBF_WRITE,		"WRITE" }, \
+	{ XBF_READ_AHEAD,	"READ_AHEAD" }, \
 	{ XBF_MAPPED,		"MAPPED" }, \
 	{ XBF_ASYNC,		"ASYNC" }, \
 	{ XBF_DONE,		"DONE" }, \
 	{ XBF_DELWRI,		"DELWRI" }, \
 	{ XBF_STALE,		"STALE" }, \
-	{ XBF_ORDERED,		"ORDERED" }, \
-	{ XBF_READ_AHEAD,	"READ_AHEAD" }, \
+	{ XBF_SYNCIO,		"SYNCIO" }, \
+	{ XBF_FUA,		"FUA" }, \
+	{ XBF_FLUSH,		"FLUSH" }, \
 	{ XBF_LOCK,		"LOCK" },  	/* should never be set */\
 	{ XBF_TRYLOCK,		"TRYLOCK" }, 	/* ditto */\
 	{ XBF_DONT_BLOCK,	"DONT_BLOCK" },	/* ditto */\
 	{ _XBF_PAGES,		"PAGES" }, \
-	{ _XBF_RUN_QUEUES,	"RUN_QUEUES" }, \
 	{ _XBF_KMEM,		"KMEM" }, \
 	{ _XBF_DELWRI_Q,	"DELWRI_Q" }
 
@@ -90,11 +93,6 @@ typedef enum {
 	XBT_FORCE_SLEEP = 0,
 	XBT_FORCE_FLUSH = 1,
 } xfs_buftarg_flags_t;
-
-typedef struct xfs_bufhash {
-	struct list_head	bh_list;
-	spinlock_t		bh_lock;
-} xfs_bufhash_t;
 
 typedef struct xfs_buftarg {
 	dev_t			bt_dev;
@@ -107,8 +105,8 @@ typedef struct xfs_buftarg {
 
 	/* per device delwri queue */
 	struct task_struct	*bt_task;
-	struct list_head	bt_delwrite_queue;
-	spinlock_t		bt_delwrite_lock;
+	struct list_head	bt_delwri_queue;
+	spinlock_t		bt_delwri_lock;
 	unsigned long		bt_flags;
 
 	/* LRU control structures */
@@ -151,7 +149,7 @@ typedef struct xfs_buf {
 	xfs_buf_iodone_t	b_iodone;	/* I/O completion function */
 	struct completion	b_iowait;	/* queue for I/O waiters */
 	void			*b_fspriv;
-	void			*b_fspriv2;
+	struct xfs_trans	*b_transp;
 	struct page		**b_pages;	/* array of page pointers */
 	struct page		*b_page_array[XB_PAGES]; /* inline pages */
 	unsigned long		b_queuetime;	/* time buffer was queued */
@@ -177,7 +175,8 @@ extern xfs_buf_t *xfs_buf_get(xfs_buftarg_t *, xfs_off_t, size_t,
 extern xfs_buf_t *xfs_buf_read(xfs_buftarg_t *, xfs_off_t, size_t,
 				xfs_buf_flags_t);
 
-extern xfs_buf_t *xfs_buf_get_empty(size_t, xfs_buftarg_t *);
+struct xfs_buf *xfs_buf_alloc(struct xfs_buftarg *, xfs_off_t, size_t,
+			      xfs_buf_flags_t);
 extern void xfs_buf_set_empty(struct xfs_buf *bp, size_t len);
 extern xfs_buf_t *xfs_buf_get_uncached(struct xfs_buftarg *, size_t, int);
 extern int xfs_buf_associate_memory(xfs_buf_t *, void *, size_t);
@@ -192,20 +191,21 @@ extern void xfs_buf_free(xfs_buf_t *);
 extern void xfs_buf_rele(xfs_buf_t *);
 
 /* Locking and Unlocking Buffers */
-extern int xfs_buf_cond_lock(xfs_buf_t *);
-extern int xfs_buf_lock_value(xfs_buf_t *);
+extern int xfs_buf_trylock(xfs_buf_t *);
 extern void xfs_buf_lock(xfs_buf_t *);
 extern void xfs_buf_unlock(xfs_buf_t *);
+#define xfs_buf_islocked(bp) \
+	((bp)->b_sema.count <= 0)
 
 /* Buffer Read and Write Routines */
-extern int xfs_bwrite(struct xfs_mount *mp, struct xfs_buf *bp);
-extern void xfs_bdwrite(void *mp, xfs_buf_t *bp);
+extern int xfs_bwrite(struct xfs_buf *bp);
 
 extern void xfsbdstrat(struct xfs_mount *, struct xfs_buf *);
 extern int xfs_bdstrat_cb(struct xfs_buf *);
 
 extern void xfs_buf_ioend(xfs_buf_t *,	int);
 extern void xfs_buf_ioerror(xfs_buf_t *, int);
+extern void xfs_buf_ioerror_alert(struct xfs_buf *, const char *func);
 extern int xfs_buf_iorequest(xfs_buf_t *);
 extern int xfs_buf_iowait(xfs_buf_t *);
 extern void xfs_buf_iomove(xfs_buf_t *, size_t, size_t, void *,
@@ -222,44 +222,22 @@ static inline int xfs_buf_geterror(xfs_buf_t *bp)
 extern xfs_caddr_t xfs_buf_offset(xfs_buf_t *, size_t);
 
 /* Delayed Write Buffer Routines */
-extern void xfs_buf_delwri_dequeue(xfs_buf_t *);
-extern void xfs_buf_delwri_promote(xfs_buf_t *);
+extern void xfs_buf_delwri_queue(struct xfs_buf *);
+extern void xfs_buf_delwri_dequeue(struct xfs_buf *);
+extern void xfs_buf_delwri_promote(struct xfs_buf *);
 
 /* Buffer Daemon Setup Routines */
 extern int xfs_buf_init(void);
 extern void xfs_buf_terminate(void);
 
-static inline const char *
-xfs_buf_target_name(struct xfs_buftarg *target)
-{
-	static char __b[BDEVNAME_SIZE];
-
-	return bdevname(target->bt_bdev, __b);
-}
-
-
-<<<<<<< HEAD
-#define XFS_BUF_BFLAGS(bp)	((bp)->b_flags)
-#define XFS_BUF_ZEROFLAGS(bp)	((bp)->b_flags &= \
-		~(XBF_READ|XBF_WRITE|XBF_ASYNC|XBF_DELWRI|XBF_ORDERED))
-=======
 #define XFS_BUF_ZEROFLAGS(bp) \
 	((bp)->b_flags &= ~(XBF_READ|XBF_WRITE|XBF_ASYNC|XBF_DELWRI| \
 			    XBF_SYNCIO|XBF_FUA|XBF_FLUSH))
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 void xfs_buf_stale(struct xfs_buf *bp);
-#define XFS_BUF_STALE(bp)	xfs_buf_stale(bp);
 #define XFS_BUF_UNSTALE(bp)	((bp)->b_flags &= ~XBF_STALE)
 #define XFS_BUF_ISSTALE(bp)	((bp)->b_flags & XBF_STALE)
-#define XFS_BUF_SUPER_STALE(bp)	do {				\
-					XFS_BUF_STALE(bp);	\
-					xfs_buf_delwri_dequeue(bp);	\
-					XFS_BUF_DONE(bp);	\
-				} while (0)
 
-#define XFS_BUF_DELAYWRITE(bp)		((bp)->b_flags |= XBF_DELWRI)
-#define XFS_BUF_UNDELAYWRITE(bp)	xfs_buf_delwri_dequeue(bp)
 #define XFS_BUF_ISDELAYWRITE(bp)	((bp)->b_flags & XBF_DELWRI)
 
 #define XFS_BUF_DONE(bp)	((bp)->b_flags |= XBF_DONE)
@@ -270,14 +248,6 @@ void xfs_buf_stale(struct xfs_buf *bp);
 #define XFS_BUF_UNASYNC(bp)	((bp)->b_flags &= ~XBF_ASYNC)
 #define XFS_BUF_ISASYNC(bp)	((bp)->b_flags & XBF_ASYNC)
 
-<<<<<<< HEAD
-#define XFS_BUF_ORDERED(bp)	((bp)->b_flags |= XBF_ORDERED)
-#define XFS_BUF_UNORDERED(bp)	((bp)->b_flags &= ~XBF_ORDERED)
-#define XFS_BUF_ISORDERED(bp)	((bp)->b_flags & XBF_ORDERED)
-
-#define XFS_BUF_HOLD(bp)	xfs_buf_hold(bp)
-=======
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 #define XFS_BUF_READ(bp)	((bp)->b_flags |= XBF_READ)
 #define XFS_BUF_UNREAD(bp)	((bp)->b_flags &= ~XBF_READ)
 #define XFS_BUF_ISREAD(bp)	((bp)->b_flags & XBF_READ)
@@ -286,21 +256,6 @@ void xfs_buf_stale(struct xfs_buf *bp);
 #define XFS_BUF_UNWRITE(bp)	((bp)->b_flags &= ~XBF_WRITE)
 #define XFS_BUF_ISWRITE(bp)	((bp)->b_flags & XBF_WRITE)
 
-<<<<<<< HEAD
-#define XFS_BUF_IODONE_FUNC(bp)			((bp)->b_iodone)
-#define XFS_BUF_SET_IODONE_FUNC(bp, func)	((bp)->b_iodone = (func))
-#define XFS_BUF_CLR_IODONE_FUNC(bp)		((bp)->b_iodone = NULL)
-
-#define XFS_BUF_FSPRIVATE(bp, type)		((type)(bp)->b_fspriv)
-#define XFS_BUF_SET_FSPRIVATE(bp, val)		((bp)->b_fspriv = (void*)(val))
-#define XFS_BUF_FSPRIVATE2(bp, type)		((type)(bp)->b_fspriv2)
-#define XFS_BUF_SET_FSPRIVATE2(bp, val)		((bp)->b_fspriv2 = (void*)(val))
-#define XFS_BUF_SET_START(bp)			do { } while (0)
-
-#define XFS_BUF_PTR(bp)			(xfs_caddr_t)((bp)->b_addr)
-#define XFS_BUF_SET_PTR(bp, val, cnt)	xfs_buf_associate_memory(bp, val, cnt)
-=======
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 #define XFS_BUF_ADDR(bp)		((bp)->b_bn)
 #define XFS_BUF_SET_ADDR(bp, bno)	((bp)->b_bn = (xfs_daddr_t)(bno))
 #define XFS_BUF_OFFSET(bp)		((bp)->b_file_offset)
@@ -310,26 +265,15 @@ void xfs_buf_stale(struct xfs_buf *bp);
 #define XFS_BUF_SIZE(bp)		((bp)->b_buffer_length)
 #define XFS_BUF_SET_SIZE(bp, cnt)	((bp)->b_buffer_length = (cnt))
 
-static inline void
-xfs_buf_set_ref(
-	struct xfs_buf	*bp,
-	int		lru_ref)
+static inline void xfs_buf_set_ref(struct xfs_buf *bp, int lru_ref)
 {
 	atomic_set(&bp->b_lru_ref, lru_ref);
 }
-#define XFS_BUF_SET_VTYPE_REF(bp, type, ref)	xfs_buf_set_ref(bp, ref)
-#define XFS_BUF_SET_VTYPE(bp, type)		do { } while (0)
 
 static inline int xfs_buf_ispinned(struct xfs_buf *bp)
 {
 	return atomic_read(&bp->b_pin_count);
 }
-
-#define XFS_BUF_VALUSEMA(bp)	xfs_buf_lock_value(bp)
-#define XFS_BUF_CPSEMA(bp)	(xfs_buf_cond_lock(bp) == 0)
-#define XFS_BUF_VSEMA(bp)	xfs_buf_unlock(bp)
-#define XFS_BUF_PSEMA(bp,x)	xfs_buf_lock(bp)
-#define XFS_BUF_FINISH_IOWAIT(bp)	complete(&bp->b_iowait);
 
 static inline void xfs_buf_relse(xfs_buf_t *bp)
 {
@@ -347,13 +291,7 @@ extern void xfs_wait_buftarg(xfs_buftarg_t *);
 extern int xfs_setsize_buftarg(xfs_buftarg_t *, unsigned int, unsigned int);
 extern int xfs_flush_buftarg(xfs_buftarg_t *, int);
 
-#ifdef CONFIG_KDB_MODULES
-extern struct list_head *xfs_get_buftarg_list(void);
-#endif
-
 #define xfs_getsize_buftarg(buftarg)	block_size((buftarg)->bt_bdev)
 #define xfs_readonly_buftarg(buftarg)	bdev_read_only((buftarg)->bt_bdev)
-
-#define XFS_bflush(buftarg)		xfs_flush_buftarg(buftarg, 1)
 
 #endif	/* __XFS_BUF_H__ */

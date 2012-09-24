@@ -17,8 +17,6 @@ extern void omap4_cminst_clkdm_disable_hwsup(u8 part, s16 inst, u16 cdoffs);
 extern void omap4_cminst_clkdm_force_sleep(u8 part, s16 inst, u16 cdoffs);
 extern void omap4_cminst_clkdm_force_wakeup(u8 part, s16 inst, u16 cdoffs);
 
-<<<<<<< HEAD
-=======
 extern int omap4_cminst_wait_module_ready(u8 part, u16 inst, s16 cdoffs, u16 clkctrl_offs);
 
 # ifdef CONFIG_ARCH_OMAP4
@@ -50,7 +48,6 @@ static inline void omap4_cminst_module_disable(u8 part, u16 inst, s16 cdoffs,
 
 # endif
 
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 /*
  * In an ideal world, we would not export these low-level functions,
  * but this will probably take some time to fix properly
@@ -65,7 +62,5 @@ extern u32 omap4_cminst_clear_inst_reg_bits(u32 bits, u8 part, s16 inst,
 					   s16 idx);
 extern u32 omap4_cminst_read_inst_reg_bits(u8 part, u16 inst, s16 idx,
 					   u32 mask);
-
-extern int omap4_cm_wait_module_ready(void __iomem *clkctrl_reg);
 
 #endif
