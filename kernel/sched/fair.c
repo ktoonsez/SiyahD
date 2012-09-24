@@ -2685,7 +2685,6 @@ again:
 			}
 			break;
 		}
-
 		sg = sd->groups;
 		do {
 			if (!cpumask_intersects(sched_group_cpus(sg),
