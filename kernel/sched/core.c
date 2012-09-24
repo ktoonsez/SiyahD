@@ -2575,8 +2575,6 @@ unsigned long long task_sched_runtime(struct task_struct *p)
 void account_user_time(struct task_struct *p, cputime_t cputime,
 		       cputime_t cputime_scaled)
 {
-	u64 *cpustat = kcpustat_this_cpu->cpustat;
-	u64 tmp;
 	int index;
 
 	/* Add user time to process. */
@@ -2584,13 +2582,11 @@ void account_user_time(struct task_struct *p, cputime_t cputime,
 	p->utimescaled = cputime_add(p->utimescaled, cputime_scaled);
 	account_group_user_time(p, cputime);
 
-	/* Add user time to cpustat. */
-	tmp = cputime_to_cputime64(cputime);
-
 	index = (TASK_NICE(p) > 0) ? CPUTIME_NICE : CPUTIME_USER;
-	cpustat[index] += tmp;
 
+	/* Add user time to cpustat. */
 	cpuacct_update_stats(p, CPUACCT_STAT_USER, cputime);
+
 	/* Account for user time used */
 	acct_update_integrals(p);
 }
@@ -2636,16 +2632,12 @@ static inline
 void __account_system_time(struct task_struct *p, cputime_t cputime,
 			cputime_t cputime_scaled, int index)
 {
-	u64 tmp = cputime_to_cputime64(cputime);
-	u64 *cpustat = kcpustat_this_cpu->cpustat;
-
 	/* Add system time to process. */
 	p->stime = cputime_add(p->stime, cputime);
 	p->stimescaled = cputime_add(p->stimescaled, cputime_scaled);
 	account_group_system_time(p, cputime);
 
 	/* Add system time to cpustat. */
-	cpustat[index] += tmp;
 	cpuacct_update_stats(p, CPUACCT_STAT_SYSTEM, cputime);
 
 	/* Account for system time used */
