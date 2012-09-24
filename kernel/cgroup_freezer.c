@@ -133,8 +133,7 @@ struct cgroup_subsys freezer_subsys;
  *    task->alloc_lock (inside thaw_process(), prevents race with refrigerator())
  *     sighand->siglock
  */
-static struct cgroup_subsys_state *freezer_create(struct cgroup_subsys *ss,
-						  struct cgroup *cgroup)
+static struct cgroup_subsys_state *freezer_create(struct cgroup *cgroup)
 {
 	struct freezer *freezer;
 
@@ -147,8 +146,7 @@ static struct cgroup_subsys_state *freezer_create(struct cgroup_subsys *ss,
 	return &freezer->css;
 }
 
-static void freezer_destroy(struct cgroup_subsys *ss,
-			    struct cgroup *cgroup)
+static void freezer_destroy(struct cgroup *cgroup)
 {
 	kfree(cgroup_freezer(cgroup));
 }
@@ -165,8 +163,7 @@ static bool is_task_frozen_enough(struct task_struct *task)
  * a write to that file racing against an attach, and hence the
  * can_attach() result will remain valid until the attach completes.
  */
-static int freezer_can_attach(struct cgroup_subsys *ss,
-			      struct cgroup *new_cgroup,
+static int freezer_can_attach(struct cgroup *new_cgroup,
 			      struct cgroup_taskset *tset)
 {
 	struct freezer *freezer;
@@ -182,7 +179,7 @@ static int freezer_can_attach(struct cgroup_subsys *ss,
 	return 0;
 }
 
-static void freezer_fork(struct cgroup_subsys *ss, struct task_struct *task)
+static void freezer_fork(struct task_struct *task)
 {
 	struct freezer *freezer;
 

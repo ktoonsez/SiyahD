@@ -4697,6 +4697,34 @@ static int mem_control_numa_stat_open(struct inode *unused, struct file *file)
 }
 #endif /* CONFIG_NUMA */
 
+#ifdef CONFIG_CGROUP_MEM_RES_CTLR_KMEM
+static int register_kmem_files(struct cgroup *cont, struct cgroup_subsys *ss)
+{
+	/*
+	 * Part of this would be better living in a separate allocation
+	 * function, leaving us with just the cgroup tree population work.
+	 * We, however, depend on state such as network's proto_list that
+	 * is only initialized after cgroup creation. I found the less
+	 * cumbersome way to deal with it to defer it all to populate time
+	 */
+	return mem_cgroup_sockets_init(cont, ss);
+};
+
+static void kmem_cgroup_destroy(struct cgroup *cont)
+{
+	mem_cgroup_sockets_destroy(cont);
+}
+#else
+static int register_kmem_files(struct cgroup *cont, struct cgroup_subsys *ss)
+{
+	return 0;
+}
+
+static void kmem_cgroup_destroy(struct cgroup *cont)
+{
+}
+#endif
+
 static struct cftype mem_cgroup_files[] = {
 	{
 		.name = "usage_in_bytes",
@@ -4973,7 +5001,7 @@ static int mem_cgroup_soft_limit_tree_init(void)
 }
 
 static struct cgroup_subsys_state * __ref
-mem_cgroup_create(struct cgroup_subsys *ss, struct cgroup *cont)
+mem_cgroup_create(struct cgroup *cont)
 {
 	struct mem_cgroup *mem, *parent;
 	long error = -ENOMEM;
@@ -5036,20 +5064,20 @@ free_out:
 	return ERR_PTR(error);
 }
 
-static int mem_cgroup_pre_destroy(struct cgroup_subsys *ss,
-					struct cgroup *cont)
+static int mem_cgroup_pre_destroy(struct cgroup *cont)
 {
 	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
 
 	return mem_cgroup_force_empty(mem, false);
 }
 
-static void mem_cgroup_destroy(struct cgroup_subsys *ss,
-				struct cgroup *cont)
+static void mem_cgroup_destroy(struct cgroup *cont)
 {
 	struct mem_cgroup *mem = mem_cgroup_from_cont(cont);
 
-	mem_cgroup_put(mem);
+	kmem_cgroup_destroy(cont);
+
+	mem_cgroup_put(memcg);
 }
 
 static int mem_cgroup_populate(struct cgroup_subsys *ss,
@@ -5381,9 +5409,8 @@ static void mem_cgroup_clear_mc(void)
 	mem_cgroup_end_move(from);
 }
 
-static int mem_cgroup_can_attach(struct cgroup_subsys *ss,
-				struct cgroup *cgroup,
-				struct cgroup_taskset *tset)
+static int mem_cgroup_can_attach(struct cgroup *cgroup,
+				 struct cgroup_taskset *tset)
 {
 	struct task_struct *p = cgroup_taskset_first(tset);
 	int ret = 0;
@@ -5421,9 +5448,8 @@ static int mem_cgroup_can_attach(struct cgroup_subsys *ss,
 	return ret;
 }
 
-static void mem_cgroup_cancel_attach(struct cgroup_subsys *ss,
-				struct cgroup *cgroup,
-				struct cgroup_taskset *tset)
+static void mem_cgroup_cancel_attach(struct cgroup *cgroup,
+				     struct cgroup_taskset *tset)
 {
 	mem_cgroup_clear_mc();
 }
@@ -5540,9 +5566,8 @@ retry:
 	up_read(&mm->mmap_sem);
 }
 
-static void mem_cgroup_move_task(struct cgroup_subsys *ss,
-				struct cgroup *cont,
-				struct cgroup_taskset *tset)
+static void mem_cgroup_move_task(struct cgroup *cont,
+				 struct cgroup_taskset *tset)
 {
 	struct task_struct *p = cgroup_taskset_first(tset);
 	struct mm_struct *mm = get_task_mm(p);
@@ -5557,20 +5582,17 @@ static void mem_cgroup_move_task(struct cgroup_subsys *ss,
 		mem_cgroup_clear_mc();
 }
 #else	/* !CONFIG_MMU */
-static int mem_cgroup_can_attach(struct cgroup_subsys *ss,
-				struct cgroup *cgroup,
-				struct cgroup_taskset *tset)
+static int mem_cgroup_can_attach(struct cgroup *cgroup,
+				 struct cgroup_taskset *tset)
 {
 	return 0;
 }
-static void mem_cgroup_cancel_attach(struct cgroup_subsys *ss,
-				struct cgroup *cgroup,
-				struct cgroup_taskset *tset)
+static void mem_cgroup_cancel_attach(struct cgroup *cgroup,
+				     struct cgroup_taskset *tset)
 {
 }
-static void mem_cgroup_move_task(struct cgroup_subsys *ss,
-				struct cgroup *cont,
-				struct cgroup_taskset *tset)
+static void mem_cgroup_move_task(struct cgroup *cont,
+				 struct cgroup_taskset *tset)
 {
 }
 #endif
