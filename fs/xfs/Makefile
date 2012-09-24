@@ -87,31 +87,6 @@ xfs-y				+= xfs_log.o \
 				   xfs_trans_buf.o \
 				   xfs_trans_extfree.o \
 				   xfs_trans_inode.o \
-<<<<<<< HEAD
-				   xfs_utils.o \
-				   xfs_vnodeops.o \
-				   xfs_rw.o
-
-xfs-$(CONFIG_XFS_TRACE)		+= xfs_btree_trace.o
-
-# Objects in linux/
-xfs-y				+= $(addprefix $(XFS_LINUX)/, \
-				   kmem.o \
-				   xfs_aops.o \
-				   xfs_buf.o \
-				   xfs_discard.o \
-				   xfs_export.o \
-				   xfs_file.o \
-				   xfs_fs_subr.o \
-				   xfs_globals.o \
-				   xfs_ioctl.o \
-				   xfs_iops.o \
-				   xfs_message.o \
-				   xfs_super.o \
-				   xfs_sync.o \
-				   xfs_xattr.o)
-=======
->>>>>>> bfa322c... Merge branch 'linus' into sched/core
 
 # optional features
 xfs-$(CONFIG_XFS_QUOTA)		+= xfs_dquot.o \
