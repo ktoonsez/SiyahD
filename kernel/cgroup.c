@@ -2087,7 +2087,7 @@ static int css_set_prefetch(struct cgroup *cgrp, struct css_set *cg,
  */
 int cgroup_attach_proc(struct cgroup *cgrp, struct task_struct *leader)
 {
-	int retval, i, group_size, nr_migrating_tasks;
+	int retval, i, group_size;
 	struct cgroup_subsys *ss, *failed_ss = NULL;
 	bool cancel_failed_ss = false;
 	/* guaranteed to be initialized later, but the compiler needs this */
@@ -2139,7 +2139,7 @@ int cgroup_attach_proc(struct cgroup *cgrp, struct task_struct *leader)
 	}
 
 	tsk = leader;
-	i = nr_migrating_tasks = 0;
+	i = 0;
 	do {
 		struct task_and_cgroup ent;
 
@@ -2155,11 +2155,12 @@ int cgroup_attach_proc(struct cgroup *cgrp, struct task_struct *leader)
 		 */
 		ent.task = tsk;
 		ent.cgrp = task_cgroup_from_root(tsk, root);
+		/* nothing to do if this task is already in the cgroup */
+		if (ent.cgrp == cgrp)
+			continue;
 		retval = flex_array_put(group, i, &ent, GFP_ATOMIC);
 		BUG_ON(retval != 0);
 		i++;
-		if (ent.cgrp != cgrp)
-			nr_migrating_tasks++;
 	} while_each_thread(leader, tsk);
 	/* remember the number of threads in the array for later. */
 	group_size = i;
@@ -2169,7 +2170,7 @@ int cgroup_attach_proc(struct cgroup *cgrp, struct task_struct *leader)
 
 	/* methods shouldn't be called if no task is actually migrating */
 	retval = 0;
-	if (!nr_migrating_tasks)
+	if (!group_size)
 		goto out_free_group_list;
 
 	/*
@@ -2207,14 +2208,6 @@ int cgroup_attach_proc(struct cgroup *cgrp, struct task_struct *leader)
 	INIT_LIST_HEAD(&newcg_list);
 	for (i = 0; i < group_size; i++) {
 		tc = flex_array_get(group, i);
-		/* nothing to do if this task is already in the cgroup */
-		if (tc->cgrp == cgrp)
-			continue;
-		/*
-		 * get old css_set pointer. threadgroup is locked so this is
-		 * safe against concurrent cgroup_exit() changing this to
-		 * init_css_set.
-		 */
 		oldcg = tc->task->cgroups;
 
 		/* if we don't already have it in the list get a new one */
@@ -2235,9 +2228,6 @@ int cgroup_attach_proc(struct cgroup *cgrp, struct task_struct *leader)
 	}
 	for (i = 0; i < group_size; i++) {
 		tc = flex_array_get(group, i);
-		/* leave current thread as it is if it's already there */
-		if (tc->cgrp == cgrp)
-			continue;
 		/* attach each task to each subsystem */
 		for_each_subsys(root, ss) {
 			if (ss->attach_task)
