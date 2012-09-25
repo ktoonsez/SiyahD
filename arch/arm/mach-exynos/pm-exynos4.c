@@ -389,7 +389,7 @@ static void exynos4_cpu_prepare(void)
 		s3c_pm_do_restore_core(exynos4210_set_clksrc, ARRAY_SIZE(exynos4210_set_clksrc));
 }
 
-static int exynos4_pm_add(struct device *dev)
+static int exynos4_pm_add(struct device *dev, struct subsys_interface *sif)
 {
 	pm_cpu_prep = exynos4_cpu_prepare;
 	pm_cpu_sleep = exynos4_cpu_suspend;
