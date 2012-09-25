@@ -1148,7 +1148,10 @@ int s3cfb_ioctl(struct fb_info *fb, unsigned int cmd, unsigned long arg)
 		ret = s3cfb_wait_for_vsync(fbdev, 0);
 		if (ret > 0) {
 			u64 nsecs = ktime_to_ns(fbdev->vsync_timestamp);
-			copy_to_user((void*)arg, &nsecs, sizeof(u64));
+			if (copy_to_user((void*)arg, &nsecs, sizeof(u64))) {
+				dev_err(fbdev->dev, "copy_to_user error\n");
+				ret = -EFAULT;
+			}
 		}
 		break;
 
