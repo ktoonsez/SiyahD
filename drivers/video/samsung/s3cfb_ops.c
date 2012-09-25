@@ -256,7 +256,7 @@ int s3cfb_init_global(struct s3cfb_global *fbdev)
 	fbdev->rgb_mode = MODE_RGB_P;
 
 	fbdev->wq_count = 0;
-	init_waitqueue_head(&fbdev->wq);
+	init_waitqueue_head(&fbdev->wait);
 	mutex_init(&fbdev->lock);
 
 	s3cfb_set_output(fbdev);
@@ -1066,15 +1066,24 @@ int s3cfb_cursor(struct fb_info *fb, struct fb_cursor *cursor)
 	return 0;
 }
 
-int s3cfb_wait_for_vsync(struct s3cfb_global *fbdev)
+int s3cfb_wait_for_vsync(struct s3cfb_global *fbdev, unsigned int timeout)
 {
-	dev_dbg(fbdev->dev, "waiting for VSYNC interrupt\n");
+	ktime_t timestamp;
+	int ret;
 
-	sleep_on_timeout(&fbdev->wq, HZ / 10);
-
-	dev_dbg(fbdev->dev, "got a VSYNC interrupt\n");
-
-	return 0;
+	timestamp = fbdev->vsync_timestamp;
+	if (timeout) {
+		ret = wait_event_interruptible_timeout(fbdev->wait,
+						       !ktime_equal(timestamp, fbdev->vsync_timestamp),
+						       msecs_to_jiffies(timeout));
+		if (ret == 0)
+			return -ETIMEDOUT;
+	} else {
+		ret = wait_event_interruptible(fbdev->wait,
+					       !ktime_equal(timestamp, fbdev->vsync_timestamp));
+	}
+	
+	return ret;
 }
 
 int s3cfb_ioctl(struct fb_info *fb, unsigned int cmd, unsigned long arg)
@@ -1125,7 +1134,7 @@ int s3cfb_ioctl(struct fb_info *fb, unsigned int cmd, unsigned long arg)
 		s3cfb_set_vsync_interrupt(fbdev, 1);
 #endif
 		/* Wait for Vsync */
-		s3cfb_wait_for_vsync(fbdev);
+		s3cfb_wait_for_vsync(fbdev, 0);
 		if (fbdev->regs == 0)
 			return 0;
 #if defined(CONFIG_CPU_EXYNOS4212) || defined(CONFIG_CPU_EXYNOS4412)
@@ -1133,6 +1142,14 @@ int s3cfb_ioctl(struct fb_info *fb, unsigned int cmd, unsigned long arg)
 		s3cfb_set_global_interrupt(fbdev, 0);
 		s3cfb_set_vsync_interrupt(fbdev, 0);
 #endif
+		break;
+
+	case S3CFB_WAIT_FOR_VSYNC: // Custom IOCTL added to return the VSYNC timestamp
+		ret = s3cfb_wait_for_vsync(fbdev, 0);
+		if (ret > 0) {
+			u64 nsecs = ktime_to_ns(fbdev->vsync_timestamp);
+			copy_to_user((void*)arg, &nsecs, sizeof(u64));
+		}
 		break;
 
 	case S3CFB_WIN_POSITION:
@@ -1216,7 +1233,6 @@ int s3cfb_ioctl(struct fb_info *fb, unsigned int cmd, unsigned long arg)
 			dev_err(fbdev->dev, "copy_to_user error\n");
 			return -EFAULT;
 		}
-
 		break;
 
 	case S3CFB_GET_CUR_WIN_BUF_ADDR:
