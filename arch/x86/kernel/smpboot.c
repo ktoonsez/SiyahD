@@ -209,13 +209,12 @@ static void __cpuinit smp_callin(void)
 	setup_vector_irq(smp_processor_id());
 	/*
 	 * Get our bogomips.
-	 *
-	 * Need to enable IRQs because it can take longer and then
-	 * the NMI watchdog might kill us.
+	 * Update loops_per_jiffy in cpu_data. Previous call to
+	 * smp_store_cpu_info() stored a value that is close but not as
+	 * accurate as the value just calculated.
 	 */
-	local_irq_enable();
 	calibrate_delay();
-	local_irq_disable();
+	cpu_data(cpuid).loops_per_jiffy = loops_per_jiffy;
 	pr_debug("Stack at about %p\n", &cpuid);
 
 	/*
