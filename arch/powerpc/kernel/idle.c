@@ -102,8 +102,8 @@ void cpu_idle(void)
 		if (cpu_should_die()) {
 			sched_preempt_enable_no_resched();
 			cpu_die();
-		schedule();
-		preempt_disable();
+		}
+		schedule_preempt_disabled();
 	}
 }
 
