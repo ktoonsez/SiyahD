@@ -1330,8 +1330,7 @@ get_rq:
 	 */
 	init_request_from_bio(req, bio);
 
-	if (test_bit(QUEUE_FLAG_SAME_COMP, &q->queue_flags) ||
-	    bio_flagged(bio, BIO_CPU_AFFINE))
+	if (test_bit(QUEUE_FLAG_SAME_COMP, &q->queue_flags))
 		req->cpu = raw_smp_processor_id();
 
 	plug = current->plug;
