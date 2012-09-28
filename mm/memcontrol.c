@@ -2027,22 +2027,23 @@ static void refill_stock(struct mem_cgroup *mem, unsigned int nr_pages)
 }
 
 /*
- * Tries to drain stocked charges in other cpus. This function is asynchronous
- * and just put a work per cpu for draining localy on each cpu. Caller can
- * expects some charges will be back to res_counter later but cannot wait for
- * it.
+ * Drains all per-CPU charge caches for given root_mem resp. subtree
+ * of the hierarchy under it. sync flag says whether we should block
+ * until the work is done.
  */
-static void drain_all_stock_async(struct mem_cgroup *root_mem)
+static void drain_all_stock(struct mem_cgroup *root_mem, bool sync)
 {
 	int cpu, curcpu;
-	/*
-	 * If someone calls draining, avoid adding more kworker runs.
-	 */
-	if (!mutex_trylock(&percpu_charge_mutex))
-		return;
+
 	/* Notify other cpus that system-wide "drain" is running */
 	get_online_cpus();
-	curcpu = get_cpu();
+	/*
+	 * Get a hint for avoiding draining charges on the current cpu,
+	 * which must be exhausted by our charging.  It is not required that
+	 * this be a precise check, so we use raw_smp_processor_id() instead of
+	 * getcpu()/putcpu().
+	 */
+	curcpu = raw_smp_processor_id();
 	for_each_online_cpu(cpu) {
 		struct memcg_stock_pcp *stock = &per_cpu(memcg_stock, cpu);
 		struct mem_cgroup *mem;
@@ -2050,8 +2051,13 @@ static void drain_all_stock_async(struct mem_cgroup *root_mem)
 		mem = stock->cached;
 		if (!mem || !stock->nr_pages)
 			continue;
-		if (!mem_cgroup_same_or_subtree(root_mem, mem))
-			continue;
+		if (mem != root_mem) {
+			if (!root_mem->use_hierarchy)
+				continue;
+			/* check whether "mem" is under tree of "root_mem" */
+			if (!css_is_ancestor(&mem->css, &root_mem->css))
+				continue;
+		}
 		if (!test_and_set_bit(FLUSHING_CACHED_CHARGE, &stock->flags)) {
 			if (cpu == curcpu)
 				drain_local_stock(&stock->work);
@@ -2059,7 +2065,6 @@ static void drain_all_stock_async(struct mem_cgroup *root_mem)
 				schedule_work_on(cpu, &stock->work);
 		}
 	}
-	put_cpu();
 
 	if (!sync)
 		goto out;
@@ -2071,16 +2076,31 @@ static void drain_all_stock_async(struct mem_cgroup *root_mem)
 	}
 out:
  	put_online_cpus();
+}
+
+/*
+ * Tries to drain stocked charges in other cpus. This function is asynchronous
+ * and just put a work per cpu for draining localy on each cpu. Caller can
+ * expects some charges will be back to res_counter later but cannot wait for
+ * it.
+ */
+static void drain_all_stock_async(struct mem_cgroup *root_mem)
+{
+	/*
+	 * If someone calls draining, avoid adding more kworker runs.
+	 */
+	if (!mutex_trylock(&percpu_charge_mutex))
+		return;
+	drain_all_stock(root_mem, false);
 	mutex_unlock(&percpu_charge_mutex);
-	/* We don't wait for flush_work */
 }
 
 /* This is a synchronous drain interface. */
-static void drain_all_stock_sync(void)
+static void drain_all_stock_sync(struct mem_cgroup *root_mem)
 {
 	/* called when force_empty is called */
 	mutex_lock(&percpu_charge_mutex);
-	schedule_on_each_cpu(drain_local_stock);
+	drain_all_stock(root_mem, true);
 	mutex_unlock(&percpu_charge_mutex);
 }
 
@@ -3725,7 +3745,7 @@ move_account:
 			goto out;
 		/* This is for making all *used* pages to be on LRU. */
 		lru_add_drain_all();
-		drain_all_stock_sync();
+		drain_all_stock_sync(mem);
 		ret = 0;
 		mem_cgroup_start_move(mem);
 		for_each_node_state(node, N_HIGH_MEMORY) {
