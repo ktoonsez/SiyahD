@@ -1076,12 +1076,13 @@ int s3cfb_wait_for_vsync(struct s3cfb_global *fbdev, unsigned int timeout)
 		ret = wait_event_interruptible_timeout(fbdev->wait,
 						       !ktime_equal(timestamp, fbdev->vsync_timestamp),
 						       msecs_to_jiffies(timeout));
-		if (ret == 0)
-			return -ETIMEDOUT;
 	} else {
 		ret = wait_event_interruptible(fbdev->wait,
 					       !ktime_equal(timestamp, fbdev->vsync_timestamp));
 	}
+
+	if (timeout && ret == 0)
+		return -ETIMEDOUT;
 	
 	return ret;
 }
