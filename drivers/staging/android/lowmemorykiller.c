@@ -497,7 +497,9 @@ int swap_inactive_pagelist(unsigned int page_swap_cluster)
 		pages_counter =
 		    swap_pages(zone0, &zone0_page_list, zone1,
 			       &zone1_page_list);
+#if SWAP_PROCESS_DEBUG_LOG > 0
 		printk("pagefreed = %d\n", pages_counter);
+#endif
 	}
 
 	return pages_counter;
