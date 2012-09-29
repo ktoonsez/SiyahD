@@ -76,7 +76,7 @@ extern unsigned int zone_id_shrink_pagelist(struct zone *zone_id,struct list_hea
 
 #define lru_to_page(_head) (list_entry((_head)->prev, struct page, lru))
 
-#define SWAP_PROCESS_DEBUG_LOG 1
+#define SWAP_PROCESS_DEBUG_LOG 0
 /* free RAM 8M(6250 pages) */
 #define CHECK_FREE_MEMORY 2048
 /* free swap (10240 pages) */
