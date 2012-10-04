@@ -24,6 +24,9 @@
  * host implementation (e.g. see tmem_register_hostops).
  */
 
+#include <linux/module.h>
+#include <linux/cpu.h>
+#include <linux/highmem.h>
 #include <linux/list.h>
 #include <linux/spinlock.h>
 #include <linux/atomic.h>
