@@ -3539,8 +3539,10 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
 		goto failed_mount;
 	}
 
+#ifdef CONFIG_PROC_FS
 	if (ext4_proc_root)
 		sbi->s_proc = proc_mkdir(sb->s_id, ext4_proc_root);
+#endif
 
 	bgl_lock_init(sbi->s_blockgroup_lock);
 
@@ -5068,11 +5070,13 @@ static int __init ext4_init_fs(void)
 		return err;
 	err = ext4_init_system_zone();
 	if (err)
-		goto out6;
+		goto out7;
 	ext4_kset = kset_create_and_add("ext4", NULL, fs_kobj);
 	if (!ext4_kset)
-		goto out5;
+		goto out6;
 	ext4_proc_root = proc_mkdir("fs/ext4", NULL);
+	if (!ext4_proc_root)
+		goto out5;
 
 	err = ext4_init_feat_adverts();
 	if (err)
@@ -5108,12 +5112,12 @@ out2:
 out3:
 	ext4_exit_feat_adverts();
 out4:
-	if (ext4_proc_root)
-		remove_proc_entry("fs/ext4", NULL);
-	kset_unregister(ext4_kset);
+	remove_proc_entry("fs/ext4", NULL);
 out5:
-	ext4_exit_system_zone();
+	kset_unregister(ext4_kset);
 out6:
+	ext4_exit_system_zone();
+out7:
 	ext4_exit_pageio();
 	return err;
 }
