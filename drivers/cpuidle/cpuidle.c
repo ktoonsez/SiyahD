@@ -17,7 +17,6 @@
 #include <linux/cpuidle.h>
 #include <linux/ktime.h>
 #include <linux/hrtimer.h>
-#include <linux/module.h>
 #include <trace/events/power.h>
 
 #include "cpuidle.h"
