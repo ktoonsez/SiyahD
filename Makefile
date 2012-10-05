@@ -1,5 +1,5 @@
 VERSION = 3
-PATCHLEVEL = 1
+PATCHLEVEL = 2
 SUBLEVEL = 0
 EXTRAVERSION = -rc8
 NAME = "Divemaster Edition"
