@@ -221,6 +221,11 @@ struct mgmt_rp_le_test_end {
 	__u16 num_pkts;
 } __packed;
 
+#define MGMT_OP_SET_FAST_CONNECTABLE	0x001F
+struct mgmt_cp_set_fast_connectable {
+	__u8 enable;
+} __packed;
+
 #define MGMT_EV_CMD_COMPLETE		0x0001
 struct mgmt_ev_cmd_complete {
 	__le16 opcode;
