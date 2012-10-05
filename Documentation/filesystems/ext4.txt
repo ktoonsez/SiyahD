@@ -203,6 +203,14 @@ inode_readahead_blks=n	This tuning parameter controls the maximum
 			table readahead algorithm will pre-read into
 			the buffer cache.  The default value is 32 blocks.
 
+orlov		(*)	This enables the new Orlov block allocator. It is
+			enabled by default.
+
+oldalloc		This disables the Orlov block allocator and enables
+			the old block allocator.  Orlov should have better
+			performance - we'd like to get some feedback if it's
+			the contrary for you.
+
 nouser_xattr		Disables Extended User Attributes. If you have extended
 			attribute support enabled in the kernel configuration
 			(CONFIG_EXT4_FS_XATTR), extended attribute support
@@ -211,7 +219,11 @@ nouser_xattr		Disables Extended User Attributes. If you have extended
 			about extended attributes.
 
 noacl			This option disables POSIX Access Control List
-			support.
+			support. If ACL support is enabled in the kernel
+			configuration (CONFIG_EXT4_FS_POSIX_ACL), ACL is
+			enabled by default on mount. See the acl(5) manual
+			page and http://acl.bestbits.at/ for more information
+			about acl.
 
 bsddf		(*)	Make 'df' act like BSD.
 minixdf			Make 'df' act like Minix.
