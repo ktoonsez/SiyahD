@@ -140,14 +140,14 @@ if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
 
 	# copy all needed to ready kernel folder.
 	cp $KERNELDIR/.config $KERNELDIR/arch/arm/configs/dorimanx_defconfig
-	cp $KERNELDIR/.config $KERNELDIR/READY/
-	rm $KERNELDIR/READY/boot/zImage
-	rm $KERNELDIR/READY/Kernel_Dorimanx-*
+	cp $KERNELDIR/.config $KERNELDIR/READY-JB/
+	rm $KERNELDIR/READY-JB/boot/zImage
+	rm $KERNELDIR/READY-JB/Kernel_Dorimanx-*
 	stat $KERNELDIR/zImage
 	GETVER=`grep 'Siyah-Dorimanx-V' arch/arm/configs/dorimanx_defconfig | cut -c 38-42`
-	cp $KERNELDIR/zImage /$KERNELDIR/READY/boot/
-	cd $KERNELDIR/READY/
-	zip -r Kernel_Dorimanx-$GETVER-`date +"-%H-%M--%d-%m-12-SGII-PWR-CORE"`.zip .
+	cp $KERNELDIR/zImage /$KERNELDIR/READY-JB/boot/
+	cd $KERNELDIR/READY-JB/
+	zip -r Kernel_Dorimanx-$GETVER-JB-MALI`date +"-%H-%M--%d-%m-12-SGII-PWR-CORE"`.zip .
 else
 	echo "Kernel STUCK in BUILD! no zImage exist"
 fi;
