@@ -618,10 +618,17 @@ void dhd_enable_packet_filter(int value, dhd_pub_t *dhd)
 }
 #endif /* PKT_FILTER_SUPPORT */
 
+#ifdef CONFIG_BCMDHD_PMFAST
+static int wifi_pm = 0;
+/* /sys/module/dhd/parameters/wifi_pm */
+module_param(wifi_pm, int, 0755);
+EXPORT_SYMBOL(wifi_pm);
+#endif
+
 static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 {
-#ifndef SUPPORT_PM2_ONLY
-	int power_mode = PM_MAX;
+#ifdef CONFIG_BCMDHD_PMFAST
+	int power_mode;
 #endif
 	/* wl_pkt_filter_enable_t	enable_parm; */
 	char iovbuf[32];
@@ -641,6 +648,20 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 	DHD_TRACE(("%s: enter, value = %d in_suspend=%d\n",
 		__FUNCTION__, value, dhd->in_suspend));
 
+#ifdef CONFIG_BCMDHD_PMFAST
+	if (wifi_pm == 1) {
+		power_mode = PM_FAST;
+		pr_info("[Dorimanx] %p Wi-Fi Power Management policy changed to PM_FAST.", __func__);
+	} else {
+		power_mode = PM_MAX;
+		pr_info("[Dorimanx] %p Wi-Fi Power Management policy changed to PM_MAX.", __func__);
+	}
+#else
+#ifndef SUPPORT_PM2_ONLY
+	int power_mode = PM_MAX;
+#endif
+#endif
+
 	dhd_suspend_lock(dhd);
 	if (dhd && dhd->up) {
 		if (value && dhd->in_suspend) {
@@ -648,12 +669,18 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 				dhd->early_suspended = 1;
 #endif
 				/* Kernel suspended */
-				DHD_ERROR(("%s: force extra Suspend setting \n", __FUNCTION__));
+				DHD_ERROR(("%s: force extra Suspend setting\n", __FUNCTION__));
 
+#ifdef CONFIG_BCMDHD_PMFAST
+				dhd_wl_ioctl_cmd(dhd, WLC_SET_PM, (char *)&power_mode,
+					sizeof(power_mode), TRUE, 0);
+#else
 #ifndef SUPPORT_PM2_ONLY
 				dhd_wl_ioctl_cmd(dhd, WLC_SET_PM, (char *)&power_mode,
-				                 sizeof(power_mode), TRUE, 0);
+					sizeof(power_mode), TRUE, 0);
 #endif
+#endif
+
 #ifdef PKT_FILTER_SUPPORT
 				/* Enable packet filter, only allow unicast packet to send up */
 				if (!dhd->dhcp_in_progress)
@@ -694,13 +721,20 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 				dhd->early_suspended = 0;
 #endif
 				/* Kernel resumed  */
-				DHD_TRACE(("%s: Remove extra suspend setting \n", __FUNCTION__));
+				DHD_TRACE(("%s: Remove extra suspend setting\n", __FUNCTION__));
 
+#ifdef CONFIG_BCMDHD_PMFAST
+				power_mode = PM_FAST;
+				dhd_wl_ioctl_cmd(dhd, WLC_SET_PM, (char *)&power_mode,
+				       	sizeof(power_mode), TRUE, 0);
+#else
 #ifndef SUPPORT_PM2_ONLY
 				power_mode = PM_FAST;
 				dhd_wl_ioctl_cmd(dhd, WLC_SET_PM, (char *)&power_mode,
-				                 sizeof(power_mode), TRUE, 0);
+					sizeof(power_mode), TRUE, 0);
 #endif
+#endif
+
 #ifdef PKT_FILTER_SUPPORT
 				/* disable pkt filter */
 				dhd_enable_packet_filter(0, dhd);
