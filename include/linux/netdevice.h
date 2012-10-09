@@ -52,6 +52,7 @@
 #ifdef CONFIG_DCB
 #include <net/dcbnl.h>
 #endif
+#include <net/netprio_cgroup.h>
 
 struct vlan_group;
 struct netpoll_info;
@@ -1348,6 +1349,9 @@ struct net_device {
 	/* n-tuple filter list attached to this device */
 	struct ethtool_rx_ntuple_list ethtool_ntuple_list;
 
+#if IS_ENABLED(CONFIG_NETPRIO_CGROUP)
+	struct netprio_map __rcu *priomap;
+#endif
 	/* phy device may attach itself for hardware timestamping */
 	struct phy_device *phydev;
 
