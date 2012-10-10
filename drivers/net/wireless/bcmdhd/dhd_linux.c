@@ -724,7 +724,6 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 				DHD_TRACE(("%s: Remove extra suspend setting\n", __FUNCTION__));
 
 #ifdef CONFIG_BCMDHD_PMFAST
-				power_mode = PM_FAST;
 				dhd_wl_ioctl_cmd(dhd, WLC_SET_PM, (char *)&power_mode,
 				       	sizeof(power_mode), TRUE, 0);
 #else
