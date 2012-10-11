@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2010-2012 ARM Limited. All rights reserved.
- * 
+ * Copyright (C) 2010 ARM Limited. All rights reserved.
+ *
  * This program is free software and is provided to you under the terms of the GNU General Public License version 2
  * as published by the Free Software Foundation, and any use by you of this program is subject to the terms of such GNU licence.
  * 
@@ -19,7 +19,7 @@
 #include "mali_linux_pm.h"
 
 #if USING_MALI_PMM
-#include <mali_pmm.h>
+#include "mali_pmm.h"
 #endif
 
 #include <linux/clk.h>
@@ -63,6 +63,7 @@ static struct clk  *sclk_vpll_clock = 0;
 static struct clk  *mpll_clock = 0;
 static struct clk  *mali_parent_clock = 0;
 static struct clk  *mali_clock = 0;
+
 
 static unsigned int GPU_MHZ	= 1000000;
 
@@ -493,9 +494,10 @@ static void handle_boostpop(unsigned long data)
 
 void gpu_boost_on_touch(void)
 {
-	if (!mali_touch_boost_level) return;
+	if(!mali_touch_boost_level) return;
 	mutex_lock(&boostpop_mutex);
-	if (!is_gpu_boosted && !bPoweroff) {
+	if(!is_gpu_boosted && !bPoweroff)
+	{
 		mali_dvfs_bottom_lock_push(mali_touch_boost_level);
 		is_gpu_boosted = 1;
 	}

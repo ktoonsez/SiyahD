@@ -139,11 +139,6 @@ bool notification_renew = true;
 static void enable_touchkey_backlights(void);
 static void disable_touchkey_backlights(void);
 
-#if defined(CONFIG_TARGET_LOCALE_NAATT_TEMP)
-/* Temp Fix NAGSM_SEL_ANDROID_MOHAMMAD_ANSARI_20111224*/
-#define CONFIG_TARGET_LOCALE_NAATT
-#endif
-
 static struct wake_lock led_wake_lock;
 static DEFINE_SEMAPHORE(enable_sem);
 
@@ -163,36 +158,9 @@ static struct timer_list polling_timer;
 static void polling_timer_action(struct work_struct *polling_off_work);
 static DECLARE_WORK(polling_off_work, polling_timer_action);
 
-#if defined(CONFIG_TARGET_LOCALE_NAATT)
-static int touchkey_keycode[5] = { 0,
-	KEY_MENU, KEY_ENTER, KEY_BACK, KEY_END };
-#elif defined(CONFIG_TARGET_LOCALE_NA)
-static int touchkey_keycode[5] = { NULL,
-	KEY_SEARCH, KEY_BACK, KEY_HOME, KEY_MENU };
-#else
 static int touchkey_keycode[3] = { 0, KEY_MENU, KEY_BACK };
-#endif
-
 static const int touchkey_count = sizeof(touchkey_keycode) / sizeof(int);
 
-#if defined(CONFIG_TARGET_LOCALE_NAATT)\
-	|| defined(CONFIG_TARGET_LOCALE_NA)\
-	|| defined(CONFIG_MACH_Q1_BD)
-
-static u8 home_sensitivity;
-static u8 search_sensitivity;
-static u16 raw_data0;
-static u16 raw_data1;
-static u16 raw_data2;
-static u16 raw_data3;
-static u8 idac0;
-static u8 idac1;
-static u8 idac2;
-static u8 idac3;
-static u8 touchkey_threshold;
-
-static int touchkey_autocalibration(void);
-#endif
 static int get_touchkey_module_version(void);
 
 static u8 menu_sensitivity;
@@ -407,262 +375,6 @@ static int i2c_touchkey_write(u8 *val, unsigned int len)
 	}
 	return err;
 }
-
-#if defined(CONFIG_TARGET_LOCALE_NAATT) \
-|| defined(CONFIG_TARGET_LOCALE_NA) || defined(CONFIG_MACH_Q1_BD)
-static int touchkey_autocalibration(void)
-{
-	u8 data[6] = { 0, };
-	int count = 0;
-	int ret = 0;
-	unsigned short retry = 0;
-
-	while (retry < 3) {
-		ret = i2c_touchkey_read(KEYCODE_REG, data, 4);
-		if (ret < 0) {
-			printk(KERN_ERR "[TouchKey]i2c read fail.\n");
-			return ret;
-		}
-		printk(KERN_DEBUG
-		       "[TouchKey] %s : data[0]=%x data[1]=%x data[2]=%x data[3]=%x\n",
-		       __func__, data[0], data[1], data[2], data[3]);
-
-		/* Send autocal Command */
-		data[0] = 0x50;
-		data[3] = 0x01;
-
-		count = i2c_touchkey_write(data, 4);
-
-		msleep(100);
-
-		/* Check autocal status */
-		ret = i2c_touchkey_read(KEYCODE_REG, data, 6);
-
-		if ((data[5] & 0x80)) {
-			printk(KERN_DEBUG "[Touchkey] autocal Enabled\n");
-			break;
-		} else
-			printk(KERN_DEBUG
-			       "[Touchkey] autocal disabled, retry %d\n",
-			       retry);
-
-		retry = retry + 1;
-	}
-
-	if (retry == 3)
-		printk(KERN_DEBUG "[Touchkey] autocal failed\n");
-
-	return count;
-}
-#endif
-
-#ifdef CONFIG_TARGET_LOCALE_NAATT
-static ssize_t set_touchkey_autocal_testmode(struct device *dev,
-					     struct device_attribute *attr,
-					     const char *buf, size_t size)
-{
-	int count = 0;
-	u8 set_data;
-	int on_off;
-
-	if (sscanf(buf, "%d\n", &on_off) == 1) {
-		printk(KERN_ERR "[TouchKey] Test Mode : %d\n", on_off);
-
-		if (on_off == 1) {
-			set_data = 0x40;
-			count = i2c_touchkey_write(&set_data, 1);
-		} else {
-			touchkey_ldo_on(0);
-			msleep(50);
-			touchkey_ldo_on(1);
-			msleep(50);
-			init_hw();
-			msleep(50);
-#if defined(CONFIG_TARGET_LOCALE_NAATT) \
-|| defined(CONFIG_TARGET_LOCALE_NA) || defined(CONFIG_MACH_Q1_BD)
-			touchkey_autocalibration();
-#endif
-		}
-	} else {
-		printk(KERN_ERR "[TouchKey] touch_led_brightness Error\n");
-	}
-
-	return count;
-}
-#endif
-
-
-#if defined(CONFIG_TARGET_LOCALE_NAATT) \
-|| defined(CONFIG_TARGET_LOCALE_NA) || defined(CONFIG_MACH_Q1_BD)
-static ssize_t touchkey_raw_data0_show(struct device *dev,
-				       struct device_attribute *attr, char *buf)
-{
-	u8 data[26] = { 0, };
-	int ret;
-
-	printk(KERN_DEBUG "called %s\n", __func__);
-	ret = i2c_touchkey_read(KEYCODE_REG, data, 26);
-#if defined(CONFIG_TARGET_LOCALE_NA)
-	printk(KERN_DEBUG "called %s data[18] =%d,data[19] = %d\n", __func__,
-	       data[18], data[19]);
-	raw_data0 = ((0x00FF & data[18]) << 8) | data[19];
-#elif defined(CONFIG_MACH_Q1_BD)
-	printk(KERN_DEBUG "called %s data[16] =%d,data[17] = %d\n", __func__,
-	       data[16], data[17]);
-	raw_data0 = ((0x00FF & data[14]) << 8) | data[15];
-#else
-	printk(KERN_DEBUG "called %s data[18] =%d,data[19] = %d\n", __func__,
-	       data[10], data[11]);
-	raw_data0 = ((0x00FF & data[10]) << 8) | data[11];
-#endif
-	return sprintf(buf, "%d\n", raw_data0);
-}
-
-static ssize_t touchkey_raw_data1_show(struct device *dev,
-				       struct device_attribute *attr, char *buf)
-{
-	u8 data[26] = { 0, };
-	int ret;
-
-	printk(KERN_DEBUG "called %s\n", __func__);
-	ret = i2c_touchkey_read(KEYCODE_REG, data, 26);
-#if defined(CONFIG_TARGET_LOCALE_NA)
-	printk(KERN_DEBUG "called %s data[20] =%d,data[21] = %d\n", __func__,
-	       data[20], data[21]);
-	raw_data1 = ((0x00FF & data[20]) << 8) | data[21];
-#elif defined(CONFIG_MACH_Q1_BD)
-	printk(KERN_DEBUG "called %s data[14] =%d,data[15] = %d\n", __func__,
-	       data[14], data[15]);
-	raw_data1 = ((0x00FF & data[16]) << 8) | data[17];
-#else
-	printk(KERN_DEBUG "called %s data[20] =%d,data[21] = %d\n", __func__,
-	       data[12], data[13]);
-	raw_data1 = ((0x00FF & data[12]) << 8) | data[13];
-#endif				/* CONFIG_TARGET_LOCALE_NA */
-	return sprintf(buf, "%d\n", raw_data1);
-}
-
-static ssize_t touchkey_raw_data2_show(struct device *dev,
-				       struct device_attribute *attr, char *buf)
-{
-	u8 data[26] = { 0, };
-	int ret;
-
-	printk(KERN_DEBUG "called %s\n", __func__);
-	ret = i2c_touchkey_read(KEYCODE_REG, data, 26);
-#if defined(CONFIG_TARGET_LOCALE_NA)
-	printk(KERN_DEBUG "called %s data[22] =%d,data[23] = %d\n", __func__,
-	       data[22], data[23]);
-	raw_data2 = ((0x00FF & data[22]) << 8) | data[23];
-#else
-	printk(KERN_DEBUG "called %s data[22] =%d,data[23] = %d\n", __func__,
-	       data[14], data[15]);
-	raw_data2 = ((0x00FF & data[14]) << 8) | data[15];
-#endif				/* CONFIG_TARGET_LOCALE_NA */
-	return sprintf(buf, "%d\n", raw_data2);
-}
-
-static ssize_t touchkey_raw_data3_show(struct device *dev,
-				       struct device_attribute *attr, char *buf)
-{
-	u8 data[26] = { 0, };
-	int ret;
-
-	printk(KERN_DEBUG "called %s\n", __func__);
-	ret = i2c_touchkey_read(KEYCODE_REG, data, 26);
-#if defined(CONFIG_TARGET_LOCALE_NA)
-	printk(KERN_DEBUG "called %s data[24] =%d,data[25] = %d\n", __func__,
-	       data[24], data[25]);
-	raw_data3 = ((0x00FF & data[24]) << 8) | data[25];
-#else
-	printk(KERN_DEBUG "called %s data[24] =%d,data[25] = %d\n", __func__,
-	       data[16], data[17]);
-	raw_data3 = ((0x00FF & data[16]) << 8) | data[17];
-#endif				/* CONFIG_TARGET_LOCALE_NA */
-	return sprintf(buf, "%d\n", raw_data3);
-}
-
-static ssize_t touchkey_idac0_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
-{
-	u8 data[10];
-	int ret;
-#ifdef CONFIG_TARGET_LOCALE_NA
-	if (store_module_version < 8)
-		return 0;
-#endif
-
-	printk(KERN_DEBUG "called %s\n", __func__);
-	ret = i2c_touchkey_read(KEYCODE_REG, data, 10);
-	printk(KERN_DEBUG "called %s data[6] =%d\n", __func__, data[6]);
-	idac0 = data[6];
-	return sprintf(buf, "%d\n", idac0);
-}
-
-static ssize_t touchkey_idac1_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
-{
-	u8 data[10];
-	int ret;
-#ifdef CONFIG_TARGET_LOCALE_NA
-	if (store_module_version < 8)
-		return 0;
-#endif
-
-	printk(KERN_DEBUG "called %s\n", __func__);
-	ret = i2c_touchkey_read(KEYCODE_REG, data, 10);
-	printk(KERN_DEBUG "called %s data[7] = %d\n", __func__, data[7]);
-	idac1 = data[7];
-	return sprintf(buf, "%d\n", idac1);
-}
-
-static ssize_t touchkey_idac2_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
-{
-	u8 data[10];
-	int ret;
-#ifdef CONFIG_TARGET_LOCALE_NA
-	if (store_module_version < 8)
-		return 0;
-#endif
-
-	printk(KERN_DEBUG "called %s\n", __func__);
-	ret = i2c_touchkey_read(KEYCODE_REG, data, 10);
-	printk(KERN_DEBUG "called %s data[8] =%d\n", __func__, data[8]);
-	idac2 = data[8];
-	return sprintf(buf, "%d\n", idac2);
-}
-
-static ssize_t touchkey_idac3_show(struct device *dev,
-				   struct device_attribute *attr, char *buf)
-{
-	u8 data[10];
-	int ret;
-#ifdef CONFIG_TARGET_LOCALE_NA
-	if (store_module_version < 8)
-		return 0;
-#endif
-
-	printk(KERN_DEBUG "called %s\n", __func__);
-	ret = i2c_touchkey_read(KEYCODE_REG, data, 10);
-	printk(KERN_DEBUG "called %s data[9] = %d\n", __func__, data[9]);
-	idac3 = data[9];
-	return sprintf(buf, "%d\n", idac3);
-}
-
-static ssize_t touchkey_threshold_show(struct device *dev,
-				       struct device_attribute *attr, char *buf)
-{
-	u8 data[10];
-	int ret;
-
-	printk(KERN_DEBUG "called %s\n", __func__);
-	ret = i2c_touchkey_read(KEYCODE_REG, data, 10);
-	printk(KERN_DEBUG "called %s data[4] = %d\n", __func__, data[4]);
-	touchkey_threshold = data[4];
-	return sprintf(buf, "%d\n", touchkey_threshold);
-}
-#endif
 
 void touchkey_firmware_update(void)
 {
@@ -1694,12 +1406,6 @@ static ssize_t touch_version_write(struct device *dev,
 void touchkey_update_func(struct work_struct *p)
 {
 	int retry = 10;
-#if defined(CONFIG_TARGET_LOCALE_NAATT)
-	char data[3];
-	i2c_touchkey_read(KEYCODE_REG, data, 3);
-	printk(KERN_DEBUG "[%s] F/W version: 0x%x, Module version:0x%x\n",
-	       __func__, data[1], data[2]);
-#endif
 	touchkey_update_status = 1;
 	printk(KERN_DEBUG "[TouchKey] %s start\n", __func__);
 	touchkey_enable = 0;
@@ -1713,12 +1419,6 @@ void touchkey_update_func(struct work_struct *p)
 			touchkey_update_status = 0;
 			return;
 		}
-#if defined(CONFIG_TARGET_LOCALE_NAATT) \
-|| defined(CONFIG_TARGET_LOCALE_NA) || defined(CONFIG_MACH_Q1_BD)
-		touchkey_ldo_on(0);
-		msleep(300);
-		init_hw();
-#endif
 	}
 
 	touchkey_update_status = -1;
@@ -1786,130 +1486,15 @@ static ssize_t touchkey_enable_disable(struct device *dev,
 	return size;
 }
 
-#if defined(CONFIG_TARGET_LOCALE_NAATT) || defined(CONFIG_TARGET_LOCALE_NA)
 static ssize_t touchkey_menu_show(struct device *dev,
 				  struct device_attribute *attr, char *buf)
 {
-	u8 data[18] = { 0, };
-	int ret;
-
-	printk(KERN_DEBUG "called %s\n", __func__);
-	ret = i2c_touchkey_read(KEYCODE_REG, data, 18);
-#ifdef CONFIG_TARGET_LOCALE_NA
-	if (store_module_version < 8) {
-		printk(KERN_DEBUG "called %s data[12] =%d,data[13] = %d\n",
-		       __func__, data[12], data[13]);
-		menu_sensitivity = ((0x00FF & data[12]) << 8) | data[13];
-	} else {
-		printk(KERN_DEBUG "called %s data[17] =%d\n", __func__,
-		       data[17]);
-		menu_sensitivity = data[17];
-	}
-#else
-	printk(KERN_DEBUG "called %s data[10] =%d,data[11] = %d\n", __func__,
-	       data[10], data[11]);
-	menu_sensitivity = ((0x00FF & data[10]) << 8) | data[11];
-#endif				/* CONFIG_TARGET_LOCALE_NA */
-	return sprintf(buf, "%d\n", menu_sensitivity);
-}
-
-static ssize_t touchkey_home_show(struct device *dev,
-				  struct device_attribute *attr, char *buf)
-{
-	u8 data[18] = { 0, };
-	int ret;
-
-	printk(KERN_DEBUG "called %s\n", __func__);
-	ret = i2c_touchkey_read(KEYCODE_REG, data, 18);
-#ifdef CONFIG_TARGET_LOCALE_NA
-	if (store_module_version < 8) {
-		printk(KERN_DEBUG "called %s data[10] =%d,data[11] = %d\n",
-		       __func__, data[10], data[11]);
-		home_sensitivity = ((0x00FF & data[10]) << 8) | data[11];
-	} else {
-		printk(KERN_DEBUG "called %s data[15] =%d\n", __func__,
-		       data[15]);
-		home_sensitivity = data[15];
-	}
-#else
-	printk(KERN_DEBUG "called %s data[12] =%d,data[13] = %d\n", __func__,
-	       data[12], data[13]);
-	home_sensitivity = ((0x00FF & data[12]) << 8) | data[13];
-#endif				/* CONFIG_TARGET_LOCALE_NA */
-	return sprintf(buf, "%d\n", home_sensitivity);
-}
-
-static ssize_t touchkey_back_show(struct device *dev,
-				  struct device_attribute *attr, char *buf)
-{
-	u8 data[18] = { 0, };
-	int ret;
-
-	printk(KERN_DEBUG "called %s\n", __func__);
-	ret = i2c_touchkey_read(KEYCODE_REG, data, 18);
-#ifdef CONFIG_TARGET_LOCALE_NA
-	if (store_module_version < 8) {
-		printk(KERN_DEBUG "called %s data[8] =%d,data[9] = %d\n",
-		       __func__, data[8], data[9]);
-		back_sensitivity = ((0x00FF & data[8]) << 8) | data[9];
-	} else {
-		printk(KERN_DEBUG "called %s data[13] =%d\n", __func__,
-		       data[13]);
-		back_sensitivity = data[13];
-	}
-#else
-	printk(KERN_DEBUG "called %s data[14] =%d,data[15] = %d\n", __func__,
-	       data[14], data[15]);
-	back_sensitivity = ((0x00FF & data[14]) << 8) | data[15];
-#endif				/* CONFIG_TARGET_LOCALE_NA */
-	return sprintf(buf, "%d\n", back_sensitivity);
-}
-
-static ssize_t touchkey_search_show(struct device *dev,
-				    struct device_attribute *attr, char *buf)
-{
-	u8 data[18] = { 0, };
-	int ret;
-
-	printk(KERN_DEBUG "called %s\n", __func__);
-	ret = i2c_touchkey_read(KEYCODE_REG, data, 18);
-#ifdef CONFIG_TARGET_LOCALE_NA
-	if (store_module_version < 8) {
-		printk(KERN_DEBUG "called %s data[6] =%d,data[7] = %d\n",
-		       __func__, data[6], data[7]);
-		search_sensitivity = ((0x00FF & data[6]) << 8) | data[7];
-	} else {
-		printk(KERN_DEBUG "called %s data[11] =%d\n", __func__,
-		       data[11]);
-		search_sensitivity = data[11];
-	}
-#else
-	printk(KERN_DEBUG "called %s data[16] =%d,data[17] = %d\n", __func__,
-	       data[16], data[17]);
-	search_sensitivity = ((0x00FF & data[16]) << 8) | data[17];
-#endif				/* CONFIG_TARGET_LOCALE_NA */
-	return sprintf(buf, "%d\n", search_sensitivity);
-}
-#else
-static ssize_t touchkey_menu_show(struct device *dev,
-				  struct device_attribute *attr, char *buf)
-{
-#if defined(CONFIG_MACH_Q1_BD)
-	u8 data[14] = { 0, };
-	int ret;
-
-	ret = i2c_touchkey_read(KEYCODE_REG, data, 14);
-
-	printk(KERN_DEBUG "called %s data[13] =%d\n", __func__, data[13]);
-	menu_sensitivity = data[13];
-#else
 	u8 data[10];
 	int ret;
 
 	printk(KERN_DEBUG "called %s\n", __func__);
 	ret = i2c_touchkey_read(KEYCODE_REG, data, 10);
 	menu_sensitivity = data[7];
-#endif
 	return sprintf(buf, "%d\n", menu_sensitivity);
 }
 
@@ -1924,39 +1509,6 @@ static ssize_t touchkey_back_show(struct device *dev,
 	back_sensitivity = data[9];
 	return sprintf(buf, "%d\n", back_sensitivity);
 }
-#endif
-
-#if defined(CONFIG_TARGET_LOCALE_NA) || defined(CONFIG_MACH_Q1_BD)
-static ssize_t autocalibration_enable(struct device *dev,
-				      struct device_attribute *attr,
-				      const char *buf, size_t size)
-{
-	int data;
-
-	sscanf(buf, "%d\n", &data);
-
-	if (data == 1)
-		touchkey_autocalibration();
-
-	return size;
-}
-
-static ssize_t autocalibration_status(struct device *dev,
-				      struct device_attribute *attr, char *buf)
-{
-	u8 data[6];
-	int ret;
-
-	printk(KERN_DEBUG "called %s\n", __func__);
-
-	ret = i2c_touchkey_read(KEYCODE_REG, data, 6);
-	if ((data[5] & 0x80))
-		return sprintf(buf, "Enabled\n");
-	else
-		return sprintf(buf, "Disabled\n");
-
-}
-#endif				/* CONFIG_TARGET_LOCALE_NA */
 
 static ssize_t touch_sensitivity_control(struct device *dev,
 					 struct device_attribute *attr,
@@ -2059,10 +1611,6 @@ static DEVICE_ATTR(touchkey_menu, S_IRUGO | S_IWUSR | S_IWGRP,
 		   touchkey_menu_show, NULL);
 static DEVICE_ATTR(touchkey_back, S_IRUGO | S_IWUSR | S_IWGRP,
 		   touchkey_back_show, NULL);
-#if defined(CONFIG_TARGET_LOCALE_NA) || defined(CONFIG_TARGET_LOCALE_NAATT)
-static DEVICE_ATTR(touchkey_home, S_IRUGO, touchkey_home_show, NULL);
-static DEVICE_ATTR(touchkey_search, S_IRUGO, touchkey_search_show, NULL);
-#endif				/* CONFIG_TARGET_LOCALE_NA  */
 static DEVICE_ATTR(touch_sensitivity, S_IRUGO | S_IWUSR | S_IWGRP, NULL,
 		   touch_sensitivity_control);
 /*20110223N1 firmware sync*/
@@ -2078,24 +1626,6 @@ static DEVICE_ATTR(touchkey_firm_version_panel, S_IRUGO | S_IWUSR | S_IWGRP,
 /*end N1 firmware sync*/
 static DEVICE_ATTR(touchkey_brightness, S_IRUGO | S_IWUSR | S_IWGRP, brightness_read,
 		   brightness_control);
-
-#if defined(CONFIG_TARGET_LOCALE_NAATT)
-static DEVICE_ATTR(touchkey_autocal_start, S_IRUGO | S_IWUSR | S_IWGRP, NULL,
-		   set_touchkey_autocal_testmode);
-#endif
-
-#if defined(CONFIG_TARGET_LOCALE_NAATT) \
-|| defined(CONFIG_TARGET_LOCALE_NA) || defined(CONFIG_MACH_Q1_BD)
-static DEVICE_ATTR(touchkey_raw_data0, S_IRUGO, touchkey_raw_data0_show, NULL);
-static DEVICE_ATTR(touchkey_raw_data1, S_IRUGO, touchkey_raw_data1_show, NULL);
-static DEVICE_ATTR(touchkey_raw_data2, S_IRUGO, touchkey_raw_data2_show, NULL);
-static DEVICE_ATTR(touchkey_raw_data3, S_IRUGO, touchkey_raw_data3_show, NULL);
-static DEVICE_ATTR(touchkey_idac0, S_IRUGO, touchkey_idac0_show, NULL);
-static DEVICE_ATTR(touchkey_idac1, S_IRUGO, touchkey_idac1_show, NULL);
-static DEVICE_ATTR(touchkey_idac2, S_IRUGO, touchkey_idac2_show, NULL);
-static DEVICE_ATTR(touchkey_idac3, S_IRUGO, touchkey_idac3_show, NULL);
-static DEVICE_ATTR(touchkey_threshold, S_IRUGO, touchkey_threshold_show, NULL);
-#endif
 
 static int __init touchkey_init(void)
 {
@@ -2131,14 +1661,6 @@ static int __init touchkey_init(void)
 		printk(KERN_ERR "Failed to create device file(%s)!\n",
 		       dev_attr_touchkey_brightness.attr.name);
 	}
-#if defined(CONFIG_TARGET_LOCALE_NAATT)
-	if (device_create_file(sec_touchkey,
-		&dev_attr_touchkey_autocal_start) <
-	    0) {
-		printk(KERN_ERR "Failed to create device file(%s)!\n",
-		       dev_attr_touchkey_brightness.attr.name);
-	}
-#endif
 
 	if (device_create_file(sec_touchkey,
 		&dev_attr_recommended_version) < 0) {
@@ -2175,74 +1697,6 @@ static int __init touchkey_init(void)
 		pr_err("Failed to create device file(%s)!\n",
 		       dev_attr_touchkey_back.attr.name);
 	}
-#if defined(CONFIG_TARGET_LOCALE_NAATT) \
-|| defined(CONFIG_TARGET_LOCALE_NA) || defined(CONFIG_MACH_Q1_BD)
-	if (device_create_file(sec_touchkey,
-		&dev_attr_touchkey_raw_data0) < 0) {
-		pr_err("Failed to create device file(%s)!\n",
-		       dev_attr_touchkey_raw_data0.attr.name);
-	}
-
-	if (device_create_file(sec_touchkey,
-		&dev_attr_touchkey_raw_data1) < 0) {
-		pr_err("Failed to create device file(%s)!\n",
-		       dev_attr_touchkey_raw_data1.attr.name);
-	}
-
-	if (device_create_file(sec_touchkey,
-		&dev_attr_touchkey_raw_data2) < 0) {
-		pr_err("Failed to create device file(%s)!\n",
-		       dev_attr_touchkey_raw_data2.attr.name);
-	}
-
-	if (device_create_file(sec_touchkey,
-		&dev_attr_touchkey_raw_data3) < 0) {
-		pr_err("Failed to create device file(%s)!\n",
-		       dev_attr_touchkey_raw_data3.attr.name);
-	}
-
-	if (device_create_file(sec_touchkey,
-		&dev_attr_touchkey_idac0) < 0) {
-		pr_err("Failed to create device file(%s)!\n",
-		       dev_attr_touchkey_idac0.attr.name);
-	}
-
-	if (device_create_file(sec_touchkey,
-		&dev_attr_touchkey_idac1) < 0) {
-		pr_err("Failed to create device file(%s)!\n",
-		       dev_attr_touchkey_idac1.attr.name);
-	}
-
-	if (device_create_file(sec_touchkey,
-		&dev_attr_touchkey_idac2) < 0) {
-		pr_err("Failed to create device file(%s)!\n",
-		       dev_attr_touchkey_idac2.attr.name);
-	}
-
-	if (device_create_file(sec_touchkey,
-		&dev_attr_touchkey_idac3) < 0) {
-		pr_err("Failed to create device file(%s)!\n",
-		       dev_attr_touchkey_idac3.attr.name);
-	}
-
-	if (device_create_file(sec_touchkey,
-		&dev_attr_touchkey_threshold) < 0) {
-		pr_err("Failed to create device file(%s)!\n",
-		       dev_attr_touchkey_threshold.attr.name);
-	}
-#endif
-
-#if defined(CONFIG_TARGET_LOCALE_NA) || defined(CONFIG_TARGET_LOCALE_NAATT)
-	if (device_create_file(sec_touchkey, &dev_attr_touchkey_home) < 0) {
-		pr_err("Failed to create device file(%s)!\n",
-		       dev_attr_touchkey_home.attr.name);
-	}
-
-	if (device_create_file(sec_touchkey, &dev_attr_touchkey_search) < 0) {
-		pr_err("Failed to create device file(%s)!\n",
-		       dev_attr_touchkey_search.attr.name);
-	}
-#endif				/* CONFIG_TARGET_LOCALE_NA  */
 
 	if (device_create_file(sec_touchkey,
 		&dev_attr_touch_sensitivity) < 0) {
