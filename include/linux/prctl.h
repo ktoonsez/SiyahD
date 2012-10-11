@@ -111,7 +111,7 @@
 /*
  * Tune up process memory map specifics.
  */
-#define PR_SET_MM		35
+#define PR_SET_MM			36
 # define PR_SET_MM_START_CODE		1
 # define PR_SET_MM_END_CODE		2
 # define PR_SET_MM_START_DATA		3
