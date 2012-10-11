@@ -633,7 +633,7 @@ static void mxt224_ta_probe(bool ta_status)
 		else
 			write_config(copy_data, PROCG_NOISESUPPRESSION_T48,
 				     copy_data->noise_suppression_cfg);
-#if defined(CONFIG_TARGET_LOCALE_NAATT_TEMP)
+#if defined(CONFIG_TARGET_LOCALE_NAATT)
 		if ((ta_status) && (copy_data->gain_change_flag == 1)) {
 			value = copy_data->blen_charging_e;
 			write_mem(copy_data, obj_address + 34, size_one,
@@ -2864,7 +2864,7 @@ static void mxt224_optical_gain(uint16_t dbg_mode)
 		msleep(20);
 	}
 
-#if defined(CONFIG_TARGET_LOCALE_NAATT_TEMP)
+#if defined(CONFIG_TARGET_LOCALE_NAATT)
 	if (reference_over)
 		copy_data->gain_ta = 0;
 #else
