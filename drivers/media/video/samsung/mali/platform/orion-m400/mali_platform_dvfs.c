@@ -474,17 +474,22 @@ static mali_bool mali_dvfs_status(u32 utilization)
 	return MALI_TRUE;
 }
 
+
+
 int mali_dvfs_is_running(void)
 {
 	return bMaliDvfsRun;
 
 }
 
+
+
 void mali_dvfs_late_resume(void)
 {
 	// set the init clock as low when resume
 	set_mali_dvfs_status(0,0);
 }
+
 
 static void mali_dvfs_work_handler(struct work_struct *w)
 {

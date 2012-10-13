@@ -81,6 +81,7 @@ static struct clk  *mpll_clock = 0;
 static struct clk  *mali_parent_clock = 0;
 static struct clk  *mali_clock = 0;
 
+
 static unsigned int GPU_MHZ	= 1000000;
 
 int mali_gpu_clk = 100;

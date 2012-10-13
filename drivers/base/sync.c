@@ -15,10 +15,7 @@
  */
 
 #include <linux/debugfs.h>
-<<<<<<< HEAD
-=======
 #include <linux/export.h>
->>>>>>> upstream/master-jelly-bean
 #include <linux/file.h>
 #include <linux/fs.h>
 #include <linux/kernel.h>
@@ -33,11 +30,8 @@
 
 static void sync_fence_signal_pt(struct sync_pt *pt);
 static int _sync_pt_has_signaled(struct sync_pt *pt);
-<<<<<<< HEAD
-=======
 static void sync_fence_free(struct kref *kref);
 static void sync_dump(void);
->>>>>>> upstream/master-jelly-bean
 
 static LIST_HEAD(sync_timeline_list_head);
 static DEFINE_SPINLOCK(sync_timeline_list_lock);
@@ -58,10 +52,7 @@ struct sync_timeline *sync_timeline_create(const struct sync_timeline_ops *ops,
 	if (obj == NULL)
 		return NULL;
 
-<<<<<<< HEAD
-=======
 	kref_init(&obj->kref);
->>>>>>> upstream/master-jelly-bean
 	obj->ops = ops;
 	strlcpy(obj->name, name, sizeof(obj->name));
 
@@ -77,18 +68,12 @@ struct sync_timeline *sync_timeline_create(const struct sync_timeline_ops *ops,
 
 	return obj;
 }
-<<<<<<< HEAD
-
-static void sync_timeline_free(struct sync_timeline *obj)
-{
-=======
 EXPORT_SYMBOL(sync_timeline_create);
 
 static void sync_timeline_free(struct kref *kref)
 {
 	struct sync_timeline *obj =
 		container_of(kref, struct sync_timeline, kref);
->>>>>>> upstream/master-jelly-bean
 	unsigned long flags;
 
 	if (obj->ops->release_obj)
@@ -103,21 +88,6 @@ static void sync_timeline_free(struct kref *kref)
 
 void sync_timeline_destroy(struct sync_timeline *obj)
 {
-<<<<<<< HEAD
-	unsigned long flags;
-	bool needs_freeing;
-
-	spin_lock_irqsave(&obj->child_list_lock, flags);
-	obj->destroyed = true;
-	needs_freeing = list_empty(&obj->child_list_head);
-	spin_unlock_irqrestore(&obj->child_list_lock, flags);
-
-	if (needs_freeing)
-		sync_timeline_free(obj);
-	else
-		sync_timeline_signal(obj);
-}
-=======
 	obj->destroyed = true;
 
 	/*
@@ -129,7 +99,6 @@ void sync_timeline_destroy(struct sync_timeline *obj)
 		sync_timeline_signal(obj);
 }
 EXPORT_SYMBOL(sync_timeline_destroy);
->>>>>>> upstream/master-jelly-bean
 
 static void sync_timeline_add_pt(struct sync_timeline *obj, struct sync_pt *pt)
 {
@@ -146,10 +115,6 @@ static void sync_timeline_remove_pt(struct sync_pt *pt)
 {
 	struct sync_timeline *obj = pt->parent;
 	unsigned long flags;
-<<<<<<< HEAD
-	bool needs_freeing;
-=======
->>>>>>> upstream/master-jelly-bean
 
 	spin_lock_irqsave(&obj->active_list_lock, flags);
 	if (!list_empty(&pt->active_list))
@@ -157,19 +122,10 @@ static void sync_timeline_remove_pt(struct sync_pt *pt)
 	spin_unlock_irqrestore(&obj->active_list_lock, flags);
 
 	spin_lock_irqsave(&obj->child_list_lock, flags);
-<<<<<<< HEAD
-	list_del(&pt->child_list);
-	needs_freeing = obj->destroyed && list_empty(&obj->child_list_head);
-	spin_unlock_irqrestore(&obj->child_list_lock, flags);
-
-	if (needs_freeing)
-		sync_timeline_free(obj);
-=======
 	if (!list_empty(&pt->child_list)) {
 		list_del_init(&pt->child_list);
 	}
 	spin_unlock_irqrestore(&obj->child_list_lock, flags);
->>>>>>> upstream/master-jelly-bean
 }
 
 void sync_timeline_signal(struct sync_timeline *obj)
@@ -184,30 +140,17 @@ void sync_timeline_signal(struct sync_timeline *obj)
 		struct sync_pt *pt =
 			container_of(pos, struct sync_pt, active_list);
 
-<<<<<<< HEAD
-		if (_sync_pt_has_signaled(pt))
-			list_move(pos, &signaled_pts);
-=======
 		if (_sync_pt_has_signaled(pt)) {
 			list_del_init(pos);
 			list_add(&pt->signaled_list, &signaled_pts);
 			kref_get(&pt->fence->kref);
 		}
->>>>>>> upstream/master-jelly-bean
 	}
 
 	spin_unlock_irqrestore(&obj->active_list_lock, flags);
 
 	list_for_each_safe(pos, n, &signaled_pts) {
 		struct sync_pt *pt =
-<<<<<<< HEAD
-			container_of(pos, struct sync_pt, active_list);
-
-		list_del_init(pos);
-		sync_fence_signal_pt(pt);
-	}
-}
-=======
 			container_of(pos, struct sync_pt, signaled_list);
 
 		list_del_init(pos);
@@ -216,7 +159,6 @@ void sync_timeline_signal(struct sync_timeline *obj)
 	}
 }
 EXPORT_SYMBOL(sync_timeline_signal);
->>>>>>> upstream/master-jelly-bean
 
 struct sync_pt *sync_pt_create(struct sync_timeline *parent, int size)
 {
@@ -230,18 +172,12 @@ struct sync_pt *sync_pt_create(struct sync_timeline *parent, int size)
 		return NULL;
 
 	INIT_LIST_HEAD(&pt->active_list);
-<<<<<<< HEAD
-=======
 	kref_get(&parent->kref);
->>>>>>> upstream/master-jelly-bean
 	sync_timeline_add_pt(parent, pt);
 
 	return pt;
 }
-<<<<<<< HEAD
-=======
 EXPORT_SYMBOL(sync_pt_create);
->>>>>>> upstream/master-jelly-bean
 
 void sync_pt_free(struct sync_pt *pt)
 {
@@ -250,16 +186,11 @@ void sync_pt_free(struct sync_pt *pt)
 
 	sync_timeline_remove_pt(pt);
 
-<<<<<<< HEAD
-	kfree(pt);
-}
-=======
 	kref_put(&pt->parent->kref, sync_timeline_free);
 
 	kfree(pt);
 }
 EXPORT_SYMBOL(sync_pt_free);
->>>>>>> upstream/master-jelly-bean
 
 /* call with pt->parent->active_list_lock held */
 static int _sync_pt_has_signaled(struct sync_pt *pt)
@@ -328,10 +259,7 @@ static struct sync_fence *sync_fence_alloc(const char *name)
 	if (fence->file == NULL)
 		goto err;
 
-<<<<<<< HEAD
-=======
 	kref_init(&fence->kref);
->>>>>>> upstream/master-jelly-bean
 	strlcpy(fence->name, name, sizeof(fence->name));
 
 	INIT_LIST_HEAD(&fence->pt_list_head);
@@ -369,10 +297,7 @@ struct sync_fence *sync_fence_create(const char *name, struct sync_pt *pt)
 
 	return fence;
 }
-<<<<<<< HEAD
-=======
 EXPORT_SYMBOL(sync_fence_create);
->>>>>>> upstream/master-jelly-bean
 
 static int sync_fence_copy_pts(struct sync_fence *dst, struct sync_fence *src)
 {
@@ -394,8 +319,6 @@ static int sync_fence_copy_pts(struct sync_fence *dst, struct sync_fence *src)
 	return 0;
 }
 
-<<<<<<< HEAD
-=======
 static int sync_fence_merge_pts(struct sync_fence *dst, struct sync_fence *src)
 {
 	struct list_head *src_pos, *dst_pos, *n;
@@ -455,7 +378,6 @@ static void sync_fence_detach_pts(struct sync_fence *fence)
 	}
 }
 
->>>>>>> upstream/master-jelly-bean
 static void sync_fence_free_pts(struct sync_fence *fence)
 {
 	struct list_head *pos, *n;
@@ -482,28 +404,19 @@ err:
 	fput(file);
 	return NULL;
 }
-<<<<<<< HEAD
-=======
 EXPORT_SYMBOL(sync_fence_fdget);
->>>>>>> upstream/master-jelly-bean
 
 void sync_fence_put(struct sync_fence *fence)
 {
 	fput(fence->file);
 }
-<<<<<<< HEAD
-=======
 EXPORT_SYMBOL(sync_fence_put);
->>>>>>> upstream/master-jelly-bean
 
 void sync_fence_install(struct sync_fence *fence, int fd)
 {
 	fd_install(fd, fence->file);
 }
-<<<<<<< HEAD
-=======
 EXPORT_SYMBOL(sync_fence_install);
->>>>>>> upstream/master-jelly-bean
 
 static int sync_fence_get_status(struct sync_fence *fence)
 {
@@ -539,11 +452,7 @@ struct sync_fence *sync_fence_merge(const char *name,
 	if (err < 0)
 		goto err;
 
-<<<<<<< HEAD
-	err = sync_fence_copy_pts(fence, b);
-=======
 	err = sync_fence_merge_pts(fence, b);
->>>>>>> upstream/master-jelly-bean
 	if (err < 0)
 		goto err;
 
@@ -555,10 +464,7 @@ err:
 	kfree(fence);
 	return NULL;
 }
-<<<<<<< HEAD
-=======
 EXPORT_SYMBOL(sync_fence_merge);
->>>>>>> upstream/master-jelly-bean
 
 static void sync_fence_signal_pt(struct sync_pt *pt)
 {
@@ -592,40 +498,14 @@ static void sync_fence_signal_pt(struct sync_pt *pt)
 				container_of(pos, struct sync_fence_waiter,
 					     waiter_list);
 
-<<<<<<< HEAD
-			waiter->callback(fence, waiter->callback_data);
-			list_del(pos);
-			kfree(waiter);
-=======
 			list_del(pos);
 			waiter->callback(fence, waiter);
->>>>>>> upstream/master-jelly-bean
 		}
 		wake_up(&fence->wq);
 	}
 }
 
 int sync_fence_wait_async(struct sync_fence *fence,
-<<<<<<< HEAD
-			  void (*callback)(struct sync_fence *, void *data),
-			  void *callback_data)
-{
-	struct sync_fence_waiter *waiter;
-	unsigned long flags;
-	int err = 0;
-
-	waiter = kzalloc(sizeof(struct sync_fence_waiter), GFP_KERNEL);
-	if (waiter == NULL)
-		return -ENOMEM;
-
-	waiter->callback = callback;
-	waiter->callback_data = callback_data;
-
-	spin_lock_irqsave(&fence->waiter_list_lock, flags);
-
-	if (fence->status) {
-		kfree(waiter);
-=======
 			  struct sync_fence_waiter *waiter)
 {
 	unsigned long flags;
@@ -634,7 +514,6 @@ int sync_fence_wait_async(struct sync_fence *fence,
 	spin_lock_irqsave(&fence->waiter_list_lock, flags);
 
 	if (fence->status) {
->>>>>>> upstream/master-jelly-bean
 		err = fence->status;
 		goto out;
 	}
@@ -645,14 +524,6 @@ out:
 
 	return err;
 }
-<<<<<<< HEAD
-
-int sync_fence_wait(struct sync_fence *fence, long timeout)
-{
-	int err;
-
-	if (timeout) {
-=======
 EXPORT_SYMBOL(sync_fence_wait_async);
 
 int sync_fence_cancel_async(struct sync_fence *fence,
@@ -689,32 +560,17 @@ int sync_fence_wait(struct sync_fence *fence, long timeout)
 	int err = 0;
 
 	if (timeout > 0) {
->>>>>>> upstream/master-jelly-bean
 		timeout = msecs_to_jiffies(timeout);
 		err = wait_event_interruptible_timeout(fence->wq,
 						       fence->status != 0,
 						       timeout);
-<<<<<<< HEAD
-	} else {
-=======
 	} else if (timeout < 0) {
->>>>>>> upstream/master-jelly-bean
 		err = wait_event_interruptible(fence->wq, fence->status != 0);
 	}
 
 	if (err < 0)
 		return err;
 
-<<<<<<< HEAD
-	if (fence->status < 0)
-		return fence->status;
-
-	if (fence->status == 0)
-		return -ETIME;
-
-	return 0;
-}
-=======
 	if (fence->status < 0) {
 		pr_info("fence error %d on [%p]\n", fence->status, fence);
 		sync_dump();
@@ -740,31 +596,22 @@ static void sync_fence_free(struct kref *kref)
 
 	kfree(fence);
 }
->>>>>>> upstream/master-jelly-bean
 
 static int sync_fence_release(struct inode *inode, struct file *file)
 {
 	struct sync_fence *fence = file->private_data;
 	unsigned long flags;
 
-<<<<<<< HEAD
-	sync_fence_free_pts(fence);
-
-=======
 	/*
 	 * We need to remove all ways to access this fence before droping
 	 * our ref.
 	 *
 	 * start with its membership in the global fence list
 	 */
->>>>>>> upstream/master-jelly-bean
 	spin_lock_irqsave(&sync_fence_list_lock, flags);
 	list_del(&fence->sync_fence_list);
 	spin_unlock_irqrestore(&sync_fence_list_lock, flags);
 
-<<<<<<< HEAD
-	kfree(fence);
-=======
 	/*
 	 * remove its pts from their parents so that sync_timeline_signal()
 	 * can't reference the fence.
@@ -772,7 +619,6 @@ static int sync_fence_release(struct inode *inode, struct file *file)
 	sync_fence_detach_pts(fence);
 
 	kref_put(&fence->kref, sync_fence_free);
->>>>>>> upstream/master-jelly-bean
 
 	return 0;
 }
@@ -793,11 +639,7 @@ static unsigned int sync_fence_poll(struct file *file, poll_table *wait)
 
 static long sync_fence_ioctl_wait(struct sync_fence *fence, unsigned long arg)
 {
-<<<<<<< HEAD
-	__u32 value;
-=======
 	__s32 value;
->>>>>>> upstream/master-jelly-bean
 
 	if (copy_from_user(&value, (void __user *)arg, sizeof(value)))
 		return -EFAULT;
@@ -812,10 +654,6 @@ static long sync_fence_ioctl_merge(struct sync_fence *fence, unsigned long arg)
 	struct sync_fence *fence2, *fence3;
 	struct sync_merge_data data;
 
-<<<<<<< HEAD
-	if (copy_from_user(&data, (void __user *)arg, sizeof(data)))
-		return -EFAULT;
-=======
 	if (fd < 0)
 		return fd;
 
@@ -823,7 +661,6 @@ static long sync_fence_ioctl_merge(struct sync_fence *fence, unsigned long arg)
 		err = -EFAULT;
 		goto err_put_fd;
 	}
->>>>>>> upstream/master-jelly-bean
 
 	fence2 = sync_fence_fdget(data.fd2);
 	if (fence2 == NULL) {
@@ -1017,12 +854,8 @@ static void sync_print_fence(struct seq_file *s, struct sync_fence *fence)
 	struct list_head *pos;
 	unsigned long flags;
 
-<<<<<<< HEAD
-	seq_printf(s, "%s: %s\n", fence->name, sync_status_str(fence->status));
-=======
 	seq_printf(s, "[%p] %s: %s\n", fence, fence->name,
 		   sync_status_str(fence->status));
->>>>>>> upstream/master-jelly-bean
 
 	list_for_each(pos, &fence->pt_list_head) {
 		struct sync_pt *pt =
@@ -1036,12 +869,7 @@ static void sync_print_fence(struct seq_file *s, struct sync_fence *fence)
 			container_of(pos, struct sync_fence_waiter,
 				     waiter_list);
 
-<<<<<<< HEAD
-		seq_printf(s, "waiter %pF %p\n", waiter->callback,
-			   waiter->callback_data);
-=======
 		seq_printf(s, "waiter %pF\n", waiter->callback);
->>>>>>> upstream/master-jelly-bean
 	}
 	spin_unlock_irqrestore(&fence->waiter_list_lock, flags);
 }
@@ -1095,11 +923,6 @@ static __init int sync_debugfs_init(void)
 	debugfs_create_file("sync", S_IRUGO, NULL, NULL, &sync_debugfs_fops);
 	return 0;
 }
-<<<<<<< HEAD
-
-late_initcall(sync_debugfs_init);
-
-=======
 late_initcall(sync_debugfs_init);
 
 #define DUMP_CHUNK 256
@@ -1130,5 +953,4 @@ void sync_dump(void)
 static void sync_dump(void)
 {
 }
->>>>>>> upstream/master-jelly-bean
 #endif
