@@ -50,11 +50,6 @@ USING_GPU_UTILIZATION=1
 USING_MALI_DVFS_ENABLED=1
 endif
 
-ifeq ($(CONFIG_GPU_CLOCK_CONTROL),y)
-mali-y += common/gpu_clock_control.o
-mali-y += common/gpu_voltage_control.o
-endif
-
 ifeq ($(CONFIG_VIDEO_MALI400MP_DEBUG),y)
 BUILD=debug
 endif
@@ -181,7 +176,7 @@ INCLUDES = \
 		-I$(MALI_INCLUDE_PREFIX)common \
 		-I$(MALI_INCLUDE_PREFIX)linux \
 		-I$(MALI_INCLUDE_PREFIX)regs
-
+    
 ifeq ($(USING_PROFILING),1)
 INCLUDES += \
 		-I$(MALI_INCLUDE_PREFIX)include
@@ -306,8 +301,6 @@ endif
 
 ifeq ($(USING_MALI_DVFS_ENABLED),1)
 mali-y += $(MALI_PLATFORM_DIR)/mali_platform_dvfs.o
-mali-y += common/gpu_clock_control.o
-mali-y += common/gpu_voltage_control.o
 endif #($(USING_MALI_DVFS_ENABLED),1)
 
 EXTRA_CFLAGS += -DUSING_MALI400
@@ -331,3 +324,4 @@ SVN_REV:=$(shell ((svnversion | grep -E "^[0-9]+" && echo -n 'Revision: ' && svn
 
 EXTRA_CFLAGS += -DSVN_REV=$(SVN_REV)
 EXTRA_CFLAGS += -DSVN_REV_STRING=\"$(SVN_REV)\"
+

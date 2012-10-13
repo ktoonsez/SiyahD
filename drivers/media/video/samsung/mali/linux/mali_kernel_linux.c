@@ -82,8 +82,6 @@ EXPORT_SYMBOL(mali_get_user_setting);
 extern int mali_dvfs_control;
 module_param(mali_dvfs_control, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP| S_IROTH); /* rw-rw-r-- */
 MODULE_PARM_DESC(mali_dvfs_control, "Mali Current DVFS");
-#if defined(CONFIG_CPU_EXYNOS4210)
-#else
 extern int step0_clk;
 module_param(step0_clk, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP| S_IROTH); /* rw-rw-r-- */
 MODULE_PARM_DESC(step0_clk, "Mali Current step0_clk");
@@ -148,8 +146,6 @@ MODULE_PARM_DESC(step3_vol, "Mali Current step3_vol");
 #endif
 #endif
 #endif
-#endif
-#endif
 
 extern int mali_gpu_clk;
 module_param(mali_gpu_clk, int, S_IRUSR | S_IRGRP | S_IROTH); /* r--r--r-- */
@@ -162,7 +158,6 @@ MODULE_PARM_DESC(mali_gpu_vol, "Mali Current Voltage");
 extern int gpu_power_state;
 module_param(gpu_power_state, int, S_IRUSR | S_IRGRP | S_IROTH); /* r--r--r-- */
 MODULE_PARM_DESC(gpu_power_state, "Mali Power State");
-#endif
 
 //thanks to michyprima@XDA
 extern int mali_dvfs_utilization;
@@ -172,11 +167,13 @@ MODULE_PARM_DESC(mali_dvfs_utilization, "Mali Current Utilization");
 extern int mali_gpu_utilization_timeout;
 module_param(mali_gpu_utilization_timeout, int, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP| S_IROTH); /* rw-rw-r-- */
 MODULE_PARM_DESC(mali_gpu_utilization_timeout, "Mali GPU Utilization Timeout");
+#endif
 
 static char mali_dev_name[] = "mali"; /* should be const, but the functions we call requires non-cost */
 
 /* the mali device */
 static struct mali_dev device;
+
 
 static int mali_open(struct inode *inode, struct file *filp);
 static int mali_release(struct inode *inode, struct file *filp);
