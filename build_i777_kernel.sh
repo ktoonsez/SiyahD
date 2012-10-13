@@ -39,12 +39,8 @@ then
 	export KERNELDIR=`readlink -f ${1}`
 fi;
 
-if [ ! -f $KERNELDIR/.config ]; then
-	cp $KERNELDIR/arch/arm/configs/dorimanx_i777_defconfig .config
-	make dorimanx_i777_defconfig
-fi;
-
-. $KERNELDIR/.config
+cp $KERNELDIR/arch/arm/configs/dorimanx_i777_defconfig .config
+make dorimanx_i777_defconfig
 
 # remove previous zImage files
 if [ -e $KERNELDIR/zImage ]; then
@@ -78,7 +74,6 @@ rm -f usr/initramfs_data.cpio
 rm -f usr/initramfs_data.o
 
 cd $KERNELDIR/
-cp .config arch/arm/configs/dorimanx_i777_defconfig
 if [ $USER != "root" ]; then
 	make -j$NAMBEROFCPUS modules || exit 1
 else
@@ -125,7 +120,6 @@ if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
 	$KERNELDIR/mkshbootimg.py $KERNELDIR/zImage $KERNELDIR/arch/arm/boot/zImage $KERNELDIR/payload.tar $KERNELDIR/recovery.tar.xz
 
 	# copy all needed to ready kernel folder.
-	cp $KERNELDIR/.config $KERNELDIR/arch/arm/configs/dorimanx_i777_defconfig
 	cp $KERNELDIR/.config $KERNELDIR/READY/
 	rm $KERNELDIR/READY/boot/zImage
 	rm $KERNELDIR/READY/Kernel_Dorimanx-*

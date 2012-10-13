@@ -2674,9 +2674,7 @@ dhd_stop(struct net_device *net)
 #endif
 
 #ifdef PROP_TXSTATUS
-	dhd_os_wlfc_block(&dhd->pub);
 	dhd_wlfc_cleanup(&dhd->pub);
-	dhd_os_wlfc_unblock(&dhd->pub);
 #endif
 	/* Set state and stop OS transmissions */
 	dhd->pub.up = 0;
