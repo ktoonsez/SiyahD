@@ -57,7 +57,7 @@ typedef struct mali_runtime_resumeTag{
 	int vol;
 }mali_runtime_resume_table;
 
-mali_runtime_resume_table mali_runtime_resume = {100, 1000000};
+mali_runtime_resume_table mali_runtime_resume = {100, 900000};
 
 /* lock/unlock CPU freq by Mali */
 extern int cpufreq_lock_by_mali(unsigned int freq);
@@ -83,7 +83,7 @@ static struct clk  *mali_clock = 0;
 static unsigned int GPU_MHZ	= 1000000;
 
 int mali_gpu_clk = 100;
-int mali_gpu_vol = 1000000;
+int mali_gpu_vol = 900000;
 
 #if MALI_DVFS_ENABLED
 #define MALI_DVFS_DEFAULT_STEP 0
@@ -167,7 +167,7 @@ void mali_regulator_set_voltage(int min_uV, int max_uV)
 
 	_mali_osk_lock_wait(mali_dvfs_lock, _MALI_OSK_LOCKMODE_RW);
 
-	if(IS_ERR_OR_NULL(g3d_regulator)) {
+	if (IS_ERR_OR_NULL(g3d_regulator)) {
 		MALI_DEBUG_PRINT(1, ("error on mali_regulator_set_voltage : g3d_regulator is null\n"));
 		return;
 	}
@@ -577,7 +577,7 @@ _mali_osk_errcode_t g3d_power_domain_control(int bpower_on)
 				return -ETIMEDOUT;
 			}
 			timeout--;
-			_mali_osk_time_ubusydelay( 100);
+			_mali_osk_time_ubusydelay(100);
 		}
 		MALI_PRINTF(("MALI Power domain disabled"));
 #endif //MALI_PMM_RUNTIME_JOB_CONTROL_ON
