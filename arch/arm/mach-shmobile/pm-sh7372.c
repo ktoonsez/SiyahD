@@ -55,8 +55,9 @@ static int pd_power_down(struct generic_pm_domain *genpd)
 		}
 	}
 
-	pr_debug("sh7372 power domain down 0x%08x -> PSTR = 0x%08x\n",
-		 mask, __raw_readl(PSTR));
+	if (!sh7372_pd->no_debug)
+		pr_debug("%s: Power off, 0x%08x -> PSTR = 0x%08x\n",
+			 genpd->name, mask, __raw_readl(PSTR));
 
 	return 0;
 }
@@ -83,6 +84,10 @@ static int pd_power_up(struct generic_pm_domain *genpd)
 	}
 	if (__raw_readl(SWUCR) & mask)
 		ret = -EIO;
+
+	if (!sh7372_pd->no_debug)
+		pr_debug("%s: Power on, 0x%08x -> PSTR = 0x%08x\n",
+			 sh7372_pd->genpd.name, mask, __raw_readl(PSTR));
 
  out:
 	pr_debug("sh7372 power domain up 0x%08x -> PSTR = 0x%08x\n",
@@ -184,26 +189,56 @@ void sh7372_add_device_to_domain(struct sh7372_pm_domain *sh7372_pd,
 }
 
 struct sh7372_pm_domain sh7372_a4lc = {
+	.genpd.name = "A4LC",
 	.bit_shift = 1,
 };
 
 struct sh7372_pm_domain sh7372_a4mp = {
+	.genpd.name = "A4MP",
 	.bit_shift = 2,
 };
 
 struct sh7372_pm_domain sh7372_d4 = {
+	.genpd.name = "D4",
 	.bit_shift = 3,
 };
 
+struct sh7372_pm_domain sh7372_a4r = {
+	.genpd.name = "A4R",
+	.bit_shift = 5,
+	.gov = &sh7372_always_on_gov,
+	.suspend = sh7372_a4r_suspend,
+	.resume = sh7372_intcs_resume,
+	.stay_on = true,
+};
+
 struct sh7372_pm_domain sh7372_a3rv = {
+	.genpd.name = "A3RV",
 	.bit_shift = 6,
 };
 
 struct sh7372_pm_domain sh7372_a3ri = {
+	.genpd.name = "A3RI",
 	.bit_shift = 8,
 };
 
+struct sh7372_pm_domain sh7372_a3sp = {
+	.genpd.name = "A3SP",
+	.bit_shift = 11,
+	.gov = &sh7372_always_on_gov,
+	.no_debug = true,
+};
+
+static void sh7372_a3sp_init(void)
+{
+	/* serial consoles make use of SCIF hardware located in A3SP,
+	 * keep such power domain on if "no_console_suspend" is set.
+	 */
+	sh7372_a3sp.stay_on = !console_suspend_enabled;
+}
+
 struct sh7372_pm_domain sh7372_a3sg = {
+	.genpd.name = "A3SG",
 	.bit_shift = 13,
 };
 
