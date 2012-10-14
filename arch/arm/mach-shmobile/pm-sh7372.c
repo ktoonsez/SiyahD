@@ -113,11 +113,10 @@ static int pd_power_down_a3rv(struct generic_pm_domain *genpd)
 
 static int pd_power_down_a4lc(struct generic_pm_domain *genpd)
 {
-	/* only power down A4LC if A3RV is off */
-	if (!(__raw_readl(PSTR) & (1 << sh7372_a3rv.bit_shift)))
-		return pd_power_down(genpd);
+	bool (*active_wakeup)(struct device *dev);
 
-	return -EBUSY;
+	active_wakeup = dev_gpd_data(dev)->ops.active_wakeup;
+	return active_wakeup ? active_wakeup(dev) : true;
 }
 
 static bool pd_active_wakeup(struct device *dev)
@@ -125,27 +124,51 @@ static bool pd_active_wakeup(struct device *dev)
 	return true;
 }
 
+struct dev_power_governor sh7372_always_on_gov = {
+	.power_down_ok = sh7372_power_down_forbidden,
+};
+
+static int sh7372_stop_dev(struct device *dev)
+{
+	int (*stop)(struct device *dev);
+
+	stop = dev_gpd_data(dev)->ops.stop;
+	if (stop) {
+		int ret = stop(dev);
+		if (ret)
+			return ret;
+	}
+	return pm_clk_suspend(dev);
+}
+
+static int sh7372_start_dev(struct device *dev)
+{
+	int (*start)(struct device *dev);
+	int ret;
+
+	ret = pm_clk_resume(dev);
+	if (ret)
+		return ret;
+
+	start = dev_gpd_data(dev)->ops.start;
+	if (start)
+		ret = start(dev);
+
+	return ret;
+}
+
 void sh7372_init_pm_domain(struct sh7372_pm_domain *sh7372_pd)
 {
 	struct generic_pm_domain *genpd = &sh7372_pd->genpd;
 
-	pm_genpd_init(genpd, NULL, false);
-	genpd->stop_device = pm_clk_suspend;
-	genpd->start_device = pm_clk_resume;
+	pm_genpd_init(genpd, sh7372_pd->gov, false);
+	genpd->dev_ops.stop = sh7372_stop_dev;
+	genpd->dev_ops.start = sh7372_start_dev;
+	genpd->dev_ops.active_wakeup = pd_active_wakeup;
 	genpd->dev_irq_safe = true;
-	genpd->active_wakeup = pd_active_wakeup;
-
-	if (sh7372_pd == &sh7372_a4lc) {
-		genpd->power_off = pd_power_down_a4lc;
-		genpd->power_on = pd_power_up;
-	} else if (sh7372_pd == &sh7372_a3rv) {
-		genpd->power_off = pd_power_down_a3rv;
-		genpd->power_on = pd_power_up_a3rv;
-	} else {
-		genpd->power_off = pd_power_down;
-		genpd->power_on = pd_power_up;
-	}
-	genpd->power_on(&sh7372_pd->genpd);
+	genpd->power_off = pd_power_down;
+	genpd->power_on = pd_power_up;
+	__pd_power_up(sh7372_pd, false);
 }
 
 void sh7372_add_device_to_domain(struct sh7372_pm_domain *sh7372_pd,
