@@ -441,6 +441,11 @@ struct pm_subsys_data {
 
 struct dev_pm_info {
 	pm_message_t		power_state;
+	unsigned int		can_wakeup:1;
+	unsigned int		async_suspend:1;
+	bool			is_prepared:1;	/* Owned by the PM core */
+	bool			is_suspended:1;	/* Ditto */
+	bool			ignore_children:1;
 	spinlock_t		lock;
 #ifdef CONFIG_PM_SLEEP
 	struct list_head	entry;
@@ -450,13 +455,8 @@ struct dev_pm_info {
 #else
 	unsigned int		should_wakeup:1;
 #endif
-	unsigned int		can_wakeup:1;
-	unsigned int		async_suspend:1;
-	bool			is_prepared:1;	/* Owned by the PM core */
-	bool			is_suspended:1;	/* Ditto */
 #ifdef CONFIG_PM_RUNTIME
 	unsigned int		disable_depth:3;
-	unsigned int		ignore_children:1;
 	unsigned int		idle_notification:1;
 	unsigned int		request_pending:1;
 	unsigned int		deferred_resume:1;
