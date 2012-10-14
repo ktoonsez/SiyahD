@@ -8,6 +8,7 @@
  */
 
 #include <linux/sched.h>
+#include <linux/module.h>
 #include <linux/pm_runtime.h>
 #include <trace/events/rpm.h>
 #include "power.h"
