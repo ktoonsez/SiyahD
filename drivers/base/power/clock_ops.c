@@ -157,12 +157,8 @@ void pm_clk_remove(struct device *dev, const char *con_id)
 void pm_clk_init(struct device *dev)
 {
 	struct pm_subsys_data *psd = dev_to_psd(dev);
-
-	if (!psd)
-		return;
-
-	INIT_LIST_HEAD(&psd->clock_list);
-	spin_lock_init(&psd->lock);
+	if (psd)
+		INIT_LIST_HEAD(&psd->clock_list);
 }
 
 /**
@@ -174,16 +170,8 @@ void pm_clk_init(struct device *dev)
  */
 int pm_clk_create(struct device *dev)
 {
-	struct pm_subsys_data *psd;
-
-	psd = kzalloc(sizeof(*psd), GFP_KERNEL);
-	if (!psd) {
-		dev_err(dev, "Not enough memory for PM clock data.\n");
-		return -ENOMEM;
-	}
-	dev->power.subsys_data = psd;
-	pm_clk_init(dev);
-	return 0;
+	int ret = dev_pm_get_subsys_data(dev);
+	return ret < 0 ? ret : 0;
 }
 
 /**
@@ -203,7 +191,6 @@ void pm_clk_destroy(struct device *dev)
 	if (!psd)
 		return;
 
-	dev->power.subsys_data = NULL;
 	INIT_LIST_HEAD(&list);
 
 	spin_lock_irq(&psd->lock);
@@ -213,7 +200,7 @@ void pm_clk_destroy(struct device *dev)
 
 	spin_unlock_irq(&psd->lock);
 
-	kfree(psd);
+	dev_pm_put_subsys_data(dev);
 
 	list_for_each_entry_safe_reverse(ce, c, &list, node) {
 		list_del(&ce->node);
