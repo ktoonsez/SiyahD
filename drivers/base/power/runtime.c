@@ -294,6 +294,9 @@ static int rpm_callback(int (*cb)(struct device *), struct device *dev)
  * the callback was running then carry it out, otherwise send an idle
  * notification for its parent (if the suspend succeeded and both
  * ignore_children of parent->power and irq_safe of dev->power are not set).
+ * If ->runtime_suspend failed with -EAGAIN or -EBUSY, and if the RPM_AUTO
+ * flag is set and the next autosuspend-delay expiration time is in the
+ * future, schedule another autosuspend attempt.
  *
  * This function must be called under dev->power.lock with interrupts disabled.
  */
@@ -427,9 +430,9 @@ static int rpm_suspend(struct device *dev, int rpmflags)
 				goto repeat;
 		} else {
 			pm_runtime_cancel_pending(dev);
-			wake_up_all(&dev->power.wait_queue);
-			goto out;
 		}
+		wake_up_all(&dev->power.wait_queue);
+		goto out;
 	}
  no_callback:
 	__update_runtime_status(dev, RPM_SUSPENDED);
