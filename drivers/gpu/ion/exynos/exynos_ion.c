@@ -705,7 +705,7 @@ static int ion_exynos_user_heap_allocate(struct ion_heap *heap,
 	privdata = kmalloc(sizeof(*privdata), GFP_KERNEL);
 	if (!privdata) {
 		ret = -ENOMEM;
-		goto finish;
+		goto err_privdata;
 	}
 
 	buffer->priv_virt = privdata;
@@ -715,13 +715,15 @@ static int ion_exynos_user_heap_allocate(struct ion_heap *heap,
 				flags & ION_EXYNOS_WRITE_MASK, pages);
 
 	if (ret < 0) {
+		kfree(pages);
+
 		ret = pfnmap_digger(&privdata->sgt, start, nr_pages);
 		if (ret)
 			goto err_pfnmap;
 
 		privdata->is_pfnmap = true;
 
-		goto finish;
+		return 0;
 	}
 
 	if (ret != nr_pages) {
@@ -761,7 +763,7 @@ err_alloc_sg:
 		put_page(pages[i]);
 err_pfnmap:
 	kfree(privdata);
-finish:
+err_privdata:
 	kfree(pages);
 	return ret;
 }
@@ -817,7 +819,6 @@ static void ion_exynos_user_heap_destroy(struct ion_heap *heap)
 	kfree(heap);
 }
 
-#if 0
 enum ION_MSYNC_TYPE {
 	IMSYNC_DEV_TO_READ = 0,
 	IMSYNC_DEV_TO_WRITE = 1,
@@ -1024,7 +1025,6 @@ static long exynos_heap_ioctl(struct ion_client *client, unsigned int cmd,
 
 	return ret;
 }
-#endif
 
 static struct ion_heap *__ion_heap_create(struct ion_platform_heap *heap_data)
 {
@@ -1089,7 +1089,7 @@ static int exynos_ion_probe(struct platform_device *pdev)
 	if (!heaps)
 		return -ENOMEM;
 
-	ion_exynos = ion_device_create(NULL);
+	ion_exynos = ion_device_create(&exynos_heap_ioctl);
 	if (IS_ERR_OR_NULL(ion_exynos)) {
 		kfree(heaps);
 		return PTR_ERR(ion_exynos);
