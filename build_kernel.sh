@@ -42,7 +42,13 @@ fi;
 # build script
 export USER=`whoami`
 
-NAMBEROFCPUS=`grep 'processor' /proc/cpuinfo | wc -l`
+HOST_CHECK=`uname -n`
+if [ $HOST_CHECK == dorimanx-virtual-machine ]; then
+	NAMBEROFCPUS=32
+	echo "Dori power detected!"
+else
+	NAMBEROFCPUS=`grep 'processor' /proc/cpuinfo | wc -l`
+fi;
 INITRAMFS_TMP="/tmp/initramfs-source"
 
 if [ "${1}" != "" ];
@@ -145,6 +151,10 @@ if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
 	cp $KERNELDIR/zImage /$KERNELDIR/READY/boot/
 	cd $KERNELDIR/READY/
 	zip -r Kernel_Dorimanx-$GETVER-`date +"-%H-%M--%d-%m-12-SGII-PWR-CORE"`.zip .
+	STATUS=`adb get-state`;
+	if [ "$STATUS" == "device" ]; then
+		adb push $KERNELDIR/READY-JB/Kernel_Dorimanx*JB-MALI*.zip /sdcard/;
+	fi;
 else
 	echo "Kernel STUCK in BUILD! no zImage exist"
 fi;
