@@ -166,7 +166,7 @@ void mali_regulator_set_voltage(int min_uV, int max_uV)
 	MALI_DEBUG_PRINT(2, ("= regulator_set_voltage: %d, %d \n",min_uV, max_uV));
 
 #if MALI_TIMELINE_PROFILING_ENABLED
-	_mali_profiling_add_event( MALI_PROFILING_EVENT_TYPE_SINGLE |
+	_mali_osk_profiling_add_event( MALI_PROFILING_EVENT_TYPE_SINGLE |
                                MALI_PROFILING_EVENT_CHANNEL_SOFTWARE |
                                MALI_PROFILING_EVENT_REASON_SINGLE_SW_GPU_VOLTS,
                                min_uV, max_uV, 1, 0, 0);
@@ -176,7 +176,7 @@ void mali_regulator_set_voltage(int min_uV, int max_uV)
 	voltage = regulator_get_voltage(g3d_regulator);
 
 #if MALI_TIMELINE_PROFILING_ENABLED
-	_mali_profiling_add_event( MALI_PROFILING_EVENT_TYPE_SINGLE |
+	_mali_osk_profiling_add_event( MALI_PROFILING_EVENT_TYPE_SINGLE |
                                MALI_PROFILING_EVENT_CHANNEL_SOFTWARE |
                                MALI_PROFILING_EVENT_REASON_SINGLE_SW_GPU_VOLTS,
                                voltage, 0, 2, 0, 0);
@@ -344,7 +344,7 @@ mali_bool mali_clk_set_rate(unsigned int clk, unsigned int mhz)
 #if MALI_TIMELINE_PROFILING_ENABLED
 	unsigned long previous_rate = 0;
 	previous_rate = clk_get_rate(mali_clock);
-	_mali_profiling_add_event( MALI_PROFILING_EVENT_TYPE_SINGLE |
+	_mali_osk_profiling_add_event( MALI_PROFILING_EVENT_TYPE_SINGLE |
                                MALI_PROFILING_EVENT_CHANNEL_SOFTWARE |
                                MALI_PROFILING_EVENT_REASON_SINGLE_SW_GPU_FREQ,
                                previous_rate, 0, 0, 0, 0);
@@ -354,7 +354,7 @@ mali_bool mali_clk_set_rate(unsigned int clk, unsigned int mhz)
 	rate = clk_get_rate(mali_clock);
 
 #if MALI_TIMELINE_PROFILING_ENABLED
-	_mali_profiling_add_event( MALI_PROFILING_EVENT_TYPE_SINGLE |
+	_mali_osk_profiling_add_event( MALI_PROFILING_EVENT_TYPE_SINGLE |
                                MALI_PROFILING_EVENT_CHANNEL_SOFTWARE |
                                MALI_PROFILING_EVENT_REASON_SINGLE_SW_GPU_FREQ,
                                rate, 1, 0, 0, 0);
