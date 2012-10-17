@@ -28,6 +28,8 @@ enum blkio_policy_id {
 
 #ifdef CONFIG_BLK_CGROUP
 
+extern struct percpu_mempool *blkg_stats_cpu_pool;
+
 enum stat_type {
 	/* Total time spent (in ns) between request dispatch to the driver and
 	 * request completion for IOs doen by this cgroup. This may not be
