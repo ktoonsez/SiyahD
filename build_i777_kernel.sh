@@ -31,7 +31,14 @@ GCCVERSION_NEW=`${CROSS_COMPILE}gcc --version | cut -d " " -f4 | cut -c1-3 | gre
 # build script
 export USER=`whoami`
 
-NAMBEROFCPUS=`grep 'processor' /proc/cpuinfo | wc -l`
+HOST_CHECK=`uname -n`
+if [ $HOST_CHECK = 'ktoonsez-VirtualBox' ]; then
+	NAMBEROFCPUS=24
+	echo "Ktoonsez 24!"
+else
+	NAMBEROFCPUS=`grep 'processor' /proc/cpuinfo | wc -l`
+	echo "Others! - " + $HOST_CHECK
+fi;
 INITRAMFS_TMP="/tmp/initramfs-source"
 
 if [ "${1}" != "" ];
