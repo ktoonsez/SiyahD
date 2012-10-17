@@ -2903,7 +2903,7 @@ static void cfq_init_prio_data(struct cfq_queue *cfqq, struct io_context *ioc)
 	cfq_clear_cfqq_prio_changed(cfqq);
 }
 
-static void changed_ioprio(struct io_context *ioc, struct cfq_io_context *cic)
+static void changed_ioprio(struct cfq_io_context *cic)
 {
 	struct cfq_data *cfqd = cic_to_cfqd(cic);
 	struct cfq_queue *cfqq;
@@ -2932,11 +2932,6 @@ static void changed_ioprio(struct io_context *ioc, struct cfq_io_context *cic)
 	spin_unlock_irqrestore(cfqd->queue->queue_lock, flags);
 }
 
-static void cfq_ioc_set_ioprio(struct io_context *ioc)
-{
-	call_for_each_cic(ioc, changed_ioprio);
-}
-
 static void cfq_init_cfqq(struct cfq_data *cfqd, struct cfq_queue *cfqq,
 			  pid_t pid, bool is_sync)
 {
@@ -2958,7 +2953,7 @@ static void cfq_init_cfqq(struct cfq_data *cfqd, struct cfq_queue *cfqq,
 }
 
 #ifdef CONFIG_CFQ_GROUP_IOSCHED
-static void changed_cgroup(struct io_context *ioc, struct cfq_io_context *cic)
+static void changed_cgroup(struct cfq_io_context *cic)
 {
 	struct cfq_queue *sync_cfqq = cic_to_cfqq(cic, 1);
 	struct cfq_data *cfqd = cic_to_cfqd(cic);
@@ -2983,12 +2978,6 @@ static void changed_cgroup(struct io_context *ioc, struct cfq_io_context *cic)
 	}
 
 	spin_unlock_irqrestore(q->queue_lock, flags);
-}
-
-static void cfq_ioc_set_cgroup(struct io_context *ioc)
-{
-	call_for_each_cic(ioc, changed_cgroup);
-	ioc->cgroup_changed = 0;
 }
 #endif  /* CONFIG_CFQ_GROUP_IOSCHED */
 
@@ -3227,11 +3216,10 @@ out:
 	 */
 	if (unlikely(test_and_clear_bit(IOC_CFQ_IOPRIO_CHANGED,
 					ioc->ioprio_changed)))
-		cfq_ioc_set_ioprio(ioc);
 
 #ifdef CONFIG_CFQ_GROUP_IOSCHED
-	if (unlikely(ioc->cgroup_changed))
-		cfq_ioc_set_cgroup(ioc);
+	if (test_and_clear_bit(CIC_CGROUP_CHANGED, &cic->changed))
+		changed_cgroup(cic);
 #endif
 	return cic;
 err:
