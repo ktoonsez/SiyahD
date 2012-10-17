@@ -30,7 +30,7 @@
 
 int set_task_ioprio(struct task_struct *task, int ioprio)
 {
-	int err, i;
+	int err;
 	struct io_context *ioc;
 	const struct cred *cred = current_cred(), *tcred;
 
@@ -47,15 +47,9 @@ int set_task_ioprio(struct task_struct *task, int ioprio)
 	if (err)
 		return err;
 
-	/* let other ioc users see the new values */
-	smp_wmb();
-
 	ioc = get_task_io_context(task, GFP_ATOMIC, NUMA_NO_NODE);
 	if (ioc) {
-		/* make sure schedulers see the new ioprio value */
-		wmb();
-		for (i = 0; i < IOC_IOPRIO_CHANGED_BITS; i++)
-			set_bit(i, ioc->ioprio_changed);
+		ioc_ioprio_changed(ioc, ioprio);
 		put_io_context(ioc);
 	}
 
