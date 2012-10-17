@@ -68,7 +68,6 @@ struct io_context {
 	spinlock_t lock;
 
 	unsigned short ioprio;
-	DECLARE_BITMAP(ioprio_changed, IOC_IOPRIO_CHANGED_BITS);
 
 	/*
 	 * For request batching
