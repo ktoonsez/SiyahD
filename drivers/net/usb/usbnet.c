@@ -1507,7 +1507,7 @@ int usbnet_suspend (struct usb_interface *intf, pm_message_t message)
 	if (!dev->suspend_count++) {
 		spin_lock_irq(&dev->txq.lock);
 		/* don't autosuspend while transmitting */
-		if (dev->txq.qlen && PMSG_IS_AUTO(message)) {
+		if (dev->txq.qlen && (message.event & PM_EVENT_AUTO)) {
 			spin_unlock_irq(&dev->txq.lock);
 			return -EBUSY;
 		} else {
