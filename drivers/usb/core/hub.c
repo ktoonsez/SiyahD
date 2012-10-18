@@ -2347,6 +2347,8 @@ int usb_port_suspend(struct usb_device *udev, pm_message_t msg)
 	int		port1 = udev->portnum;
 	int		status;
 
+	// dev_dbg(hub->intfdev, "suspend port %d\n", port1);
+
 	/* enable remote wakeup when appropriate; this lets the device
 	 * wake up the upstream hub (including maybe the root hub).
 	 *
@@ -2363,7 +2365,7 @@ int usb_port_suspend(struct usb_device *udev, pm_message_t msg)
 			dev_dbg(&udev->dev, "won't remote wakeup, status %d\n",
 					status);
 			/* bail if autosuspend is requested */
-			if (PMSG_IS_AUTO(msg))
+			if (msg.event & PM_EVENT_AUTO)
 				return status;
 		}
 	}
@@ -2388,13 +2390,12 @@ int usb_port_suspend(struct usb_device *udev, pm_message_t msg)
 				USB_CTRL_SET_TIMEOUT);
 
 		/* System sleep transitions should never fail */
-		if (!PMSG_IS_AUTO(msg))
+		if (!(msg.event & PM_EVENT_AUTO))
 			status = 0;
 	} else {
 		/* device has up to 10 msec to fully suspend */
-		dev_dbg(&udev->dev, "usb %ssuspend, wakeup %d\n",
-				(PMSG_IS_AUTO(msg) ? "auto-" : ""),
-				udev->do_remote_wakeup);
+		dev_dbg(&udev->dev, "usb %ssuspend\n",
+				(msg.event & PM_EVENT_AUTO ? "auto-" : ""));
 		usb_set_device_state(udev, USB_STATE_SUSPENDED);
 		msleep(10);
 	}
@@ -2549,7 +2550,7 @@ int usb_port_resume(struct usb_device *udev, pm_message_t msg)
 	} else {
 		/* drive resume for at least 20 msec */
 		dev_dbg(&udev->dev, "usb %sresume\n",
-			(PMSG_IS_AUTO(msg) ? "auto-" : ""));	
+				(msg.event & PM_EVENT_AUTO ? "auto-" : ""));
 
 		/* Add the 5msec delay for XMM6260 resume fail case*/
 		if (udev->quirks & USB_QUIRK_HSIC_TUNE)
@@ -2667,7 +2668,7 @@ static int hub_suspend(struct usb_interface *intf, pm_message_t msg)
 		udev = hdev->children [port1-1];
 		if (udev && udev->can_submit) {
 			dev_warn(&intf->dev, "port %d nyet suspended\n", port1);
-			if (PMSG_IS_AUTO(msg))
+			if (msg.event & PM_EVENT_AUTO)
 				return -EBUSY;
 		}
 	}
