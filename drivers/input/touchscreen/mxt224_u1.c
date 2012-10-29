@@ -211,7 +211,7 @@ struct mxt224_data {
 #define MAX_GESTURES 30
 #define MAX_GESTURE_FINGERS 5
 #define MAX_GESTURE_STEPS 10
-int gestures_enabled = 1;
+bool gestures_enabled = true;
 
 // Definitions
 struct gesture_point {
@@ -1345,6 +1345,7 @@ static void report_input_data(struct mxt224_data *data)
 	u16 size = 1;
 	u8 value;
 #ifdef CONFIG_TOUCHSCREEN_GESTURES
+	int state;
 	int gesture_no, finger_no;
 	int finger_pos;
 	struct gesture_point *point;
@@ -1382,8 +1383,9 @@ static void report_input_data(struct mxt224_data *data)
 		if (data->fingers[i].z == TSP_STATE_RELEASE) {
 #ifdef CONFIG_TOUCHSCREEN_GESTURES
 			// When a finger is released and its movement was not completed yet, reset it
-			if (gestures_enabled) {
-				spin_lock_irqsave(&gestures_lock, flags);
+			spin_lock_irqsave(&gestures_lock, flags);
+			state = get_suspend_state();
+			if (gestures_enabled && state == 0) {
 				for (gesture_no = 0; gesture_no < MAX_GESTURES; gesture_no++) {
 					if (gestures_detected[gesture_no])
 						// Ignore gestures already reported
@@ -1402,9 +1404,10 @@ static void report_input_data(struct mxt224_data *data)
 						}
 					}
 				}
-				spin_unlock_irqrestore(&gestures_lock, flags);
 			}
+			spin_unlock_irqrestore(&gestures_lock, flags);
 #endif
+
 			input_mt_slot(data->input_dev, i);
 			input_mt_report_slot_state(data->input_dev,
 				MT_TOOL_FINGER, false);
@@ -1430,8 +1433,9 @@ static void report_input_data(struct mxt224_data *data)
 
 #ifdef CONFIG_TOUCHSCREEN_GESTURES
 		// Finger being moved, check the gesture steps progress
-		if (gestures_enabled) {
-			spin_lock_irqsave(&gestures_lock, flags);
+		spin_lock_irqsave(&gestures_lock, flags);
+		state = get_suspend_state();
+		if (gestures_enabled && state == 0) {
 			for (gesture_no = 0; gesture_no < MAX_GESTURES; gesture_no++) {
 				if (gestures_detected[gesture_no])
 					// Ignore further movement for gestures already reported
@@ -1491,9 +1495,10 @@ static void report_input_data(struct mxt224_data *data)
 					}
 				}
 			}
-			spin_unlock_irqrestore(&gestures_lock, flags);
 		}
+		spin_unlock_irqrestore(&gestures_lock, flags);
 #endif
+
 		input_mt_slot(data->input_dev, i);
 		input_mt_report_slot_state(data->input_dev,
 			MT_TOOL_FINGER, true);
@@ -1577,8 +1582,9 @@ static void report_input_data(struct mxt224_data *data)
 
 #ifdef CONFIG_TOUCHSCREEN_GESTURES
 	// Check completed gestures or reset all progress if all fingers released
-	if (gestures_enabled) {
-		spin_lock_irqsave(&gestures_lock, flags);
+	spin_lock_irqsave(&gestures_lock, flags);
+	state = get_suspend_state();
+	if (gestures_enabled && state == 0) {
 		for (gesture_no = 0; gesture_no < MAX_GESTURES; gesture_no++) {
 			if (gestures_detected[gesture_no])
 				// Gesture already reported, skip
@@ -1611,8 +1617,8 @@ static void report_input_data(struct mxt224_data *data)
 				}
 			}
 		}
-		spin_unlock_irqrestore(&gestures_lock, flags);
 	}
+	spin_unlock_irqrestore(&gestures_lock, flags);
 #endif
 
 	if (!tsp_state && copy_data->lock_status) {
