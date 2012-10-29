@@ -600,19 +600,9 @@ static void dhd_set_packet_filter(int value, dhd_pub_t *dhd)
 #endif /* PKT_FILTER_SUPPORT */
 }
 
-#ifdef CONFIG_BCMDHD_PMFAST
-static int wifi_pm = 0;
-/* /sys/module/dhd/parameters/wifi_pm */
-module_param(wifi_pm, int, 0755);
-EXPORT_SYMBOL(wifi_pm);
-#endif
-
 #if defined(CONFIG_HAS_EARLYSUSPEND)
 static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 {
-#ifdef CONFIG_BCMDHD_PMFAST
-	int power_mode;
-#endif
 	char iovbuf[32];
 #ifndef CUSTOMER_HW_SAMSUNG
 	int power_mode = PM_MAX;
@@ -627,16 +617,6 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 	DHD_ERROR(("%s: enter, value = %d in_suspend=%d\n",
 		__FUNCTION__, value, dhd->in_suspend));
 
-#ifdef CONFIG_BCMDHD_PMFAST
-	if (wifi_pm == 1) {
-		power_mode = PM_FAST;
-		pr_info("[Dorimanx] %p Wi-Fi Power Management policy changed to PM_FAST.", __func__);
-	} else {
-		power_mode = PM_MAX;
-		pr_info("[Dorimanx] %p Wi-Fi Power Management policy changed to PM_MAX.", __func__);
-	}
-#endif
-
 	if (dhd && dhd->up) {
 		if (value && dhd->in_suspend) {
 
@@ -645,16 +625,11 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 #endif
 
 			/* Kernel suspended */
-			DHD_ERROR(("%s: force extra Suspend setting\n", __FUNCTION__));
+			DHD_ERROR(("%s: force extra Suspend setting \n", __FUNCTION__));
 
-#ifdef CONFIG_BCMDHD_PMFAST
-			dhd_wl_ioctl_cmd(dhd, WLC_SET_PM, (char *)&power_mode,
-				sizeof(power_mode), TRUE, 0);
-#else
 #ifndef CUSTOMER_HW_SAMSUNG
 			dhd_wl_ioctl_cmd(dhd, WLC_SET_PM, (char *)&power_mode,
 				sizeof(power_mode), TRUE, 0);
-#endif
 #endif
 
 			/* Enable packet filter, only allow unicast packet to send up */
@@ -688,18 +663,14 @@ static int dhd_set_suspend(int value, dhd_pub_t *dhd)
 #endif
 
 			/* Kernel resumed  */
-			DHD_ERROR(("%s: Remove extra suspend setting\n", __FUNCTION__));
+			DHD_ERROR(("%s: Remove extra suspend setting \n", __FUNCTION__));
 
-#ifdef CONFIG_BCMDHD_PMFAST
-			dhd_wl_ioctl_cmd(dhd, WLC_SET_PM, (char *)&power_mode,
-				sizeof(power_mode), TRUE, 0);
-#else
 #ifndef CUSTOMER_HW_SAMSUNG
 			power_mode = PM_FAST;
 			dhd_wl_ioctl_cmd(dhd, WLC_SET_PM, (char *)&power_mode,
 				sizeof(power_mode), TRUE, 0);
 #endif
-#endif
+
 			/* disable pkt filter */
 			dhd_set_packet_filter(0, dhd);
 
@@ -3806,14 +3777,8 @@ dhd_preinit_ioctls(dhd_pub_t *dhd)
 
 #ifdef PKT_FILTER_SUPPORT
 	/* Setup defintions for pktfilter , enable in suspend */
-	dhd->pktfilter_count = 5;
-	/* Setup filter to allow unicast only */
+	dhd->pktfilter_count = 1;
 	dhd->pktfilter[0] = "100 0 0 0 0x01 0x00";
-	dhd->pktfilter[1] = NULL;
-	dhd->pktfilter[2] = NULL;
-	dhd->pktfilter[3] = NULL;
-	/* Add filter to pass multicastDNS packet and NOT filter out as Broadcast */
-	dhd->pktfilter[4] = "104 0 0 0 0xFFFFFFFFFFFF 0x01005E0000FB";
 
 #if defined(SOFTAP)
 	if (ap_fw_loaded) {
@@ -5003,9 +4968,6 @@ int net_os_set_suspend(struct net_device *dev, int val)
 
 	if (dhd) {
 		ret = dhd_set_suspend(val, &dhd->pub);
-#ifdef WL_CFG80211
-		wl_cfg80211_update_power_mode(dev);
-#endif
 	}
 #endif /* defined(CONFIG_HAS_EARLYSUSPEND) */
 	return ret;

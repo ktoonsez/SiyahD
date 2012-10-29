@@ -19,17 +19,9 @@ config BCM43241
 
 config BROADCOM_WIFI_RESERVED_MEM
 	bool "BROADCOM Reserved memory for wifi device"
-    	depends on (BCM4330 || BCM4334 || BCM43241)
+    depends on (BCM4330 || BCM4334 || BCM43241)
 	---help---
 		This is a configuration for broadcom WLAN driver.
-
-config BCMDHD_PMFAST
-	depends on BCM4330
-	bool "Low power mode PM_FAST"
-	default y
-	---help---
-	  Use low power mode PM_FAST instead of PM_MAX. Higher power
-	  consumption, but increases stability of wireless connection.
 
 config WLAN_COUNTRY_CODE
 	tristate "---Broadcom WiFi Driver for 5GH channel setting"
